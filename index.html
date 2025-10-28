@@ -1084,6 +1084,8 @@
   // Range warning hysteresis
   let lastLowWarningTime  = 0;
   let lastHighWarningTime = 0;
+  let lowOutOfRangeStart  = null;
+  let highOutOfRangeStart = null;
   const LOW_WARNING_HOLD_MS = 800;
   const HIGH_WARNING_HOLD_MS = 300;
 
@@ -1394,6 +1396,12 @@
     activeNoteInfo.accumErrWeighted += errRatio * dtMs;
   }
 
+  function getCurrentMinHoldMs() {
+    return (sensitivitySelect.value === "easy")
+      ? EASY_MIN_HOLD_MS
+      : HARD_MIN_HOLD_MS;
+  }
+
   function getHistoryWindowSeconds() {
     const base = (historySelect.value === "short") ? HISTORY_SHORT_S : HISTORY_LONG_S;
     if (sensitivitySelect.value === "easy") {
@@ -1529,16 +1537,36 @@
   /**********************
    * RANGE / STATUS MESSAGING
    **********************/
-  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow) {
+  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = EASY_MIN_HOLD_MS) {
     const t = nowMs();
     let belowNow = false;
     let aboveNow = false;
+    const holdMs = outOfRangeHoldMs ?? EASY_MIN_HOLD_MS;
+
     if (activeMidi != null) {
       if (activeMidi < gridLowestMidiC) {
-        belowNow = true;
+        if (lowOutOfRangeStart == null) {
+          lowOutOfRangeStart = t;
+        }
+        highOutOfRangeStart = null;
+        if (t - lowOutOfRangeStart >= holdMs) {
+          belowNow = true;
+        }
       } else if (activeMidi > gridHighestMidiLastNote) {
-        aboveNow = true;
+        lowOutOfRangeStart = null;
+        if (highOutOfRangeStart == null) {
+          highOutOfRangeStart = t;
+        }
+        if (t - highOutOfRangeStart >= holdMs) {
+          aboveNow = true;
+        }
+      } else {
+        lowOutOfRangeStart = null;
+        highOutOfRangeStart = null;
       }
+    } else {
+      lowOutOfRangeStart = null;
+      highOutOfRangeStart = null;
     }
     if (belowNow)  lastLowWarningTime  = t;
     if (aboveNow)  lastHighWarningTime = t;
@@ -1674,7 +1702,8 @@
       running,
       loudEnough,
       capturingNow,
-      inDeadZoneNow
+      inDeadZoneNow,
+      minHold
     );
 
     renderHeatmap();
@@ -1719,7 +1748,7 @@
       lastFrameTime = nowMs();
 
       updateDebugPanel({ freq: null, clarity: null, cents: null, rms: null });
-      updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+      updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
       tick();
     } catch (err) {
       console.error(err);
@@ -1753,7 +1782,7 @@
     micBtnIcon.classList.add("paused");
     micBtnIcon.textContent = "▶︎";
 
-    updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
   }
 
@@ -1877,7 +1906,7 @@
     rebuildRangeOptions({forceDefault: forceDefaultRange});
     buildGrid();
     highlightGridCell(null, 0);
-    updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
   }
 
@@ -1888,7 +1917,7 @@
   rangeSelect.addEventListener("change", () => {
     buildGrid();
     highlightGridCell(null, 0);
-    updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
   });
 
@@ -1913,7 +1942,7 @@
   dbgRange.textContent = "20–8200 Hz";
   dbgFft.textContent   = "2048";
   dbgSR.textContent    = "--";
-  updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+  updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
   updateDebugPanel({});
 
   lastDisplayedNoteName = "--";
