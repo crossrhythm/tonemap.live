@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tonemap Live</title>
+<style>
+  :root {
+    --bg-main: #0f172a;
+    --bg-panel: #1e293b;
+    --veil-bg: rgba(15,23,42,0.8);
+
+    --text-dim: #94a3b8;
+    --text-lite: #f8fafc;
+
+    --border-dim: #475569;
+    --accent-green: rgb(34,197,94);
+
+    --warn-color: #facc15;
+    --err-color: #ef4444;
+
+    --grid-bg: #000000;
+    --grid-line: #374151;
+    --grid-text-off: #4b5563;
+    --grid-text-seen: #d1d5db;
+    --grid-text-on: #ffffff;
+
+    --panel-bg: #1e293b;
+    --panel-border: #475569;
+    --panel-text-dim: #94a3b8;
+    --panel-text-lite: #f8fafc;
+    --panel-highlight: rgb(34,197,94);
+  }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-lite);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 1rem;
+    box-sizing: border-box;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  /* PAGE LAYOUT */
+  .page {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    min-height: 0;
+    height: calc(100vh - 2rem); /* viewport minus body padding */
+    position: relative;
+  }
+
+  /* LEFT COLUMN / GRID */
+  .left-col {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+
+    height: calc(100vh - 2rem);
+
+    background: var(--grid-bg);
+    border: 1px solid var(--grid-line);
+    border-radius: .5rem;
+    overflow: hidden;
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+  }
+
+  .grid-surface {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    height: 100%;
+    display: grid;
+    background: var(--grid-bg);
+  }
+
+  /* RIGHT COLUMN:
+     - top: fixed header (title + transport)
+     - bottom: scrollable area (pitch, controls, status)
+  */
+  .right-col {
+    flex: 0 0 220px;
+    max-width: 220px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: calc(100vh - 2rem);
+    position: relative;
+    z-index: 2;
+    background: transparent;
+  }
+  .right-fixed {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    padding-bottom: .5rem;
+  }
+  .right-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: .6rem;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    padding-right: .25rem;
+    padding-bottom: 1rem; /* give breathing room for Status and fix Safari scroll clipping */
+  }
+
+  /********************
+   * RIGHT COLUMN UI
+   ********************/
+
+  .app-title {
+    color: var(--text-lite);
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Transport row (Play/Pause + Reset) */
+  .mic-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Buttons:
+     - rectangular (~5:3 ratio)
+     - per-icon sizing for balance
+  */
+  .mic-btn,
+  .reset-btn {
+    appearance: none;
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    border: 3px solid var(--border-dim);
+    border-radius: .75rem;
+
+    padding: 0.55rem 1rem;
+    min-width: 6rem;
+    min-height: 3.6rem;
+
+    font-size: 2.5rem;
+    line-height: 1;
+    font-weight: 600;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mic-btn.on {
+    color: var(--accent-green);
+    border-color: var(--accent-green);
+  }
+
+  .mic-btn:disabled,
+  .reset-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+
+  /* Per-icon tweaks */
+  .icon-micstate.playing { /* pause glyph */
+    font-size: 2.5rem;
+    line-height: 1;
+  }
+  .icon-micstate.paused {  /* play glyph (smaller so it doesn’t look huge) */
+    font-size: 2.2rem;
+    line-height: 1;
+  }
+
+  .icon-reset {
+    font-size: 2.5rem;
+    line-height: 1;
+    transform: translateY(1px); /* optical centering */
+  }
+
+  /* Pitch readout */
+  .pitch-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+    text-align: center;
+  }
+
+  #note {
+    font-size: 2.4rem;
+    font-weight: 600;
+    line-height: 1;
+    color: #fff;
+    min-height: 1em;
+  }
+
+  #freq, #cents {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    min-height: 1.2em;
+  }
+
+  /* A4 block */
+  .a4-block-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .a4-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .a4-block label {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  select {
+    appearance: none;
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    border: 1px solid var(--border-dim);
+    border-radius: .5rem;
+    padding: .3rem .5rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* Control stack */
+  .control-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .6rem;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .range-select-block {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    align-items: center;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+  }
+
+  .row-inline {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: .5rem;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-dim);
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    transition: color 0.2s ease;
+    text-align: center;
+    justify-content: center;
+    max-width: 200px;
+  }
+  label.alert {
+    color: var(--warn-color);
+    font-weight: 600;
+  }
+
+  /* Min Vol + LED */
+  .volume-wrap {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .slider-col {
+    display: flex;
+    flex-direction: column;
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    line-height: 1.2;
+    min-width: 120px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]:focus { outline: none; }
+  input[type="range"]::-webkit-slider-runnable-track {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    border-radius: 999px;
+    height: 4px;
+  }
+  input[type="range"]::-moz-range-track {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    border-radius: 999px;
+    height: 4px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--text-lite);
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--border-dim);
+    margin-top: -6px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    background: var(--text-lite);
+    border-radius: 50%;
+    width: 14px;
+    height: 14px;
+    border: 1px solid var(--border-dim);
+  }
+
+  /* LED with smoothed fade */
+  .led {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid #1f2937;
+    box-shadow: 0 0 8px rgba(0,0,0,0.9);
+    transition: background-color 0.5s ease-out,
+                box-shadow 0.5s ease-out,
+                border-color 0.5s ease-out;
+  }
+  .led.green {
+    background-color: rgba(34,197,94,1);
+    box-shadow: 0 0 12px rgba(34,197,94,0.9);
+    border-color: rgba(16,94,47,1);
+  }
+  .led.gray {
+    background-color: rgba(107,114,128,1);
+    box-shadow: 0 0 8px rgba(0,0,0,0.9);
+    border-color: #1f2937;
+  }
+
+  /********************
+   * STATUS CARD
+   * Now lives INSIDE the scrollable block
+   ********************/
+  .panel-wrap {
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: .75rem;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
+    overflow: hidden;
+    min-width: 0;
+    font-size: .68rem;
+    line-height: 1.4;
+    margin-top: .5rem;
+  }
+
+  .panel-header-static {
+    padding: .5rem .75rem;
+    color: var(--text-lite);
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 1.3;
+    border-bottom: 1px solid var(--panel-border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .panel-header-left {
+    display: flex;
+    flex-direction: column;
+  }
+  .panel-header-right {
+    text-align: right;
+    font-weight: 400;
+    font-size: .65rem;
+    color: var(--panel-text-dim);
+  }
+
+  .panel-body {
+    padding: .5rem .75rem .75rem;
+    color: #cbd5e1;
+    word-break: break-word;
+  }
+
+  .section-head {
+    font-size: .7rem;
+    font-weight: 600;
+    color: var(--text-lite);
+    margin-top: .4rem;
+    margin-bottom: .25rem;
+    line-height: 1.3;
+  }
+
+  .panel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: .25rem;
+    gap: .5rem;
+    flex-wrap: wrap;
+    word-break: break-word;
+  }
+
+  .panel-row-key {
+    color: var(--panel-text-dim);
+    font-size: .68rem;
+    line-height: 1.3;
+  }
+
+  .panel-row-val {
+    color: var(--panel-text-lite);
+    text-align: right;
+    font-size: .68rem;
+    line-height: 1.3;
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+    min-width: 3rem;
+  }
+
+  .panel-row-val.deadzone-active {
+    color: var(--panel-highlight);
+    font-weight: 600;
+  }
+
+  .panel-footer {
+    margin-top: .5rem;
+    padding-top: .5rem;
+    border-top: 1px solid var(--panel-border);
+    font-size: .65rem;
+    color: var(--panel-text-dim);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    line-height: 1.3;
+    gap: .25rem;
+  }
+
+  .panel-footer-left {
+    color: var(--panel-text-dim);
+  }
+  .panel-footer-right {
+    text-align: right;
+    color: var(--panel-text-dim);
+  }
+
+  /********************
+   * LEFT COLUMN GRID
+   ********************/
+  .grid-cell {
+    position: relative;
+    border: 1px solid var(--grid-line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    color: var(--grid-text-off);
+    font-weight: 500;
+    text-align: center;
+    font-size: clamp(0.6rem, 1.5vw, 1.4rem);
+    line-height: 1;
+    min-height: 0;
+    transition: background-color 0.1s linear;
+  }
+
+  .grid-cell.visited {
+    color: var(--grid-text-seen);
+  }
+
+  .grid-cell.active {
+    color: var(--grid-text-on);
+    box-shadow: inset 0 0 0 6px #ffffff;
+  }
+
+  .tune-indicator {
+    position: absolute;
+    left: 50%;
+    width: 100%;
+    height: 4px;
+    background: var(--err-color);
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    display: none;
+  }
+
+  /********************
+   * OVERLAY FIRST RUN (mic permission)
+   ********************/
+  #overlayVeil {
+    position: absolute;
+    inset: 0;
+    background: var(--veil-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+  }
+
+  #overlayInner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    text-align: center;
+    color: var(--text-lite);
+  }
+
+  #overlayPlayBtn {
+    appearance: none;
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    border: 3px solid var(--accent-green);
+    border-radius: 1rem;
+    padding: 1rem 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    min-width: 8rem;
+    text-align: center;
+  }
+
+  #overlayMsg {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    max-width: 14rem;
+    line-height: 1.4;
+  }
+
+  /********************
+   * ORIENTATION OVERLAY (rotate suggestion)
+   ********************/
+  #orientOverlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,23,42,0.85);
+    color: var(--text-lite);
+    z-index: 998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  #orientInner {
+    max-width: 16rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    font-size: .9rem;
+    line-height: 1.4;
+    color: var(--text-lite);
+  }
+
+  #orientDismissBtn {
+    appearance: none;
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    border: 2px solid var(--border-dim);
+    border-radius: .75rem;
+    padding: .5rem .75rem;
+    font-size: .8rem;
+    line-height: 1.2;
+    cursor: pointer;
+    text-align: center;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="page">
+  <!-- FULLSCREEN OVERLAY ON FIRST LOAD (mic permission) -->
+  <div id="overlayVeil">
+    <div id="overlayInner">
+      <button id="overlayPlayBtn">▶︎</button>
+      <div id="overlayMsg">
+        Click Play and<br>
+        Allow Microphone to begin
+      </div>
+    </div>
+  </div>
+
+  <!-- ORIENTATION OVERLAY for portrait on phones -->
+  <div id="orientOverlay">
+    <div id="orientInner">
+      <div style="font-weight:600;font-size:1rem;">Rotate for best view</div>
+      <div>
+        Tonemap Live works best in landscape.<br/>
+        Please rotate your device.
+      </div>
+      <button id="orientDismissBtn">Use anyway</button>
+    </div>
+  </div>
+
+  <!-- LEFT: NOTE GRID -->
+  <div id="gridWrapper" class="left-col">
+    <div id="noteGrid" class="grid-surface">
+      <!-- cells injected dynamically -->
+    </div>
+  </div>
+
+  <!-- RIGHT: CONTROLS / INFO -->
+  <div class="right-col">
+
+    <!-- Fixed header -->
+    <div class="right-fixed">
+      <div class="app-title">Tonemap Live</div>
+
+      <div class="mic-row">
+        <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
+          <span class="icon-micstate paused">▶︎</span>
+        </button>
+        <button id="resetBtn" class="reset-btn" title="Reset Heatmap">
+          <span class="icon-reset">↻</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scrollable content (readout + controls + status) -->
+    <div class="right-scroll">
+
+      <!-- Pitch Readout -->
+      <div class="pitch-block">
+        <div id="note">--</div>
+        <div id="freq">-- Hz</div>
+        <div id="cents">-- cents</div>
+      </div>
+
+      <!-- A4 ref -->
+      <div class="a4-block-wrapper">
+        <div class="a4-block">
+          <label>
+            A4:
+            <select id="aRefSelect">
+              <option value="440" selected>440</option>
+              <option value="441">441</option>
+              <option value="442">442</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- User controls -->
+      <div class="control-stack">
+
+        <div class="range-select-block">
+          <label id="sensitivityLabel">
+            Sensitivity:
+            <select id="sensitivitySelect">
+              <option value="easy" selected>Easy Mode</option>
+              <option value="hard">Hard Mode</option>
+            </select>
+          </label>
+
+          <label id="historyLabel">
+            History:
+            <select id="historySelect">
+              <option value="short" selected>Short</option>
+              <option value="long">Long</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="range-select-block">
+          <label id="lowNoteLabel">
+            Low Note:
+            <select id="lowNoteSelect">
+              <option value="C1">C1</option>
+              <option value="C2">C2</option>
+              <option value="C3" selected>C3</option>
+              <option value="C4">C4</option>
+              <option value="C5">C5</option>
+            </select>
+          </label>
+
+          <label id="rangeLabel">
+            Range:
+            <select id="rangeSelect">
+              <!-- populated dynamically -->
+            </select>
+          </label>
+        </div>
+
+        <div class="row-inline">
+          <div class="volume-wrap">
+            <div class="slider-col">
+              <div style="font-size:0.7rem;color:var(--text-dim);">Min Vol</div>
+              <input id="volThresh" type="range" min="0" max="1" step="0.01" />
+            </div>
+            <div id="led" class="led gray"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inline Status (simple, not a bordered card, always in scroll flow) -->
+      <div class="status-simple" style="font-size:.7rem; line-height:1.4; color:#cbd5e1; text-align:left; width:100%; max-width:200px; margin:0 auto 1rem auto;">
+        <div style="color:#fff; font-weight:600; font-size:.75rem; display:flex; justify-content:space-between;">
+          <span>Status</span>
+          <span style="color:#94a3b8; font-weight:400;">V1.03</span>
+        </div>
+
+        <div style="margin-top:.5rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+            <span style="color:#94a3b8;">Listening</span>
+            <span id="dbgListening" style="color:#f8fafc; min-width:3rem; text-align:right;">Paused</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
+            <span style="color:#94a3b8;">Guidance</span>
+            <span id="dbgGuidance" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
+          </div>
+        </div>
+
+        <div style="color:#fff; font-weight:600; font-size:.75rem; margin-bottom:.25rem;">Mode</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Sensitivity</span>
+          <span id="dbgSens" style="color:#f8fafc; min-width:3rem; text-align:right;">Easy</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Dead Zone</span>
+          <span id="dbgDeadZone" style="color:#f8fafc; min-width:3rem; text-align:right;">~0.23%</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Min Hold</span>
+          <span id="dbgHold" style="color:#f8fafc; min-width:3rem; text-align:right;">0.10 s</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">History</span>
+          <span id="dbgHist" style="color:#f8fafc; min-width:3rem; text-align:right;">Short (3 s)</span>
+        </div>
+
+        <div style="color:#fff; font-weight:600; font-size:.75rem; margin-bottom:.25rem;">Signal</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">A4 Ref</span>
+          <span id="dbgARef" style="color:#f8fafc; min-width:3rem; text-align:right;">440</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Last Freq</span>
+          <span id="dbgFreq" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Cents</span>
+          <span id="dbgCents" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Clarity</span>
+          <span id="dbgClarity" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Input RMS</span>
+          <span id="dbgRMS" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Vol Threshold</span>
+          <span id="dbgThresh" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
+        </div>
+
+        <div style="color:#fff; font-weight:600; font-size:.75rem; margin-bottom:.25rem;">System</div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Sample Rate</span>
+          <span id="dbgSR" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">Range Gate</span>
+          <span id="dbgRange" style="color:#f8fafc; min-width:3rem; text-align:right;">20–8200 Hz</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
+          <span style="color:#94a3b8;">FFT Size</span>
+          <span id="dbgFft" style="color:#f8fafc; min-width:3rem; text-align:right;">2048</span>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem; border-top:1px solid #475569; padding-top:.5rem; margin-top:.5rem; color:#94a3b8; font-size:.65rem;">
+          <span>Tonemap Live</span>
+          <span>Status OK</span>
+        </div>
+      </div>
+
+    </div> <!-- /.right-scroll -->
+
+  </div><!-- /.right-col -->
+</div><!-- /.page -->
+
+<script type="module">
+  import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
+
+  /*************
+   * DOM REFS
+   *************/
+  const overlayVeil    = document.getElementById("overlayVeil");
+  const overlayPlayBtn = document.getElementById("overlayPlayBtn");
+
+  const orientOverlay     = document.getElementById("orientOverlay");
+  const orientDismissBtn  = document.getElementById("orientDismissBtn");
+
+  const micBtn        = document.getElementById("micBtn");
+  const micBtnIcon    = micBtn.querySelector(".icon-micstate");
+  const resetBtn      = document.getElementById("resetBtn");
+  const resetIcon     = resetBtn.querySelector(".icon-reset");
+
+  const aRefSelect    = document.getElementById("aRefSelect");
+
+  const volThreshEl   = document.getElementById("volThresh");
+  const ledEl         = document.getElementById("led");
+
+  const lowNoteLabel  = document.getElementById("lowNoteLabel");
+  const rangeLabel    = document.getElementById("rangeLabel");
+  const lowNoteSelect = document.getElementById("lowNoteSelect");
+  const rangeSelect   = document.getElementById("rangeSelect");
+
+  const sensitivitySelect = document.getElementById("sensitivitySelect");
+  const historySelect     = document.getElementById("historySelect");
+
+  const noteGrid      = document.getElementById("noteGrid");
+
+  const noteEl        = document.getElementById("note");
+  const freqEl        = document.getElementById("freq");
+  const centsEl       = document.getElementById("cents");
+
+  // status panel elems
+  const dbgListening  = document.getElementById("dbgListening");
+  const dbgGuidance   = document.getElementById("dbgGuidance");
+
+  const dbgSens       = document.getElementById("dbgSens");
+  const dbgDeadZone   = document.getElementById("dbgDeadZone");
+  const dbgHold       = document.getElementById("dbgHold");
+  const dbgHist       = document.getElementById("dbgHist");
+
+  const dbgARef       = document.getElementById("dbgARef");
+  const dbgFreq       = document.getElementById("dbgFreq");
+  const dbgClarity    = document.getElementById("dbgClarity");
+  const dbgCents      = document.getElementById("dbgCents");
+  const dbgRMS        = document.getElementById("dbgRMS");
+  const dbgThresh     = document.getElementById("dbgThresh");
+  const dbgSR         = document.getElementById("dbgSR");
+  const dbgRange      = document.getElementById("dbgRange");
+  const dbgFft        = document.getElementById("dbgFft");
+
+  /**********************
+   * RUNTIME STATE/DSP
+   **********************/
+  let audioContext;
+  let analyserNode;
+  let dataBuffer;
+  let detector;
+  let sampleRate = 0;
+
+  let running   = false;
+  let micStream = null;
+
+  let A4 = 440;
+
+  const MIN_FREQ = 20;
+  const MAX_FREQ = 8200;
+
+  // Easy vs Hard behavior
+  const EASY_DEADZONE_RATIO = 0.0023; // ~0.23%
+  const EASY_MIN_HOLD_MS = 100;
+
+  // Hard mode softened but still tighter than Easy
+  const HARD_DEADZONE_RATIO = EASY_DEADZONE_RATIO / 2; // ~0.12%
+  const HARD_MIN_HOLD_MS = 50;
+
+  // History windows (accumulated voiced seconds)
+  const HISTORY_SHORT_S = 3;
+  const HISTORY_LONG_S  = 20;
+
+  // time to reach full brightness in the cell heatmap
+  const FULL_CONF_MS = 1500;
+
+  // LED smoothing
+  let ledTargetGreen = false;
+  let ledLastSwitchTime = performance.now();
+  const LED_OFF_DELAY_MS = 500; // hold green ~0.5s before fading gray
+
+  function applyLEDVisual() {
+    if (ledTargetGreen) {
+      ledEl.classList.add("green");
+      ledEl.classList.remove("gray");
+    } else {
+      ledEl.classList.add("gray");
+      ledEl.classList.remove("green");
+    }
+  }
+
+  function updateLEDSticky(wantsGreen) {
+    const t = performance.now();
+
+    if (wantsGreen) {
+      // immediately show green, reset timer
+      ledTargetGreen = true;
+      ledLastSwitchTime = t;
+      applyLEDVisual();
+    } else {
+      // only fade to gray if quiet for long enough
+      if (t - ledLastSwitchTime > LED_OFF_DELAY_MS) {
+        ledTargetGreen = false;
+        applyLEDVisual();
+      }
+    }
+  }
+
+  // Per-note memory (intonation map)
+  let midiToCellEl = {};
+  let cellState = {};
+  let gridLowestMidiC = null;
+  let gridHighestMidiLastNote = null;
+
+  // Active note tracking
+  let currentMidiHeld = null;
+  let currentMidiHoldStart = 0;
+  let activeNoteInfo = {
+    midi: null,
+    startTime: 0,
+    accumTimeMs: 0,
+    accumErrWeighted: 0,
+  };
+
+  // Range warning hysteresis
+  let lastLowWarningTime  = 0;
+  let lastHighWarningTime = 0;
+  const LOW_WARNING_HOLD_MS = 800;
+  const HIGH_WARNING_HOLD_MS = 300;
+
+  // Last displayed pitch (volume gated)
+  let lastDisplayedNoteName = "--";
+  let lastDisplayedHz       = "-- Hz";
+  let lastDisplayedCents    = "-- cents";
+
+  // tick timing
+  let lastFrameTime = performance.now();
+
+  const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+  /**********************
+   * HELPERS
+   **********************/
+  function nowMs() {
+    return performance.now();
+  }
+
+  function computeRMS(buf) {
+    let sumSq = 0;
+    for (let i = 0; i < buf.length; i++) {
+      sumSq += buf[i]*buf[i];
+    }
+    return Math.sqrt(sumSq / buf.length);
+  }
+
+  function freqToNoteData(freq, A4ref) {
+    if (!freq || !isFinite(freq)) {
+      return {
+        noteName: "--",
+        octave: "",
+        cents: 0,
+        roundedFreq: 0,
+        midi: null,
+        idealFreq: null,
+        errRatio: 0
+      };
+    }
+
+    const semitonesFromA4 = 12 * (Math.log(freq / A4ref) / Math.log(2));
+    const midi = Math.round(semitonesFromA4) + 69;
+
+    const idealFreq = A4ref * Math.pow(2, (midi - 69) / 12);
+
+    const cents = 1200 * (Math.log(freq / idealFreq) / Math.log(2));
+    const errRatio = (freq - idealFreq) / idealFreq;
+
+    const noteIndex = (midi % 12 + 12) % 12;
+    const noteName = NOTE_NAMES[noteIndex];
+    const octave = Math.floor(midi / 12) - 1;
+
+    return {
+      noteName,
+      octave,
+      cents,
+      roundedFreq: freq.toFixed(2),
+      midi,
+      idealFreq,
+      errRatio
+    };
+  }
+
+  function updateDebugPanel({ freq, clarity, cents, rms }) {
+    dbgARef.textContent    = `${A4}`;
+    dbgFreq.textContent    = freq ? `${freq.toFixed(2)} Hz` : "--";
+    dbgCents.textContent   = (cents !== undefined && cents !== null)
+                              ? cents.toFixed(1) + " ¢"
+                              : "--";
+    dbgClarity.textContent = (clarity !== undefined && clarity !== null)
+                              ? clarity.toFixed(2)
+                              : "--";
+    dbgRMS.textContent     = (rms !== undefined && rms !== null)
+                              ? rms.toFixed(3)
+                              : "--";
+    dbgThresh.textContent  = volumeThreshold.toExponential(2);
+    dbgSR.textContent      = sampleRate ? `${Math.round(sampleRate)} Hz` : "--";
+    dbgRange.textContent   = "20–8200 Hz";
+    dbgFft.textContent     = "2048";
+
+    const isEasy = (sensitivitySelect.value === "easy");
+    if (isEasy) {
+        dbgSens.textContent     = "Easy";
+        dbgDeadZone.textContent = "~0.23%";
+        dbgHold.textContent     = "0.10 s";
+    } else {
+        dbgSens.textContent     = "Hard";
+        dbgDeadZone.textContent = "~0.12%";
+        dbgHold.textContent     = "0.05 s";
+    }
+
+    dbgHist.textContent     = (historySelect.value === "short")
+      ? "Short (3 s)"
+      : "Long (20 s)";
+  }
+
+  function setDeadZoneHighlight(inDeadZone) {
+    if (inDeadZone) {
+      dbgDeadZone.classList.add("deadzone-active");
+    } else {
+      dbgDeadZone.classList.remove("deadzone-active");
+    }
+  }
+
+  /**********************
+   * GRID / RANGE LOGIC
+   **********************/
+  const NOTE_NAMES_ORDER = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+  function noteNameToMidiC(noteNameWithOctave) {
+    const m = /^([A-G]#?)(\d+)$/.exec(noteNameWithOctave);
+    if (!m) return 24;
+    const baseName = m[1];
+    const octave   = parseInt(m[2], 10);
+
+    const baseForOct = 12 + octave * 12;
+    const idx = NOTE_NAMES_ORDER.indexOf(baseName);
+    if (idx === -1) return baseForOct;
+    return baseForOct + idx;
+  }
+
+  function rebuildRangeOptions({forceDefault=false} = {}) {
+    const lowNoteName = lowNoteSelect.value;
+    const lowMidiC = noteNameToMidiC(lowNoteName);
+
+    const maxTopMidiC = noteNameToMidiC("C8");
+    const diffSemis = maxTopMidiC - lowMidiC;
+    let maxOctavesPossible = Math.floor(diffSemis / 12) + 1;
+    if (maxOctavesPossible > 8) maxOctavesPossible = 8;
+
+    const minOctaves = 3;
+    const startOcts  = minOctaves;
+    const endOcts    = Math.max(minOctaves, maxOctavesPossible);
+
+    const prevVal = parseInt(rangeSelect.value || "0", 10);
+
+    rangeSelect.innerHTML = "";
+    for (let oct = startOcts; oct <= endOcts; oct++) {
+      const opt = document.createElement("option");
+      opt.value = String(oct);
+      opt.textContent = `${oct} octaves`;
+      rangeSelect.appendChild(opt);
+    }
+
+    let chosen;
+    if (forceDefault && rangeSelect.querySelector('option[value="5"]')) {
+      chosen = 5;
+    } else if (prevVal >= startOcts && prevVal <= endOcts) {
+      chosen = prevVal;
+    } else {
+      chosen = endOcts;
+    }
+    rangeSelect.value = String(chosen);
+  }
+
+  function buildGrid() {
+    const lowNoteName = lowNoteSelect.value;
+    const numOct      = parseInt(rangeSelect.value, 10);
+
+    const lowMidiC = noteNameToMidiC(lowNoteName);
+    gridLowestMidiC = lowMidiC;
+
+    const maxTopMidiC = noteNameToMidiC("C8");
+
+    const rows = [];
+    for (let r = 0; r < numOct; r++) {
+      const start = lowMidiC + r * 12;
+      if (start > maxTopMidiC) break;
+      rows.push(start);
+    }
+
+    if (rows.length > 0) {
+      const topRowStart = rows[rows.length - 1];
+      gridHighestMidiLastNote = topRowStart + 11;
+    } else {
+      gridHighestMidiLastNote = lowMidiC + 11;
+    }
+
+    noteGrid.innerHTML = "";
+    midiToCellEl = {};
+    cellState = {};
+
+    noteGrid.style.height = "100%";
+    noteGrid.style.gridTemplateColumns = `repeat(12, 1fr)`;
+    noteGrid.style.gridTemplateRows    = `repeat(${rows.length}, 1fr)`;
+
+    const rowsReversed = [...rows].reverse();
+    for (let rowStartMidi of rowsReversed) {
+      for (let i = 0; i < 12; i++) {
+        const midiVal = rowStartMidi + i;
+        const noteIndex = ((midiVal % 12) + 12) % 12;
+        const name = NOTE_NAMES_ORDER[noteIndex];
+        const octave   = Math.floor(midiVal / 12) - 1;
+
+        const cell = document.createElement("div");
+        cell.className = "grid-cell";
+        cell.dataset.midi = String(midiVal);
+        cell.textContent = name + octave;
+
+        const indicator = document.createElement("div");
+        indicator.className = "tune-indicator";
+        cell.appendChild(indicator);
+
+        noteGrid.appendChild(cell);
+        midiToCellEl[midiVal] = cell;
+
+        cellState[midiVal] = {
+          totalVoiceMs: 0,
+          segments: [],
+          colorRGB: {r:0,g:0,b:0},
+          visited: false
+        };
+      }
+    }
+  }
+
+  /**********************
+   * COLOR / INTENSITY
+   **********************/
+  function lerp(a,b,t){return a+(b-a)*t;}
+
+  function biasEasy(avgErrRatio) {
+    const base = {r:34,g:197,b:94};
+    const sharpCol = {r:250,g:204,b:21};
+    const flatCol  = {r:96,g:165,b:250};
+
+    const dz = EASY_DEADZONE_RATIO;
+    const absErr = Math.abs(avgErrRatio);
+
+    if (absErr <= dz) {
+      return base;
+    } else {
+      const span = 4*dz;
+      let t = (absErr - dz)/span;
+      if (t<0) t=0;
+      if (t>1) t=1;
+
+      if (avgErrRatio > 0) {
+        return {
+          r: lerp(base.r, sharpCol.r, t),
+          g: lerp(base.g, sharpCol.g, t),
+          b: lerp(base.b, sharpCol.b, t),
+        };
+      } else {
+        return {
+          r: lerp(base.r, flatCol.r, t),
+          g: lerp(base.g, flatCol.g, t),
+          b: lerp(base.b, flatCol.b, t),
+        };
+      }
+    }
+  }
+
+  function biasHard(avgErrRatio) {
+    const base = {r:34,g:197,b:94};
+    const sharpCol = {r:250,g:204,b:21};
+    const flatCol  = {r:96,g:165,b:250};
+
+    const dz = HARD_DEADZONE_RATIO;
+    const absErr = Math.abs(avgErrRatio);
+
+    if (absErr <= dz) {
+      return base;
+    } else {
+      const span = 8*dz;
+      let t = (absErr - dz)/span;
+      if (t<0) t=0;
+      if (t>1) t=1;
+
+      if (avgErrRatio > 0) {
+        return {
+          r: lerp(base.r, sharpCol.r, t),
+          g: lerp(base.g, sharpCol.g, t),
+          b: lerp(base.b, sharpCol.b, t),
+        };
+      } else {
+        return {
+          r: lerp(base.r, flatCol.r, t),
+          g: lerp(base.g, flatCol.g, t),
+          b: lerp(base.b, flatCol.b, t),
+        };
+      }
+    }
+  }
+
+  function computeColorBiasFromErr(avgErrRatio) {
+    if (sensitivitySelect.value === "easy") {
+      return biasEasy(avgErrRatio);
+    } else {
+      return biasHard(avgErrRatio);
+    }
+  }
+
+  function beginActiveNote(midi) {
+    activeNoteInfo.midi = midi;
+    activeNoteInfo.startTime = nowMs();
+    activeNoteInfo.accumTimeMs = 0;
+    activeNoteInfo.accumErrWeighted = 0;
+  }
+
+  function accumulateActiveNoteFrame(errRatio, dtMs) {
+    activeNoteInfo.accumTimeMs += dtMs;
+    activeNoteInfo.accumErrWeighted += errRatio * dtMs;
+  }
+
+  function getRecentWeightedErr(segments, windowSec) {
+    const windowMs = windowSec * 1000;
+    let remaining = windowMs;
+    let totalDur = 0;
+    let weightedErrSum = 0;
+
+    for (let i = segments.length - 1; i >= 0 && remaining > 0; i--) {
+      const seg = segments[i];
+      const take = Math.min(seg.durMs, remaining);
+      if (take > 0) {
+        weightedErrSum += seg.avgErrRatio * take;
+        totalDur += take;
+        remaining -= take;
+      }
+    }
+
+    if (totalDur <= 0) {
+      return { avgErrRatio: 0 };
+    }
+    return { avgErrRatio: (weightedErrSum / totalDur) };
+  }
+
+  function finalizeActiveSegment() {
+    const { midi, accumTimeMs, accumErrWeighted } = activeNoteInfo;
+    if (midi == null) return;
+    if (!cellState[midi]) return;
+    if (accumTimeMs <= 0) return;
+
+    const st = cellState[midi];
+    const avgErr = accumErrWeighted / accumTimeMs;
+
+    st.segments.push({
+      durMs: accumTimeMs,
+      avgErrRatio: avgErr
+    });
+
+    st.totalVoiceMs += accumTimeMs;
+
+    const intensity = Math.min(1, st.totalVoiceMs / FULL_CONF_MS);
+
+    const histMode = historySelect.value;
+    const windowSec = (histMode === "short") ? HISTORY_SHORT_S : HISTORY_LONG_S;
+    const recentWeighted = getRecentWeightedErr(st.segments, windowSec);
+
+    const biasColor = computeColorBiasFromErr(recentWeighted.avgErrRatio);
+
+    st.colorRGB = {
+      r: Math.round(biasColor.r * intensity),
+      g: Math.round(biasColor.g * intensity),
+      b: Math.round(biasColor.b * intensity),
+    };
+
+    st.visited = true;
+  }
+
+  function clearActiveNote() {
+    activeNoteInfo.midi = null;
+    activeNoteInfo.startTime = 0;
+    activeNoteInfo.accumTimeMs = 0;
+    activeNoteInfo.accumErrWeighted = 0;
+  }
+
+  function renderHeatmap() {
+    for (const midi in midiToCellEl) {
+      const cell = midiToCellEl[midi];
+      const st = cellState[midi];
+      if (!st) continue;
+      const c = st.colorRGB;
+      cell.style.backgroundColor = `rgb(${c.r},${c.g},${c.b})`;
+      if (st.visited) {
+        cell.classList.add("visited");
+      } else {
+        cell.classList.remove("visited");
+      }
+    }
+  }
+
+  // History change reinterprets stain (doesn't clear)
+  function recomputeAllCellColorsAndRender() {
+    for (const midi in cellState) {
+      const st = cellState[midi];
+      const intensity = Math.min(1, st.totalVoiceMs / FULL_CONF_MS);
+
+      const histMode = historySelect.value;
+      const windowSec = (histMode === "short") ? HISTORY_SHORT_S : HISTORY_LONG_S;
+      const recentWeighted = getRecentWeightedErr(st.segments, windowSec);
+
+      const biasColor = computeColorBiasFromErr(recentWeighted.avgErrRatio);
+
+      st.colorRGB = {
+        r: Math.round(biasColor.r * intensity),
+        g: Math.round(biasColor.g * intensity),
+        b: Math.round(biasColor.b * intensity),
+      };
+
+      if (st.totalVoiceMs > 0) {
+        st.visited = true;
+      }
+    }
+    renderHeatmap();
+  }
+
+  function highlightGridCell(activeMidi, cents) {
+    for (const midi in midiToCellEl) {
+      const cell = midiToCellEl[midi];
+      cell.classList.remove("active");
+      const ind = cell.querySelector(".tune-indicator");
+      if (ind) ind.style.display = "none";
+    }
+
+    if (activeMidi != null && midiToCellEl[activeMidi]) {
+      const cell = midiToCellEl[activeMidi];
+      cell.classList.add("active");
+
+      const ind = cell.querySelector(".tune-indicator");
+      if (ind) {
+        ind.style.display = "block";
+        const maxCents = 50;
+        let clamped = Math.max(-maxCents, Math.min(maxCents, cents || 0));
+        const pctUp = (clamped + maxCents) / (2 * maxCents); // 0..1
+        const yPercent = 90 - (pctUp * 80); // map to 10..90%
+        ind.style.top = yPercent + "%";
+      }
+    }
+  }
+
+  /**********************
+   * RANGE / STATUS MESSAGING
+   **********************/
+  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow) {
+    const t = nowMs();
+    let belowNow = false;
+    let aboveNow = false;
+    if (activeMidi != null) {
+      if (activeMidi < gridLowestMidiC) {
+        belowNow = true;
+      } else if (activeMidi > gridHighestMidiLastNote) {
+        aboveNow = true;
+      }
+    }
+    if (belowNow)  lastLowWarningTime  = t;
+    if (aboveNow)  lastHighWarningTime = t;
+
+    const lowRecent  = (t - lastLowWarningTime)  < LOW_WARNING_HOLD_MS;
+    const highRecent = (t - lastHighWarningTime) < HIGH_WARNING_HOLD_MS;
+
+    lowNoteLabel.classList.remove("alert");
+    rangeLabel.classList.remove("alert");
+
+    let listeningStr;
+    let guidanceStr = "--";
+
+    if (highRecent) {
+      rangeLabel.classList.add("alert");
+      guidanceStr = "Pitch above range";
+      listeningStr = runningNow ? "Listening…" : "Paused";
+    } else if (lowRecent) {
+      lowNoteLabel.classList.add("alert");
+      guidanceStr = "Pitch below range";
+      listeningStr = runningNow ? "Listening…" : "Paused";
+    } else {
+      if (!runningNow) {
+        listeningStr = "Paused";
+      } else if (!loudEnoughNow) {
+        listeningStr = "Too quiet";
+      } else {
+        listeningStr = "Listening…";
+      }
+    }
+
+    dbgListening.textContent = listeningStr;
+    dbgGuidance.textContent  = guidanceStr;
+
+    updateLEDSticky(capturingNow);
+    setDeadZoneHighlight(inDeadZoneNow);
+  }
+
+  /**********************
+   * AUDIO LOOP
+   **********************/
+  function sliderToThreshold(val) {
+    return Math.pow(10, (val - 1) * 3);
+  }
+  let volumeThreshold = sliderToThreshold(0.2);
+
+  function tick() {
+    if (!running) return;
+
+    analyserNode.getFloatTimeDomainData(dataBuffer);
+
+    const rms = computeRMS(dataBuffer);
+    const [pitch, clarity] = detector.findPitch(dataBuffer, sampleRate);
+
+    const nowT = nowMs();
+    const dtMs = nowT - lastFrameTime;
+    lastFrameTime = nowT;
+
+    const loudEnough = rms >= volumeThreshold;
+    const pitchValid =
+      clarity > 0.8 &&
+      pitch > MIN_FREQ &&
+      pitch < MAX_FREQ;
+
+    const isEasy = (sensitivitySelect.value === "easy");
+    const minHold = isEasy ? EASY_MIN_HOLD_MS : HARD_MIN_HOLD_MS;
+    const deadZoneRatio = isEasy ? EASY_DEADZONE_RATIO : HARD_DEADZONE_RATIO;
+
+    let capturingNow = false;
+    let activeMidiForUI = null;
+    let centsForUI = 0;
+    let inDeadZoneNow = false;
+
+    if (pitchValid && loudEnough) {
+      const nd = freqToNoteData(pitch, A4);
+      const { noteName, octave, cents, roundedFreq, midi, errRatio } = nd;
+
+      const absErr = Math.abs(errRatio);
+      inDeadZoneNow = (absErr <= deadZoneRatio);
+
+      // gated display of pitch readout
+      lastDisplayedNoteName = noteName + octave;
+      lastDisplayedHz       = `${roundedFreq} Hz`;
+      lastDisplayedCents    = `${cents.toFixed(1)} cents`;
+
+      // active note hold logic
+      if (currentMidiHeld !== midi) {
+        finalizeActiveSegment();
+        clearActiveNote();
+
+        currentMidiHeld = midi;
+        currentMidiHoldStart = nowT;
+        beginActiveNote(midi);
+      } else {
+        accumulateActiveNoteFrame(errRatio, dtMs);
+      }
+
+      const heldForMs = nowT - currentMidiHoldStart;
+      if (heldForMs >= minHold) {
+        finalizeActiveSegment();
+        beginActiveNote(midi);
+        currentMidiHoldStart = nowT;
+        capturingNow = true;
+      }
+
+      activeMidiForUI = midi;
+      centsForUI = cents;
+
+      updateDebugPanel({ freq: pitch, clarity, cents, rms });
+    } else {
+      finalizeActiveSegment();
+      clearActiveNote();
+      currentMidiHeld = null;
+      currentMidiHoldStart = nowT;
+
+      updateDebugPanel({
+        freq: pitchValid ? pitch : null,
+        clarity,
+        cents: null,
+        rms
+      });
+    }
+
+    // apply displayed values
+    noteEl.textContent  = lastDisplayedNoteName;
+    freqEl.textContent  = lastDisplayedHz;
+    centsEl.textContent = lastDisplayedCents;
+
+    // grid, status, LED
+    highlightGridCell(activeMidiForUI, centsForUI);
+    updateRangeAlertsAndStatusPanel(
+      activeMidiForUI,
+      running,
+      loudEnough,
+      capturingNow,
+      inDeadZoneNow
+    );
+
+    renderHeatmap();
+    requestAnimationFrame(tick);
+  }
+
+  async function startMic() {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)({
+        latencyHint: "interactive"
+      });
+
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      });
+
+      const source = audioContext.createMediaStreamSource(micStream);
+
+      analyserNode = audioContext.createAnalyser();
+      analyserNode.fftSize = 2048;
+      analyserNode.smoothingTimeConstant = 0;
+      source.connect(analyserNode);
+
+      sampleRate = audioContext.sampleRate;
+      dataBuffer = new Float32Array(analyserNode.fftSize);
+
+      detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
+
+      running = true;
+      micBtn.classList.add("on");
+      micBtnIcon.classList.remove("paused");
+      micBtnIcon.classList.add("playing");
+      micBtnIcon.textContent = "⏸︎";
+
+      overlayVeil.style.display = "none";
+
+      lastFrameTime = nowMs();
+
+      updateDebugPanel({ freq: null, clarity: null, cents: null, rms: null });
+      updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+      tick();
+    } catch (err) {
+      console.error(err);
+      running = false;
+      micBtn.classList.remove("on");
+      micBtnIcon.classList.remove("playing");
+      micBtnIcon.classList.add("paused");
+      micBtnIcon.textContent = "▶︎";
+      // overlay remains if mic denied
+    }
+  }
+
+  function stopMic() {
+    running = false;
+
+    finalizeActiveSegment();
+    clearActiveNote();
+
+    if (micStream) {
+      micStream.getTracks().forEach(track => track.stop());
+      micStream = null;
+    }
+    if (audioContext) {
+      audioContext.suspend?.();
+    }
+
+    micBtn.classList.remove("on");
+    micBtnIcon.classList.remove("playing");
+    micBtnIcon.classList.add("paused");
+    micBtnIcon.textContent = "▶︎";
+
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+    renderHeatmap();
+  }
+
+  function resetHeatmapOnly() {
+    finalizeActiveSegment();
+    clearActiveNote();
+
+    for (const midi in cellState) {
+      cellState[midi].totalVoiceMs = 0;
+      cellState[midi].segments = [];
+      cellState[midi].colorRGB = {r:0,g:0,b:0};
+      cellState[midi].visited = false;
+      const cell = midiToCellEl[midi];
+      if (cell) {
+        cell.classList.remove("visited");
+        cell.style.backgroundColor = "rgb(0,0,0)";
+      }
+    }
+    renderHeatmap();
+
+    lastDisplayedNoteName = "--";
+    lastDisplayedHz       = "-- Hz";
+    lastDisplayedCents    = "-- cents";
+    noteEl.textContent    = lastDisplayedNoteName;
+    freqEl.textContent    = lastDisplayedHz;
+    centsEl.textContent   = lastDisplayedCents;
+
+    // reset LED state
+    ledTargetGreen = false;
+    ledLastSwitchTime = performance.now();
+    applyLEDVisual();
+  }
+
+  function fullResetState() {
+    resetHeatmapOnly();
+  }
+
+  /**********************
+   * ORIENTATION OVERLAY
+   **********************/
+  let orientDismissed = false;
+
+  function isSmallPortrait() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const isPortrait = h > w;
+    const isNarrow = w < 800;
+    return isPortrait && isNarrow;
+  }
+
+  function updateOrientationOverlay() {
+    if (orientDismissed) {
+      orientOverlay.style.display = "none";
+      return;
+    }
+    if (isSmallPortrait()) {
+      orientOverlay.style.display = "flex";
+    } else {
+      orientOverlay.style.display = "none";
+    }
+  }
+
+  orientDismissBtn.addEventListener("click", () => {
+    orientDismissed = true;
+    orientOverlay.style.display = "none";
+  });
+
+  window.addEventListener("resize", updateOrientationOverlay);
+  window.addEventListener("orientationchange", updateOrientationOverlay);
+
+  /**********************
+   * EVENT LISTENERS
+   **********************/
+  function handleMicToggle() {
+    if (running) {
+      stopMic();
+    } else {
+      startMic();
+    }
+  }
+
+  micBtn.addEventListener("click", handleMicToggle);
+  overlayPlayBtn.addEventListener("click", handleMicToggle);
+
+  resetBtn.addEventListener("click", () => {
+    resetHeatmapOnly();
+  });
+
+  aRefSelect.addEventListener("change", () => {
+    const val = parseFloat(aRefSelect.value);
+    if (!isNaN(val)) {
+      A4 = val;
+      dbgARef.textContent = `${A4}`;
+    }
+  });
+
+  volThreshEl.addEventListener("input", () => {
+    const val = parseFloat(volThreshEl.value);
+    if (!isNaN(val)) {
+      volumeThreshold = sliderToThreshold(val);
+      dbgThresh.textContent = volumeThreshold.toExponential(2);
+    }
+  });
+  // initialize
+  volThreshEl.value = 0.2;
+  volumeThreshold = sliderToThreshold(0.2);
+  dbgThresh.textContent = volumeThreshold.toExponential(2);
+
+  function rebuildAll({forceDefaultRange=false} = {}) {
+    rebuildRangeOptions({forceDefault: forceDefaultRange});
+    buildGrid();
+    highlightGridCell(null, 0);
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+    renderHeatmap();
+  }
+
+  lowNoteSelect.addEventListener("change", () => {
+    rebuildAll();
+  });
+
+  rangeSelect.addEventListener("change", () => {
+    buildGrid();
+    highlightGridCell(null, 0);
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+    renderHeatmap();
+  });
+
+  // Sensitivity change = full reset (new session/clears stain)
+  sensitivitySelect.addEventListener("change", () => {
+    updateDebugPanel({});
+    fullResetState();
+    updateDebugPanel({});
+  });
+
+  // History change reinterprets stain (no reset)
+  historySelect.addEventListener("change", () => {
+    updateDebugPanel({});
+    recomputeAllCellColorsAndRender();
+  });
+
+  /**********************
+   * INITIALIZATION
+   **********************/
+  rebuildAll({forceDefaultRange:true});
+
+  dbgRange.textContent = "20–8200 Hz";
+  dbgFft.textContent   = "2048";
+  dbgSR.textContent    = "--";
+  updateRangeAlertsAndStatusPanel(null, running, false, false, false);
+  updateDebugPanel({});
+
+  lastDisplayedNoteName = "--";
+  lastDisplayedHz       = "-- Hz";
+  lastDisplayedCents    = "-- cents";
+  noteEl.textContent  = lastDisplayedNoteName;
+  freqEl.textContent  = lastDisplayedHz;
+  centsEl.textContent = lastDisplayedCents;
+
+  // Orientation hint on load
+  updateOrientationOverlay();
+</script>
+</body>
+</html>
