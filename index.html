@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<!-- Tonemap Live: interactive tuner UI. -->
+<!-- Version: 1.04 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -604,6 +606,10 @@
 </head>
 <body>
 
+<script>
+  window.APP_VERSION = "1.04";
+</script>
+
 <div class="page">
   <!-- FULLSCREEN OVERLAY ON FIRST LOAD (mic permission) -->
   <div id="overlayVeil">
@@ -732,7 +738,7 @@
       <div class="status-simple" style="font-size:.7rem; line-height:1.4; color:#cbd5e1; text-align:left; width:100%; max-width:200px; margin:0 auto 1rem auto;">
         <div style="color:#fff; font-weight:600; font-size:.75rem; display:flex; justify-content:space-between;">
           <span>Status</span>
-          <span style="color:#94a3b8; font-weight:400;">V1.03</span>
+          <span id="appVersion" style="color:#94a3b8; font-weight:400;"></span>
         </div>
 
         <div style="margin-top:.5rem;">
@@ -818,6 +824,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
+  const APP_VERSION = window.APP_VERSION || "1.04";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -890,6 +897,7 @@
   const noteEl        = document.getElementById("note");
   const freqEl        = document.getElementById("freq");
   const centsEl       = document.getElementById("cents");
+  const appVersionEl  = document.getElementById("appVersion");
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -975,6 +983,10 @@
         applyLEDVisual();
       }
     }
+  }
+
+  if (appVersionEl) {
+    appVersionEl.textContent = `V${APP_VERSION}`;
   }
 
   /**********************
