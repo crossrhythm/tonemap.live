@@ -1583,7 +1583,7 @@
   function sliderToThreshold(val) {
     return Math.pow(10, (val - 1) * 3);
   }
-  let volumeThreshold = sliderToThreshold(1);
+  let volumeThreshold = sliderToThreshold(0.1);
 
   function tick() {
     if (!running) return;
@@ -1869,8 +1869,8 @@
     }
   });
   // initialize
-  volThreshEl.value = 1;
-  volumeThreshold = sliderToThreshold(1);
+  volThreshEl.value = 0.1;
+  volumeThreshold = sliderToThreshold(0.1);
   dbgThresh.textContent = volumeThreshold.toExponential(2);
 
   function rebuildAll({forceDefaultRange=false} = {}) {
