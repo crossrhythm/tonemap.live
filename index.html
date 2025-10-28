@@ -26,6 +26,7 @@
     --grid-text-off: #4b5563;
     --grid-text-seen: #d1d5db;
     --grid-text-on: #ffffff;
+    --grid-active-border: 6px;
 
     --panel-bg: #1e293b;
     --panel-border: #475569;
@@ -504,7 +505,7 @@
 
   .grid-cell.active {
     color: var(--grid-text-on);
-    box-shadow: inset 0 0 0 6px #ffffff;
+    box-shadow: inset 0 0 0 var(--grid-active-border) #ffffff;
   }
 
   .tune-indicator {
@@ -1200,6 +1201,36 @@
    **********************/
   const NOTE_NAMES_ORDER = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 
+  function getViewportSize() {
+    return {
+      width: window.innerWidth || document.documentElement.clientWidth || 0,
+      height: window.innerHeight || document.documentElement.clientHeight || 0
+    };
+  }
+
+  function computeResponsiveDefaultOctaves(minOcts, maxOcts) {
+    const { width, height } = getViewportSize();
+    let desired = 5;
+    if (width < 1500 || height < 1500) {
+      desired = 4;
+    }
+    desired = Math.max(minOcts, Math.min(maxOcts, desired));
+    return desired;
+  }
+
+  function updateGridAppearanceForViewport() {
+    const { width, height } = getViewportSize();
+    let borderPx = 6;
+    if (width < 1500 || height < 1500) {
+      borderPx = 5;
+    }
+    if (width < 1200 || height < 1200) {
+      borderPx = 4;
+    }
+    if (borderPx < 1) borderPx = 1;
+    document.documentElement.style.setProperty("--grid-active-border", `${borderPx}px`);
+  }
+
   function noteNameToMidiC(noteNameWithOctave) {
     const m = /^([A-G]#?)(\d+)$/.exec(noteNameWithOctave);
     if (!m) return 24;
@@ -1236,8 +1267,15 @@
     }
 
     let chosen;
-    if (forceDefault && rangeSelect.querySelector('option[value="5"]')) {
-      chosen = 5;
+    if (forceDefault) {
+      const desiredDefault = computeResponsiveDefaultOctaves(startOcts, endOcts);
+      if (rangeSelect.querySelector(`option[value="${desiredDefault}"]`)) {
+        chosen = desiredDefault;
+      } else if (rangeSelect.querySelector('option[value="5"]')) {
+        chosen = 5;
+      } else {
+        chosen = endOcts;
+      }
     } else if (prevVal >= startOcts && prevVal <= endOcts) {
       chosen = prevVal;
     } else {
@@ -1852,6 +1890,8 @@
 
   window.addEventListener("resize", updateOrientationOverlay);
   window.addEventListener("orientationchange", updateOrientationOverlay);
+  window.addEventListener("resize", updateGridAppearanceForViewport);
+  window.addEventListener("orientationchange", updateGridAppearanceForViewport);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       if (running) {
@@ -1937,6 +1977,7 @@
   /**********************
    * INITIALIZATION
    **********************/
+  updateGridAppearanceForViewport();
   rebuildAll({forceDefaultRange:true});
 
   dbgRange.textContent = "20–8200 Hz";
