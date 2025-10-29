@@ -133,14 +133,16 @@
     text-align: center;
   }
 
-  /* Transport row (Play/Pause + Reset) */
-  .mic-row {
+  /* Transport row (Pitch + Play/Reset) */
+  .fixed-controls-row {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: .5rem;
+    gap: .75rem;
     flex-wrap: wrap;
+    width: 100%;
+    margin-top: 0.5rem;
   }
 
   /* Buttons:
@@ -205,6 +207,22 @@
     text-align: center;
   }
 
+  #pitchBlockScrollSlot {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+  }
+  #pitchBlockFixedSlot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .2rem;
+  }
+  #pitchBlockFixedSlot:empty {
+    display: none;
+  }
+
   #note {
     font-size: 2.4rem;
     font-weight: 600;
@@ -261,14 +279,21 @@
     white-space: nowrap;
   }
 
-  /* Control stack */
-  .control-stack {
+  .options-grid {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: .6rem;
+    gap: .75rem;
+    width: 100%;
+  }
+
+  .option-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .5rem;
+    width: 100%;
     color: var(--text-dim);
-    text-align: center;
   }
 
   .range-select-block {
@@ -529,35 +554,54 @@
     }
     .right-fixed {
       flex-direction: column;
-      align-items: flex-start;
-      gap: 0.6rem;
+      align-items: center;
+      gap: 0.75rem;
       padding-bottom: 0.5rem;
       border-bottom: 1px solid var(--panel-border);
       margin-bottom: 0.75rem;
     }
     .app-title {
       font-size: 1.3rem;
-      text-align: left;
+      text-align: center;
     }
-    .mic-row {
-      align-self: center;
-      justify-content: center;
-      gap: 0.75rem;
-      width: auto;
+    .fixed-controls-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: center;
+      column-gap: 1.25rem;
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      justify-items: center;
     }
     #pitchBlockFixedSlot {
+      justify-self: start;
       align-items: flex-start;
-      justify-content: flex-start;
     }
     #pitchBlockScrollSlot {
       display: none;
+    }
+    .fixed-controls-row .mic-btn {
+      justify-self: center;
+    }
+    .fixed-controls-row .reset-btn {
+      justify-self: end;
     }
     .right-scroll {
       max-height: clamp(240px, 40vh, 420px);
       padding-right: 0.5rem;
       overflow-y: auto;
     }
-    .control-stack,
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.25rem 2rem;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      justify-items: center;
+    }
+    .option-cell,
     .range-select-block,
     label,
     .row-inline {
@@ -565,10 +609,13 @@
       text-align: left;
       justify-content: flex-start;
     }
+    .option-cell {
+      width: 100%;
+    }
     label {
       max-width: none;
     }
-    .pitch-block {
+    #pitchBlockFixedSlot .pitch-block {
       align-items: flex-start;
       text-align: left;
       gap: 0.2rem;
@@ -576,7 +623,7 @@
     .status-simple {
       max-width: 220px !important;
       width: 100%;
-      margin: 0 0 1rem 0 !important;
+      margin: 1rem auto !important;
     }
   }
 
@@ -697,9 +744,8 @@
     <div class="right-fixed">
       <div class="app-title">Tonemap Live</div>
 
-      <div id="pitchBlockFixedSlot"></div>
-
-      <div class="mic-row">
+      <div class="fixed-controls-row">
+        <div id="pitchBlockFixedSlot"></div>
         <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
           <span class="icon-micstate paused">▶︎</span>
         </button>
@@ -720,68 +766,73 @@
         </div>
       </div>
 
-      <!-- A4 ref -->
-      <div class="a4-block-wrapper">
-        <div class="a4-block">
-          <label>
-            A4:
-            <select id="aRefSelect">
-              <option value="440" selected>440</option>
-              <option value="441">441</option>
-              <option value="442">442</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <!-- User controls -->
-      <div class="control-stack">
-
-        <div class="range-select-block">
-          <label id="sensitivityLabel">
-            Sensitivity:
-            <select id="sensitivitySelect">
-              <option value="easy" selected>Easy Mode</option>
-              <option value="hard">Hard Mode</option>
-            </select>
-          </label>
-
-          <label id="historyLabel">
-            History:
-            <select id="historySelect">
-              <option value="short" selected>Short</option>
-              <option value="long">Long</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="range-select-block">
-          <label id="lowNoteLabel">
-            Low Note:
-            <select id="lowNoteSelect">
-              <option value="C1">C1</option>
-              <option value="C2">C2</option>
-              <option value="C3" selected>C3</option>
-              <option value="C4">C4</option>
-              <option value="C5">C5</option>
-            </select>
-          </label>
-
-          <label id="rangeLabel">
-            Range:
-            <select id="rangeSelect">
-              <!-- populated dynamically -->
-            </select>
-          </label>
-        </div>
-
-        <div class="row-inline">
-          <div class="volume-wrap">
-            <div class="slider-col">
-              <div style="font-size:0.7rem;color:var(--text-dim);">Min Vol</div>
-              <input id="volThresh" type="range" min="0" max="1" step="0.01" />
+      <div class="options-grid">
+        <div class="option-cell">
+          <div class="a4-block-wrapper">
+            <div class="a4-block">
+              <label>
+                A4:
+                <select id="aRefSelect">
+                  <option value="440" selected>440</option>
+                  <option value="441">441</option>
+                  <option value="442">442</option>
+                </select>
+              </label>
             </div>
-            <div id="led" class="led gray"></div>
+          </div>
+        </div>
+
+        <div class="option-cell">
+          <div class="range-select-block">
+            <label id="sensitivityLabel">
+              Sensitivity:
+              <select id="sensitivitySelect">
+                <option value="easy" selected>Easy Mode</option>
+                <option value="hard">Hard Mode</option>
+              </select>
+            </label>
+
+            <label id="historyLabel">
+              History:
+              <select id="historySelect">
+                <option value="short" selected>Short</option>
+                <option value="long">Long</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="option-cell">
+          <div class="range-select-block">
+            <label id="lowNoteLabel">
+              Low Note:
+              <select id="lowNoteSelect">
+                <option value="C1">C1</option>
+                <option value="C2">C2</option>
+                <option value="C3" selected>C3</option>
+                <option value="C4">C4</option>
+                <option value="C5">C5</option>
+              </select>
+            </label>
+
+            <label id="rangeLabel">
+              Range:
+              <select id="rangeSelect">
+                <!-- populated dynamically -->
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="option-cell">
+          <div class="row-inline">
+            <div class="volume-wrap">
+              <div class="slider-col">
+                <div style="font-size:0.7rem;color:var(--text-dim);">Min Vol</div>
+                <input id="volThresh" type="range" min="0" max="1" step="0.01" />
+              </div>
+              <div id="led" class="led gray"></div>
+            </div>
           </div>
         </div>
       </div>
