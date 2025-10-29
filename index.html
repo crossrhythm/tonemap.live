@@ -146,16 +146,33 @@
     display: block;
   }
 
-  /* Transport row (Pitch + Play/Reset) */
-  .fixed-controls-row {
+  /* Transport block (pitch readout + controls) */
+  .fixed-transport {
+    width: 100%;
+    margin-top: 0.75rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.9rem;
+    align-items: stretch;
+  }
+
+  .fixed-note-stack {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: .75rem;
-    flex-wrap: wrap;
+  }
+
+  .fixed-button-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .fixed-button-stack .mic-btn,
+  .fixed-button-stack .reset-btn {
     width: 100%;
-    margin-top: 0.5rem;
   }
 
   /* Buttons:
@@ -220,12 +237,6 @@
     text-align: center;
   }
 
-  #pitchBlockScrollSlot {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-bottom: 0.75rem;
-  }
   #pitchBlockFixedSlot {
     display: flex;
     flex-direction: column;
@@ -250,7 +261,6 @@
     min-height: 1.2em;
   }
 
-  #pitchBlockScrollSlot,
   #pitchBlockFixedSlot {
     width: 100%;
     display: flex;
@@ -694,46 +704,30 @@
       font-size: 1.3rem;
       text-align: center;
     }
-    .fixed-controls-row {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      align-items: center;
-      column-gap: 1rem;
-      width: 100%;
-      max-width: 420px;
-      margin: 0 auto;
+    .fixed-transport {
+      grid-template-columns: 1fr;
       justify-items: center;
+      gap: 1rem;
     }
-    #pitchBlockFixedSlot {
-      justify-self: center;
-      align-items: center;
+    .fixed-note-stack {
+      width: 100%;
     }
-    #pitchBlockScrollSlot {
-      display: none;
+    .fixed-button-stack {
+      flex-direction: row;
+      justify-content: center;
+      width: 100%;
+      gap: 1rem;
+    }
+    .fixed-button-stack .mic-btn,
+    .fixed-button-stack .reset-btn {
+      width: auto;
+      min-width: 5.5rem;
     }
     .right-scroll {
       flex: 1 1 auto;
       max-height: none;
       padding-right: 0.5rem;
       overflow-y: auto;
-    }
-    .options-grid {
-      grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
-      column-gap: 0.9rem;
-      row-gap: 0.75rem;
-      width: 100%;
-      max-width: 520px;
-      margin: 0 auto;
-      justify-items: stretch;
-      align-items: center;
-    }
-    .opt-label {
-      justify-self: end;
-      text-align: right;
-      max-width: none;
-    }
-    .opt-control {
-      justify-self: start;
     }
     #pitchBlockFixedSlot .pitch-block {
       align-items: center;
@@ -906,29 +900,30 @@
         <img src="tonemaplogo.jpg" alt="Tonemap.Live logo">
       </div>
 
-      <div class="fixed-controls-row">
-        <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
-          <span class="icon-micstate paused">▶︎</span>
-        </button>
-        <div id="pitchBlockFixedSlot"></div>
-        <button id="resetBtn" class="reset-btn" title="Reset Heatmap">
-          <span class="icon-reset">↻</span>
-        </button>
+      <div class="fixed-transport">
+        <div class="fixed-note-stack">
+          <div id="pitchBlockFixedSlot">
+            <div class="pitch-block" id="pitchBlock">
+              <div id="note">--</div>
+              <div id="freq">-- Hz</div>
+              <div id="cents">-- cents</div>
+            </div>
+          </div>
+        </div>
+        <div class="fixed-button-stack">
+          <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
+            <span class="icon-micstate paused">▶︎</span>
+          </button>
+          <button id="resetBtn" class="reset-btn" title="Reset Heatmap">
+            <span class="icon-reset">↻</span>
+          </button>
+        </div>
       </div>
 
     </div>
 
     <!-- Scrollable content (readout + controls + status) -->
     <div class="right-scroll">
-      <div id="pitchBlockScrollSlot">
-        <!-- Pitch Readout -->
-        <div class="pitch-block" id="pitchBlock">
-          <div id="note">--</div>
-          <div id="freq">-- Hz</div>
-          <div id="cents">-- cents</div>
-        </div>
-      </div>
-
       <div class="control-footer">
         <div class="overlay-button-stack">
           <button id="optionsToggleBtn" class="options-btn" type="button">Options</button>
@@ -1186,7 +1181,6 @@
 
   const pitchBlockEl          = document.getElementById("pitchBlock");
   const pitchBlockFixedSlot   = document.getElementById("pitchBlockFixedSlot");
-  const pitchBlockScrollSlot  = document.getElementById("pitchBlockScrollSlot");
 
   const noteEl        = document.getElementById("note");
   const freqEl        = document.getElementById("freq");
@@ -1573,21 +1567,6 @@
     return desired;
   }
 
-  function isPortraitishAspect() {
-    const { width, height } = getViewportSize();
-    if (height <= 0) return false;
-    return (width / height) <= 1;
-  }
-
-  function relocatePitchBlockToSlots() {
-    if (!pitchBlockEl || !pitchBlockFixedSlot || !pitchBlockScrollSlot) return;
-    const portraitLike = isPortraitishAspect();
-    const target = portraitLike ? pitchBlockFixedSlot : pitchBlockScrollSlot;
-    if (pitchBlockEl.parentElement !== target) {
-      target.appendChild(pitchBlockEl);
-    }
-  }
-
   function updateGridAppearanceForViewport() {
     const { width, height } = getViewportSize();
     let borderPx = 6;
@@ -1599,7 +1578,6 @@
     }
     if (borderPx < 1) borderPx = 1;
     document.documentElement.style.setProperty("--grid-active-border", `${borderPx}px`);
-    relocatePitchBlockToSlots();
   }
 
   function noteNameToMidiC(noteNameWithOctave) {
