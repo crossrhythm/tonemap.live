@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap Live: interactive tuner UI. -->
-<!-- Version: 1.04 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.05 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -155,11 +155,11 @@
     border: 3px solid var(--border-dim);
     border-radius: .75rem;
 
-    padding: 0.55rem 1rem;
-    min-width: 6rem;
-    min-height: 3.6rem;
+    padding: 0.5rem 0.9rem;
+    min-width: 5.5rem;
+    min-height: 3.25rem;
 
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     line-height: 1;
     font-weight: 600;
     cursor: pointer;
@@ -182,16 +182,16 @@
 
   /* Per-icon tweaks */
   .icon-micstate.playing { /* pause glyph */
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     line-height: 1;
   }
   .icon-micstate.paused {  /* play glyph (smaller so it doesn’t look huge) */
-    font-size: 2.2rem;
+    font-size: 1.98rem;
     line-height: 1;
   }
 
   .icon-reset {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     line-height: 1;
     transform: translateY(1px); /* optical centering */
   }
@@ -217,6 +217,16 @@
     font-size: 0.8rem;
     color: var(--text-dim);
     min-height: 1.2em;
+  }
+
+  #pitchBlockScrollSlot,
+  #pitchBlockFixedSlot {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  #pitchBlockFixedSlot {
+    flex-direction: column;
   }
 
   /* A4 block */
@@ -311,6 +321,16 @@
     font-size: 0.7rem;
     line-height: 1.2;
     min-width: 120px;
+  }
+
+  .status-simple {
+    font-size: .7rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+    text-align: left;
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto 1rem auto;
   }
 
   input[type="range"] {
@@ -480,6 +500,86 @@
     color: var(--panel-text-dim);
   }
 
+  @media (max-aspect-ratio: 3/4) {
+    body {
+      padding: 0.75rem;
+    }
+    .page {
+      flex-direction: column;
+      height: auto;
+      gap: 0.75rem;
+    }
+    .left-col {
+      flex: 0 0 auto;
+      height: auto;
+      min-height: 0;
+    }
+    .grid-surface {
+      min-height: clamp(280px, 55vh, 520px);
+    }
+    .right-col {
+      flex: 0 0 auto;
+      max-width: none;
+      width: 100%;
+      height: auto;
+      background: rgba(15,23,42,0.65);
+      border: 1px solid rgba(148,163,184,0.12);
+      border-radius: 0.75rem;
+      padding: 0.85rem 1rem;
+    }
+    .right-fixed {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--panel-border);
+      margin-bottom: 0.75rem;
+    }
+    .app-title {
+      font-size: 1.3rem;
+      text-align: left;
+    }
+    .mic-row {
+      align-self: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: auto;
+    }
+    #pitchBlockFixedSlot {
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+    #pitchBlockScrollSlot {
+      display: none;
+    }
+    .right-scroll {
+      max-height: clamp(240px, 40vh, 420px);
+      padding-right: 0.5rem;
+      overflow-y: auto;
+    }
+    .control-stack,
+    .range-select-block,
+    label,
+    .row-inline {
+      align-items: flex-start;
+      text-align: left;
+      justify-content: flex-start;
+    }
+    label {
+      max-width: none;
+    }
+    .pitch-block {
+      align-items: flex-start;
+      text-align: left;
+      gap: 0.2rem;
+    }
+    .status-simple {
+      max-width: 220px !important;
+      width: 100%;
+      margin: 0 0 1rem 0 !important;
+    }
+  }
+
   /********************
    * LEFT COLUMN GRID
    ********************/
@@ -563,52 +663,12 @@
     line-height: 1.4;
   }
 
-  /********************
-   * ORIENTATION OVERLAY (rotate suggestion)
-   ********************/
-  #orientOverlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(15,23,42,0.85);
-    color: var(--text-lite);
-    z-index: 998;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 1rem;
-  }
-
-  #orientInner {
-    max-width: 16rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: .75rem;
-    font-size: .9rem;
-    line-height: 1.4;
-    color: var(--text-lite);
-  }
-
-  #orientDismissBtn {
-    appearance: none;
-    background: var(--bg-panel);
-    color: var(--text-lite);
-    border: 2px solid var(--border-dim);
-    border-radius: .75rem;
-    padding: .5rem .75rem;
-    font-size: .8rem;
-    line-height: 1.2;
-    cursor: pointer;
-    text-align: center;
-  }
-
 </style>
 </head>
 <body>
 
 <script>
-  window.APP_VERSION = "1.04";
+  window.APP_VERSION = "1.05";
 </script>
 
 <div class="page">
@@ -620,18 +680,6 @@
         Click Play and<br>
         Allow Microphone to begin
       </div>
-    </div>
-  </div>
-
-  <!-- ORIENTATION OVERLAY for portrait on phones -->
-  <div id="orientOverlay">
-    <div id="orientInner">
-      <div style="font-weight:600;font-size:1rem;">Rotate for best view</div>
-      <div>
-        Tonemap Live works best in landscape.<br/>
-        Please rotate your device.
-      </div>
-      <button id="orientDismissBtn">Use anyway</button>
     </div>
   </div>
 
@@ -649,6 +697,8 @@
     <div class="right-fixed">
       <div class="app-title">Tonemap Live</div>
 
+      <div id="pitchBlockFixedSlot"></div>
+
       <div class="mic-row">
         <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
           <span class="icon-micstate paused">▶︎</span>
@@ -661,12 +711,13 @@
 
     <!-- Scrollable content (readout + controls + status) -->
     <div class="right-scroll">
-
-      <!-- Pitch Readout -->
-      <div class="pitch-block">
-        <div id="note">--</div>
-        <div id="freq">-- Hz</div>
-        <div id="cents">-- cents</div>
+      <div id="pitchBlockScrollSlot">
+        <!-- Pitch Readout -->
+        <div class="pitch-block" id="pitchBlock">
+          <div id="note">--</div>
+          <div id="freq">-- Hz</div>
+          <div id="cents">-- cents</div>
+        </div>
       </div>
 
       <!-- A4 ref -->
@@ -736,7 +787,7 @@
       </div>
 
       <!-- Inline Status (simple, not a bordered card, always in scroll flow) -->
-      <div class="status-simple" style="font-size:.7rem; line-height:1.4; color:#cbd5e1; text-align:left; width:100%; max-width:200px; margin:0 auto 1rem auto;">
+      <div class="status-simple">
         <div style="color:#fff; font-weight:600; font-size:.75rem; display:flex; justify-content:space-between;">
           <span>Status</span>
           <span id="appVersion" style="color:#94a3b8; font-weight:400;"></span>
@@ -825,7 +876,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.04";
+  const APP_VERSION = window.APP_VERSION || "1.05";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -872,9 +923,6 @@
   const overlayVeil    = document.getElementById("overlayVeil");
   const overlayPlayBtn = document.getElementById("overlayPlayBtn");
 
-  const orientOverlay     = document.getElementById("orientOverlay");
-  const orientDismissBtn  = document.getElementById("orientDismissBtn");
-
   const micBtn        = document.getElementById("micBtn");
   const micBtnIcon    = micBtn.querySelector(".icon-micstate");
   const resetBtn      = document.getElementById("resetBtn");
@@ -894,6 +942,10 @@
   const historySelect     = document.getElementById("historySelect");
 
   const noteGrid      = document.getElementById("noteGrid");
+
+  const pitchBlockEl          = document.getElementById("pitchBlock");
+  const pitchBlockFixedSlot   = document.getElementById("pitchBlockFixedSlot");
+  const pitchBlockScrollSlot  = document.getElementById("pitchBlockScrollSlot");
 
   const noteEl        = document.getElementById("note");
   const freqEl        = document.getElementById("freq");
@@ -1218,6 +1270,21 @@
     return desired;
   }
 
+  function isPortraitishAspect() {
+    const { width, height } = getViewportSize();
+    if (height <= 0) return false;
+    return (width / height) <= 0.75;
+  }
+
+  function relocatePitchBlockToSlots() {
+    if (!pitchBlockEl || !pitchBlockFixedSlot || !pitchBlockScrollSlot) return;
+    const portraitLike = isPortraitishAspect();
+    const target = portraitLike ? pitchBlockFixedSlot : pitchBlockScrollSlot;
+    if (pitchBlockEl.parentElement !== target) {
+      target.appendChild(pitchBlockEl);
+    }
+  }
+
   function updateGridAppearanceForViewport() {
     const { width, height } = getViewportSize();
     let borderPx = 6;
@@ -1229,6 +1296,7 @@
     }
     if (borderPx < 1) borderPx = 1;
     document.documentElement.style.setProperty("--grid-active-border", `${borderPx}px`);
+    relocatePitchBlockToSlots();
   }
 
   function noteNameToMidiC(noteNameWithOctave) {
@@ -1858,38 +1926,6 @@
     resetHeatmapOnly();
   }
 
-  /**********************
-   * ORIENTATION OVERLAY
-   **********************/
-  let orientDismissed = false;
-
-  function isSmallPortrait() {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-    const isPortrait = h > w;
-    const isNarrow = w < 800;
-    return isPortrait && isNarrow;
-  }
-
-  function updateOrientationOverlay() {
-    if (orientDismissed) {
-      orientOverlay.style.display = "none";
-      return;
-    }
-    if (isSmallPortrait()) {
-      orientOverlay.style.display = "flex";
-    } else {
-      orientOverlay.style.display = "none";
-    }
-  }
-
-  orientDismissBtn.addEventListener("click", () => {
-    orientDismissed = true;
-    orientOverlay.style.display = "none";
-  });
-
-  window.addEventListener("resize", updateOrientationOverlay);
-  window.addEventListener("orientationchange", updateOrientationOverlay);
   window.addEventListener("resize", updateGridAppearanceForViewport);
   window.addEventListener("orientationchange", updateGridAppearanceForViewport);
   document.addEventListener("visibilitychange", () => {
@@ -1993,8 +2029,6 @@
   freqEl.textContent  = lastDisplayedHz;
   centsEl.textContent = lastDisplayedCents;
 
-  // Orientation hint on load
-  updateOrientationOverlay();
 </script>
 </body>
 </html>
