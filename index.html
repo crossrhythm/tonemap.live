@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.1 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.11 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Tonemap.Live</title>
+<link rel="icon" href="tonemapicon.jpg" type="image/jpeg" />
 <style>
   :root {
     --bg-main: #0f172a;
@@ -131,10 +132,18 @@
    ********************/
 
   .app-title {
-    color: var(--text-lite);
-    font-size: 1.5rem;
-    font-weight: 600;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  .app-title img {
+    width: 100%;
+    height: auto;
+    display: block;
   }
 
   /* Transport row (Pitch + Play/Reset) */
@@ -282,6 +291,12 @@
     cursor: pointer;
     white-space: nowrap;
     width: auto;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  select.alert {
+    border-color: var(--warn-color);
+    box-shadow: 0 0 0 0.25rem rgba(250,204,21,0.15);
   }
 
   .options-grid {
@@ -464,8 +479,8 @@
     width: min(720px, 100%);
     max-height: 90vh;
     overflow-y: auto;
-    background: rgba(15,23,42,0.88);
-    border: 1px solid var(--panel-border);
+    background: rgba(15,23,42,0.28);
+    border: 1px solid rgba(148,163,184,0.25);
     border-radius: 1rem;
     padding: 1.5rem;
     box-shadow: 0 22px 40px rgba(0,0,0,0.55);
@@ -502,10 +517,10 @@
   }
 
   .status-section {
-    border: 1px solid rgba(71,85,105,0.45);
+    border: 1px solid rgba(100,116,139,0.35);
     border-radius: 0.85rem;
     padding: 1rem;
-    background: rgba(15,23,42,0.35);
+    background: rgba(15,23,42,0.18);
   }
 
   .status-section-title {
@@ -550,7 +565,7 @@
   .status-footer {
     margin-top: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(71,85,105,0.45);
+    border-top: 1px solid rgba(100,116,139,0.35);
     display: flex;
     justify-content: space-between;
     gap: 1rem;
@@ -564,25 +579,43 @@
     color: var(--text-lite);
   }
 
+  .options-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .options-footer .contact-line {
+    line-height: 1.3;
+  }
+
   @media (max-aspect-ratio: 3/4) {
     body {
       padding: 0.75rem;
+      height: 100vh;
+      overflow: hidden;
     }
     .page {
       flex-direction: column;
-      height: auto;
+      height: calc(100vh - 1.5rem);
       gap: 0.75rem;
+      overflow: hidden;
     }
     .left-col {
-      flex: 0 0 auto;
-      height: auto;
+      flex: 0 0 clamp(280px, 50vh, 520px);
+      height: clamp(280px, 50vh, 520px);
       min-height: 0;
     }
     .grid-surface {
-      min-height: clamp(280px, 55vh, 520px);
+      min-height: 100%;
     }
     .right-col {
-      flex: 0 0 auto;
+      flex: 1 1 auto;
       max-width: none;
       width: 100%;
       height: auto;
@@ -590,6 +623,7 @@
       border: 1px solid rgba(148,163,184,0.12);
       border-radius: 0.75rem;
       padding: 0.85rem 1rem;
+      overflow: hidden;
     }
     .right-fixed {
       flex-direction: column;
@@ -621,7 +655,8 @@
       display: none;
     }
     .right-scroll {
-      max-height: clamp(240px, 40vh, 420px);
+      flex: 1 1 auto;
+      max-height: none;
       padding-right: 0.5rem;
       overflow-y: auto;
     }
@@ -767,7 +802,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.1";
+  window.APP_VERSION = "1.11";
 </script>
 
 <div class="page">
@@ -794,7 +829,9 @@
 
     <!-- Fixed header -->
     <div class="right-fixed">
-      <div class="app-title">Tonemap.Live</div>
+      <div class="app-title">
+        <img src="tonemaplogo.jpg" alt="Tonemap.Live logo">
+      </div>
 
       <div class="fixed-controls-row">
         <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
@@ -806,7 +843,6 @@
         </button>
       </div>
 
-      <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
     </div>
 
     <!-- Scrollable content (readout + controls + status) -->
@@ -875,9 +911,15 @@
         </div>
       </div>
 
+      <div class="options-footer">
+        <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
+        <div class="contact-line">© 2025, East End Violin Studio</div>
+        <div class="contact-line">contact@eastendviolinstudio.com</div>
+      </div>
+
     </div> <!-- /.right-scroll -->
 
-</div><!-- /.right-col -->
+  </div><!-- /.right-col -->
 </div><!-- /.page -->
 
 <div id="statusOverlay" class="status-overlay" aria-hidden="true">
@@ -978,7 +1020,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.1";
+  const APP_VERSION = window.APP_VERSION || "1.11";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -1819,16 +1861,20 @@
 
     lowNoteLabel.classList.remove("alert");
     rangeLabel.classList.remove("alert");
+    lowNoteSelect.classList.remove("alert");
+    rangeSelect.classList.remove("alert");
 
     let listeningStr;
     let guidanceStr = "--";
 
     if (highRecent) {
       rangeLabel.classList.add("alert");
+      rangeSelect.classList.add("alert");
       guidanceStr = "Pitch above range";
       listeningStr = runningNow ? "Listening…" : "Paused";
     } else if (lowRecent) {
       lowNoteLabel.classList.add("alert");
+      lowNoteSelect.classList.add("alert");
       guidanceStr = "Pitch below range";
       listeningStr = runningNow ? "Listening…" : "Paused";
     } else {
