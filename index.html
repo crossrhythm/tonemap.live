@@ -651,7 +651,7 @@
     line-height: 1.3;
   }
 
-  @media (max-aspect-ratio: 3/4) {
+  @media (max-aspect-ratio: 1/1) {
     body {
       padding: 0.75rem;
       height: 100vh;
@@ -752,17 +752,8 @@
     .options-grid {
       grid-template-columns: 1fr;
     }
-  }
-
-  @media (orientation: portrait) {
     .app-title {
       max-width: 160px;
-    }
-    .status-grid {
-      grid-template-columns: 1fr;
-    }
-    .options-grid {
-      grid-template-columns: 1fr;
     }
     .overlay-button-stack {
       flex-direction: row;
@@ -1585,7 +1576,7 @@
   function isPortraitishAspect() {
     const { width, height } = getViewportSize();
     if (height <= 0) return false;
-    return (width / height) <= 0.75;
+    return (width / height) <= 1;
   }
 
   function relocatePitchBlockToSlots() {
