@@ -324,13 +324,7 @@
   }
 
   .opt-control-slider {
-    width: 100%;
-  }
-  .opt-control-slider .volume-wrap {
-    justify-content: flex-start;
-  }
-  .opt-control-slider .slider-col {
-    align-items: flex-start;
+    width: auto;
   }
 
   .row-inline {
@@ -356,7 +350,7 @@
     color: var(--text-dim);
     font-size: 0.7rem;
     line-height: 1.2;
-    min-width: 120px;
+    min-width: 84px;
   }
 
   .status-simple {
@@ -372,7 +366,7 @@
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
-    width: 120px;
+    width: 84px;
     background: transparent;
     cursor: pointer;
   }
@@ -579,24 +573,18 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       align-items: center;
-      column-gap: 1.25rem;
+      column-gap: 1rem;
       width: 100%;
       max-width: 420px;
       margin: 0 auto;
       justify-items: center;
     }
     #pitchBlockFixedSlot {
-      justify-self: start;
-      align-items: flex-start;
+      justify-self: center;
+      align-items: center;
     }
     #pitchBlockScrollSlot {
       display: none;
-    }
-    .fixed-controls-row .mic-btn {
-      justify-self: center;
-    }
-    .fixed-controls-row .reset-btn {
-      justify-self: end;
     }
     .right-scroll {
       max-height: clamp(240px, 40vh, 420px);
@@ -605,10 +593,10 @@
     }
     .options-grid {
       grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
-      column-gap: 1.5rem;
+      column-gap: 0.9rem;
       row-gap: 0.75rem;
       width: 100%;
-      max-width: 580px;
+      max-width: 520px;
       margin: 0 auto;
       justify-items: stretch;
       align-items: center;
@@ -622,9 +610,9 @@
       justify-self: start;
     }
     #pitchBlockFixedSlot .pitch-block {
-      align-items: flex-start;
-      text-align: left;
-      gap: 0.2rem;
+      align-items: center;
+      text-align: center;
+      gap: 0.25rem;
     }
     .status-simple {
       max-width: 220px !important;
@@ -646,7 +634,7 @@
     color: var(--grid-text-off);
     font-weight: 500;
     text-align: center;
-    font-size: clamp(0.6rem, 1.5vw, 1.4rem);
+    font-size: clamp(0.85rem, 1.8vw, 1.8rem);
     line-height: 1;
     min-height: 0;
     transition: background-color 0.1s linear;
@@ -659,6 +647,21 @@
   .grid-cell.active {
     color: var(--grid-text-on);
     box-shadow: inset 0 0 0 var(--grid-active-border) #ffffff;
+  }
+
+  .grid-cell .note-label {
+    color: inherit;
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 0.05em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.75);
+  }
+
+  .grid-cell .note-label sup {
+    font-size: 0.55em;
+    line-height: 1;
+    position: relative;
+    top: -0.1em;
   }
 
   .tune-indicator {
@@ -751,10 +754,10 @@
       <div class="app-title">Tonemap Live</div>
 
       <div class="fixed-controls-row">
-        <div id="pitchBlockFixedSlot"></div>
         <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
           <span class="icon-micstate paused">▶︎</span>
         </button>
+        <div id="pitchBlockFixedSlot"></div>
         <button id="resetBtn" class="reset-btn" title="Reset Heatmap">
           <span class="icon-reset">↻</span>
         </button>
@@ -782,11 +785,11 @@
           </select>
         </div>
 
-        <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Sensitivity:</label>
+        <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode:</label>
         <div class="opt-control">
           <select id="sensitivitySelect">
-            <option value="easy" selected>Easy Mode</option>
-            <option value="hard">Hard Mode</option>
+            <option value="easy" selected>Easy</option>
+            <option value="hard">Hard</option>
           </select>
         </div>
 
@@ -847,7 +850,7 @@
 
         <div style="color:#fff; font-weight:600; font-size:.75rem; margin-bottom:.25rem;">Mode</div>
         <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Sensitivity</span>
+          <span style="color:#94a3b8;">Mode</span>
           <span id="dbgSens" style="color:#f8fafc; min-width:3rem; text-align:right;">Easy</span>
         </div>
         <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
@@ -1435,7 +1438,11 @@
         const cell = document.createElement("div");
         cell.className = "grid-cell";
         cell.dataset.midi = String(midiVal);
-        cell.textContent = name + octave;
+
+        const label = document.createElement("span");
+        label.className = "note-label";
+        label.innerHTML = `${name}<sup>${octave}</sup>`;
+        cell.appendChild(label);
 
         const indicator = document.createElement("div");
         indicator.className = "tune-indicator";
@@ -1461,8 +1468,8 @@
 
   function biasEasy(avgErrRatio) {
     const base = {r:34,g:197,b:94};
-    const sharpCol = {r:250,g:204,b:21};
-    const flatCol  = {r:96,g:165,b:250};
+    const sharpCol = {r:249,g:115,b:22};
+    const flatCol  = {r:147,g:51,b:234};
 
     const dz = EASY_DEADZONE_RATIO;
     const absErr = Math.abs(avgErrRatio);
@@ -1493,8 +1500,8 @@
 
   function biasHard(avgErrRatio) {
     const base = {r:34,g:197,b:94};
-    const sharpCol = {r:250,g:204,b:21};
-    const flatCol  = {r:96,g:165,b:250};
+    const sharpCol = {r:249,g:115,b:22};
+    const flatCol  = {r:147,g:51,b:234};
 
     const dz = HARD_DEADZONE_RATIO;
     const absErr = Math.abs(avgErrRatio);
@@ -2038,7 +2045,7 @@
     renderHeatmap();
   });
 
-  // Sensitivity change = full reset (new session/clears stain)
+  // Mode change = full reset (new session/clears stain)
   sensitivitySelect.addEventListener("change", () => {
     updateDebugPanel({});
     fullResetState();
