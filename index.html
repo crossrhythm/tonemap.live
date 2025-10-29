@@ -35,6 +35,10 @@
     --panel-highlight: rgb(34,197,94);
   }
 
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
   body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg-main);
@@ -277,32 +281,56 @@
     font-size: 0.8rem;
     cursor: pointer;
     white-space: nowrap;
+    width: auto;
   }
 
   .options-grid {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: .75rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: .75rem;
+    row-gap: .6rem;
     width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    max-width: 520px;
   }
 
-  .option-cell {
+  .opt-label,
+  label {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: .5rem;
-    width: 100%;
-    color: var(--text-dim);
-  }
-
-  .range-select-block {
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-    align-items: center;
+    gap: 0.4rem;
     color: var(--text-dim);
     font-size: 0.8rem;
+    transition: color 0.2s ease;
+    text-align: right;
+    justify-content: flex-end;
+    white-space: nowrap;
+    padding: 0 2px;
+  }
+  .opt-label.alert,
+  label.alert {
+    color: var(--warn-color);
+    font-weight: 600;
+  }
+
+  .opt-control {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: auto;
+    padding: 0 2px;
+  }
+
+  .opt-control-slider {
+    width: 100%;
+  }
+  .opt-control-slider .volume-wrap {
+    justify-content: flex-start;
+  }
+  .opt-control-slider .slider-col {
+    align-items: flex-start;
   }
 
   .row-inline {
@@ -313,23 +341,6 @@
     justify-content: center;
     align-items: center;
     color: var(--text-dim);
-  }
-
-  label {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    color: var(--text-dim);
-    font-size: 0.8rem;
-    transition: color 0.2s ease;
-    text-align: center;
-    justify-content: center;
-    max-width: 200px;
-  }
-  label.alert {
-    color: var(--warn-color);
-    font-weight: 600;
   }
 
   /* Min Vol + LED */
@@ -593,27 +604,22 @@
       overflow-y: auto;
     }
     .options-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 1.25rem 2rem;
+      grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+      column-gap: 1.5rem;
+      row-gap: 0.75rem;
       width: 100%;
-      max-width: 520px;
+      max-width: 580px;
       margin: 0 auto;
-      justify-items: center;
+      justify-items: stretch;
+      align-items: center;
     }
-    .option-cell,
-    .range-select-block,
-    label,
-    .row-inline {
-      align-items: flex-start;
-      text-align: left;
-      justify-content: flex-start;
-    }
-    .option-cell {
-      width: 100%;
-    }
-    label {
+    .opt-label {
+      justify-self: end;
+      text-align: right;
       max-width: none;
+    }
+    .opt-control {
+      justify-self: start;
     }
     #pitchBlockFixedSlot .pitch-block {
       align-items: flex-start;
@@ -767,72 +773,56 @@
       </div>
 
       <div class="options-grid">
-        <div class="option-cell">
-          <div class="a4-block-wrapper">
-            <div class="a4-block">
-              <label>
-                A4:
-                <select id="aRefSelect">
-                  <option value="440" selected>440</option>
-                  <option value="441">441</option>
-                  <option value="442">442</option>
-                </select>
-              </label>
+        <label class="opt-label" for="aRefSelect">A4:</label>
+        <div class="opt-control">
+          <select id="aRefSelect">
+            <option value="440" selected>440</option>
+            <option value="441">441</option>
+            <option value="442">442</option>
+          </select>
+        </div>
+
+        <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Sensitivity:</label>
+        <div class="opt-control">
+          <select id="sensitivitySelect">
+            <option value="easy" selected>Easy Mode</option>
+            <option value="hard">Hard Mode</option>
+          </select>
+        </div>
+
+        <label id="lowNoteLabel" class="opt-label" for="lowNoteSelect">Low Note:</label>
+        <div class="opt-control">
+          <select id="lowNoteSelect">
+            <option value="C1">C1</option>
+            <option value="C2">C2</option>
+            <option value="C3" selected>C3</option>
+            <option value="C4">C4</option>
+            <option value="C5">C5</option>
+          </select>
+        </div>
+
+        <label id="historyLabel" class="opt-label" for="historySelect">History:</label>
+        <div class="opt-control">
+          <select id="historySelect">
+            <option value="short" selected>Short</option>
+            <option value="long">Long</option>
+          </select>
+        </div>
+
+        <label id="rangeLabel" class="opt-label" for="rangeSelect">Range:</label>
+        <div class="opt-control">
+          <select id="rangeSelect">
+            <!-- populated dynamically -->
+          </select>
+        </div>
+
+        <label class="opt-label" for="volThresh">Min Vol:</label>
+        <div class="opt-control opt-control-slider">
+          <div class="volume-wrap">
+            <div class="slider-col">
+              <input id="volThresh" type="range" min="0" max="1" step="0.01" />
             </div>
-          </div>
-        </div>
-
-        <div class="option-cell">
-          <div class="range-select-block">
-            <label id="sensitivityLabel">
-              Sensitivity:
-              <select id="sensitivitySelect">
-                <option value="easy" selected>Easy Mode</option>
-                <option value="hard">Hard Mode</option>
-              </select>
-            </label>
-
-            <label id="historyLabel">
-              History:
-              <select id="historySelect">
-                <option value="short" selected>Short</option>
-                <option value="long">Long</option>
-              </select>
-            </label>
-          </div>
-        </div>
-
-        <div class="option-cell">
-          <div class="range-select-block">
-            <label id="lowNoteLabel">
-              Low Note:
-              <select id="lowNoteSelect">
-                <option value="C1">C1</option>
-                <option value="C2">C2</option>
-                <option value="C3" selected>C3</option>
-                <option value="C4">C4</option>
-                <option value="C5">C5</option>
-              </select>
-            </label>
-
-            <label id="rangeLabel">
-              Range:
-              <select id="rangeSelect">
-                <!-- populated dynamically -->
-              </select>
-            </label>
-          </div>
-        </div>
-
-        <div class="option-cell">
-          <div class="row-inline">
-            <div class="volume-wrap">
-              <div class="slider-col">
-                <div style="font-size:0.7rem;color:var(--text-dim);">Min Vol</div>
-                <input id="volThresh" type="range" min="0" max="1" step="0.01" />
-              </div>
-              <div id="led" class="led gray"></div>
-            </div>
+            <div id="led" class="led gray"></div>
           </div>
         </div>
       </div>
