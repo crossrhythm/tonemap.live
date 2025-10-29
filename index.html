@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<!-- Tonemap Live: interactive tuner UI. -->
-<!-- Version: 1.05 (update window.APP_VERSION below when bumping release) -->
+<!-- Tonemap.Live: interactive tuner UI. -->
+<!-- Version: 1.1 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tonemap Live</title>
+<title>Tonemap.Live</title>
 <style>
   :root {
     --bg-main: #0f172a;
@@ -353,16 +353,6 @@
     min-width: 84px;
   }
 
-  .status-simple {
-    font-size: .7rem;
-    line-height: 1.4;
-    color: #cbd5e1;
-    text-align: left;
-    width: 100%;
-    max-width: 200px;
-    margin: 0 auto 1rem auto;
-  }
-
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
@@ -424,110 +414,154 @@
   }
 
   /********************
-   * STATUS CARD
-   * Now lives INSIDE the scrollable block
+   * STATUS OVERLAY
    ********************/
-  .panel-wrap {
-    background: var(--panel-bg);
+  .status-btn,
+  .status-close-btn {
+    appearance: none;
+    background: transparent;
+    color: var(--text-lite);
+    border: 1px solid var(--border-dim);
+    border-radius: 999px;
+    padding: 0.4rem 1.1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .status-btn:hover,
+  .status-btn:focus-visible,
+  .status-close-btn:hover,
+  .status-close-btn:focus-visible {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    outline: none;
+  }
+
+  .status-btn:active,
+  .status-close-btn:active {
+    background-color: rgba(34,197,94,0.12);
+  }
+
+  .status-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(15,23,42,0.65);
+    backdrop-filter: blur(3px);
+    z-index: 1200;
+  }
+
+  .status-overlay.open {
+    display: flex;
+  }
+
+  .status-overlay-card {
+    width: min(720px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    background: rgba(15,23,42,0.88);
     border: 1px solid var(--panel-border);
-    border-radius: .75rem;
-    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
-    overflow: hidden;
-    min-width: 0;
-    font-size: .68rem;
-    line-height: 1.4;
-    margin-top: .5rem;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 22px 40px rgba(0,0,0,0.55);
+    backdrop-filter: blur(12px);
   }
 
-  .panel-header-static {
-    padding: .5rem .75rem;
-    color: var(--text-lite);
-    font-size: .75rem;
-    font-weight: 600;
-    line-height: 1.3;
-    border-bottom: 1px solid var(--panel-border);
+  .status-overlay-header {
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
   }
 
-  .panel-header-left {
+  .status-overlay-title {
     display: flex;
-    flex-direction: column;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-lite);
   }
-  .panel-header-right {
-    text-align: right;
-    font-weight: 400;
-    font-size: .65rem;
+
+  .status-overlay-version {
+    font-size: 0.8rem;
+    font-weight: 500;
     color: var(--panel-text-dim);
   }
 
-  .panel-body {
-    padding: .5rem .75rem .75rem;
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .status-section {
+    border: 1px solid rgba(71,85,105,0.45);
+    border-radius: 0.85rem;
+    padding: 1rem;
+    background: rgba(15,23,42,0.35);
+  }
+
+  .status-section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-lite);
+    margin-bottom: 0.75rem;
+  }
+
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
     color: #cbd5e1;
-    word-break: break-word;
+    margin-bottom: 0.5rem;
   }
 
-  .section-head {
-    font-size: .7rem;
-    font-weight: 600;
-    color: var(--text-lite);
-    margin-top: .4rem;
-    margin-bottom: .25rem;
-    line-height: 1.3;
+  .status-row:last-child {
+    margin-bottom: 0;
   }
 
-  .panel-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: .25rem;
-    gap: .5rem;
-    flex-wrap: wrap;
-    word-break: break-word;
-  }
-
-  .panel-row-key {
+  .status-key {
     color: var(--panel-text-dim);
-    font-size: .68rem;
-    line-height: 1.3;
   }
 
-  .panel-row-val {
+  .status-val {
     color: var(--panel-text-lite);
     text-align: right;
-    font-size: .68rem;
-    line-height: 1.3;
+    min-width: 3.5rem;
     font-feature-settings: "tnum";
     font-variant-numeric: tabular-nums;
-    min-width: 3rem;
   }
 
-  .panel-row-val.deadzone-active {
+  .status-val.deadzone-active {
     color: var(--panel-highlight);
     font-weight: 600;
   }
 
-  .panel-footer {
-    margin-top: .5rem;
-    padding-top: .5rem;
-    border-top: 1px solid var(--panel-border);
-    font-size: .65rem;
-    color: var(--panel-text-dim);
+  .status-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(71,85,105,0.45);
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.7rem;
+    color: var(--panel-text-dim);
     flex-wrap: wrap;
-    line-height: 1.3;
-    gap: .25rem;
   }
 
-  .panel-footer-left {
-    color: var(--panel-text-dim);
-  }
-  .panel-footer-right {
-    text-align: right;
-    color: var(--panel-text-dim);
+  .status-footer-brand {
+    font-weight: 600;
+    color: var(--text-lite);
   }
 
   @media (max-aspect-ratio: 3/4) {
@@ -614,10 +648,19 @@
       text-align: center;
       gap: 0.25rem;
     }
-    .status-simple {
-      max-width: 220px !important;
+    .status-overlay-card {
       width: 100%;
-      margin: 1rem auto !important;
+      padding: 1.25rem;
+      max-height: 80vh;
+    }
+    .status-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (orientation: portrait) {
+    .status-grid {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -679,7 +722,7 @@
    * OVERLAY FIRST RUN (mic permission)
    ********************/
   #overlayVeil {
-    position: absolute;
+    position: fixed;
     inset: 0;
     background: var(--veil-bg);
     display: flex;
@@ -724,7 +767,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.05";
+  window.APP_VERSION = "1.1";
 </script>
 
 <div class="page">
@@ -751,7 +794,7 @@
 
     <!-- Fixed header -->
     <div class="right-fixed">
-      <div class="app-title">Tonemap Live</div>
+      <div class="app-title">Tonemap.Live</div>
 
       <div class="fixed-controls-row">
         <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
@@ -762,6 +805,8 @@
           <span class="icon-reset">↻</span>
         </button>
       </div>
+
+      <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
     </div>
 
     <!-- Scrollable content (readout + controls + status) -->
@@ -830,97 +875,110 @@
         </div>
       </div>
 
-      <!-- Inline Status (simple, not a bordered card, always in scroll flow) -->
-      <div class="status-simple">
-        <div style="color:#fff; font-weight:600; font-size:.75rem; display:flex; justify-content:space-between;">
-          <span>Status</span>
-          <span id="appVersion" style="color:#94a3b8; font-weight:400;"></span>
-        </div>
-
-        <div style="margin-top:.5rem;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-            <span style="color:#94a3b8;">Listening</span>
-            <span id="dbgListening" style="color:#f8fafc; min-width:3rem; text-align:right;">Paused</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
-            <span style="color:#94a3b8;">Guidance</span>
-            <span id="dbgGuidance" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
-          </div>
-        </div>
-
-        <div style="color:#fff; font-weight:600; font-size:.75rem; margin-bottom:.25rem;">Mode</div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Mode</span>
-          <span id="dbgSens" style="color:#f8fafc; min-width:3rem; text-align:right;">Easy</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Dead Zone</span>
-          <span id="dbgDeadZone" style="color:#f8fafc; min-width:3rem; text-align:right;">~0.23%</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Min Hold</span>
-          <span id="dbgHold" style="color:#f8fafc; min-width:3rem; text-align:right;">0.10 s</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">History</span>
-          <span id="dbgHist" style="color:#f8fafc; min-width:3rem; text-align:right;">Short (3 s)</span>
-        </div>
-
-        <div style="color:#fff; font-weight:600; font-size:.75rem; margin-bottom:.25rem;">Signal</div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">A4 Ref</span>
-          <span id="dbgARef" style="color:#f8fafc; min-width:3rem; text-align:right;">440</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Last Freq</span>
-          <span id="dbgFreq" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Cents</span>
-          <span id="dbgCents" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Clarity</span>
-          <span id="dbgClarity" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Input RMS</span>
-          <span id="dbgRMS" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Vol Threshold</span>
-          <span id="dbgThresh" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
-        </div>
-
-        <div style="color:#fff; font-weight:600; font-size:.75rem; margin-bottom:.25rem;">System</div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Sample Rate</span>
-          <span id="dbgSR" style="color:#f8fafc; min-width:3rem; text-align:right;">--</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.25rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">Range Gate</span>
-          <span id="dbgRange" style="color:#f8fafc; min-width:3rem; text-align:right;">20–8200 Hz</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; flex-wrap:wrap; gap:.5rem;">
-          <span style="color:#94a3b8;">FFT Size</span>
-          <span id="dbgFft" style="color:#f8fafc; min-width:3rem; text-align:right;">2048</span>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem; border-top:1px solid #475569; padding-top:.5rem; margin-top:.5rem; color:#94a3b8; font-size:.65rem;">
-          <span>Tonemap Live</span>
-          <span>Status OK</span>
-        </div>
-      </div>
-
     </div> <!-- /.right-scroll -->
 
-  </div><!-- /.right-col -->
+</div><!-- /.right-col -->
 </div><!-- /.page -->
+
+<div id="statusOverlay" class="status-overlay" aria-hidden="true">
+  <div class="status-overlay-card" role="dialog" aria-modal="true" aria-labelledby="statusOverlayTitle">
+    <div class="status-overlay-header">
+      <div class="status-overlay-title">
+        <span id="statusOverlayTitle">Status</span>
+        <span id="appVersion" class="status-overlay-version"></span>
+      </div>
+      <button id="statusCloseBtn" class="status-close-btn" type="button" aria-label="Close status overlay">Close ✕</button>
+    </div>
+
+    <div class="status-grid">
+      <section class="status-section">
+        <h3 class="status-section-title">Session</h3>
+        <div class="status-row">
+          <span class="status-key">Listening</span>
+          <span class="status-val" id="dbgListening">Paused</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Guidance</span>
+          <span class="status-val" id="dbgGuidance">--</span>
+        </div>
+      </section>
+
+      <section class="status-section">
+        <h3 class="status-section-title">Mode</h3>
+        <div class="status-row">
+          <span class="status-key">Mode</span>
+          <span class="status-val" id="dbgSens">Easy</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Dead Zone</span>
+          <span class="status-val" id="dbgDeadZone">~0.23%</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Min Hold</span>
+          <span class="status-val" id="dbgHold">0.10 s</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">History</span>
+          <span class="status-val" id="dbgHist">Short (3 s)</span>
+        </div>
+      </section>
+
+      <section class="status-section">
+        <h3 class="status-section-title">Signal</h3>
+        <div class="status-row">
+          <span class="status-key">A4 Ref</span>
+          <span class="status-val" id="dbgARef">440</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Last Freq</span>
+          <span class="status-val" id="dbgFreq">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Cents</span>
+          <span class="status-val" id="dbgCents">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Clarity</span>
+          <span class="status-val" id="dbgClarity">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Input RMS</span>
+          <span class="status-val" id="dbgRMS">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Vol Threshold</span>
+          <span class="status-val" id="dbgThresh">--</span>
+        </div>
+      </section>
+
+      <section class="status-section">
+        <h3 class="status-section-title">System</h3>
+        <div class="status-row">
+          <span class="status-key">Sample Rate</span>
+          <span class="status-val" id="dbgSR">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Range Gate</span>
+          <span class="status-val" id="dbgRange">20–8200 Hz</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">FFT Size</span>
+          <span class="status-val" id="dbgFft">2048</span>
+        </div>
+      </section>
+    </div>
+
+    <div class="status-footer">
+      <span class="status-footer-brand">Tonemap.Live</span>
+      <span class="status-footer-state">Status OK</span>
+    </div>
+  </div>
+</div>
 
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.05";
+  const APP_VERSION = window.APP_VERSION || "1.1";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -995,6 +1053,9 @@
   const freqEl        = document.getElementById("freq");
   const centsEl       = document.getElementById("cents");
   const appVersionEl  = document.getElementById("appVersion");
+  const statusToggleBtn = document.getElementById("statusToggleBtn");
+  const statusOverlay   = document.getElementById("statusOverlay");
+  const statusCloseBtn  = document.getElementById("statusCloseBtn");
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -1014,6 +1075,34 @@
   const dbgSR         = document.getElementById("dbgSR");
   const dbgRange      = document.getElementById("dbgRange");
   const dbgFft        = document.getElementById("dbgFft");
+
+  function openStatusOverlay() {
+    if (!statusOverlay) return;
+    if (statusOverlay.classList.contains("open")) return;
+    statusOverlay.classList.add("open");
+    statusOverlay.setAttribute("aria-hidden", "false");
+    document.addEventListener("keydown", onStatusOverlayKeyDown);
+    if (statusCloseBtn) {
+      statusCloseBtn.focus();
+    }
+  }
+
+  function closeStatusOverlay() {
+    if (!statusOverlay) return;
+    if (!statusOverlay.classList.contains("open")) return;
+    statusOverlay.classList.remove("open");
+    statusOverlay.setAttribute("aria-hidden", "true");
+    document.removeEventListener("keydown", onStatusOverlayKeyDown);
+    if (statusToggleBtn) {
+      statusToggleBtn.focus();
+    }
+  }
+
+  function onStatusOverlayKeyDown(event) {
+    if (event.key === "Escape") {
+      closeStatusOverlay();
+    }
+  }
 
   /**********************
    * RUNTIME STATE/DSP
@@ -2005,6 +2094,30 @@
   resetBtn.addEventListener("click", () => {
     resetHeatmapOnly();
   });
+
+  if (statusToggleBtn && statusOverlay) {
+    statusToggleBtn.addEventListener("click", () => {
+      if (statusOverlay.classList.contains("open")) {
+        closeStatusOverlay();
+      } else {
+        openStatusOverlay();
+      }
+    });
+  }
+
+  if (statusCloseBtn) {
+    statusCloseBtn.addEventListener("click", () => {
+      closeStatusOverlay();
+    });
+  }
+
+  if (statusOverlay) {
+    statusOverlay.addEventListener("click", event => {
+      if (event.target === statusOverlay) {
+        closeStatusOverlay();
+      }
+    });
+  }
 
   aRefSelect.addEventListener("change", () => {
     const val = parseFloat(aRefSelect.value);
