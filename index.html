@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.13 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.14 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -897,7 +897,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.13";
+  window.APP_VERSION = "1.14";
 </script>
 
 <div class="page">
@@ -907,8 +907,8 @@
       <button id="overlayPlayBtn">▶︎</button>
       <div id="overlayMsg">
         Click Play and<br>
-        Allow Microphone to begin
-        <span class="overlay-note">(Please check browser settings if having trouble)</span>
+        Allow Microphone to start
+        <span class="overlay-note">(Please check browser privacy<br>settings if having trouble)</span>
       </div>
     </div>
   </div>
@@ -956,7 +956,7 @@
           </div>
         </div>
         <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, buy me a coffee!</a></div>
-        <div class="footer-line">© 2025, East End Violin Studio | <a href="mailto:contact@eastendviolinstudio.com">contact@eastendviolinstudio.com</a></div>
+        <div class="footer-line">© 2025, East End Violin Studio &nbsp;| &nbsp;<a href="mailto:contact@eastendviolinstudio.com">contact@eastendviolinstudio.com</a></div>
       </div>
 
     </div> <!-- /.right-scroll -->
@@ -1142,7 +1142,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.13";
+  const APP_VERSION = window.APP_VERSION || "1.14";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
