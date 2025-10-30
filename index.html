@@ -774,17 +774,20 @@
       width: 100%;
       max-height: 80vh;
     }
-    .status-grid {
-      grid-template-columns: 1fr;
-    }
-    .options-grid {
-      grid-template-columns: 1fr;
-    }
     .app-title {
       max-width: 160px;
     }
     .overlay-button-stack {
       flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 500px) {
+    .status-grid {
+      grid-template-columns: 1fr;
+    }
+    .options-grid {
+      grid-template-columns: 1fr;
     }
   }
 
