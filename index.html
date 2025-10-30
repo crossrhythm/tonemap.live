@@ -193,7 +193,22 @@
   .footer-line {
     text-align: center;
     font-size: 0.7rem;
-    color: rgba(148,163,184,0.75);
+    color: rgba(226,232,240,0.85);
+  }
+
+  .footer-line a,
+  .footer-line a:visited {
+    color: rgba(226,232,240,0.85);
+    text-decoration: none;
+  }
+
+  .footer-line a:focus,
+  .footer-line a:hover {
+    text-decoration: underline;
+  }
+
+  .footer-line .footer-coffee {
+    font-weight: 700;
   }
 
   /* Buttons:
@@ -940,8 +955,8 @@
             <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
           </div>
         </div>
-
-        <div class="footer-line">© 2025, East End Violin Studio | contact@eastendviolinstudio.com</div>
+        <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, buy me a coffee!</a></div>
+        <div class="footer-line">© 2025, East End Violin Studio | <a href="mailto:contact@eastendviolinstudio.com">contact@eastendviolinstudio.com</a></div>
       </div>
 
     </div> <!-- /.right-scroll -->
@@ -996,8 +1011,8 @@
         <label id="historyLabel" class="opt-label" for="historySelect">History</label>
         <div class="opt-control">
           <select id="historySelect">
-            <option value="short" selected>Short</option>
-            <option value="long">Long</option>
+            <option value="short" selected>Short (3 seconds)</option>
+            <option value="long">Long (20 seconds)</option>
           </select>
         </div>
       </div>
