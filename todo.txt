@@ -1,4 +1,2 @@
-1. Add the amount of time to the "History" options: Short (3 seconds), Long (20 seconds)
-2. Make the text for contact@eastendviolinstudio.com a clickable email link
-3. Add in the footer clickable text reading "If you like this, buy me a coffee!".  It should link to "buymeacoffee.com/eevs"
-4. Add a space on either side of the | in the footer.
+1. Make cents display glow with color for sharp or flat (similar scale to grid color, should respond to Easy and Hard mode as well, with a "dead zone" for Easy Mode)
+

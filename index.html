@@ -828,11 +828,25 @@
     box-shadow: inset 0 0 0 var(--grid-active-border) #ffffff;
   }
 
+  .grid-cell.active::after {
+    content: "";
+    position: absolute;
+    left: var(--grid-active-border);
+    right: var(--grid-active-border);
+    top: 50%;
+    height: 2px;
+    background: var(--grid-line);
+    transform: translateY(-50%);
+    z-index: 0;
+  }
+
   .grid-cell .note-label {
     color: inherit;
     display: inline-flex;
     align-items: flex-start;
     gap: 0.05em;
+    position: relative;
+    z-index: 1;
     text-shadow: 0 1px 2px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.75);
   }
 
@@ -852,6 +866,7 @@
     border-radius: 2px;
     transform: translate(-50%, -50%);
     display: none;
+    z-index: 2;
   }
 
   /********************
@@ -1008,6 +1023,17 @@
       </div>
 
       <div class="option-field">
+        <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
+        <div class="opt-control">
+          <select id="stretchSelect">
+            <option value="none" selected>None (Equal Temperament)</option>
+            <option value="minimal">Minimal (½ Railsback above A5)</option>
+            <option value="full">Full (Railsback)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="option-field">
         <label id="lowNoteLabel" class="opt-label" for="lowNoteSelect">Low Note</label>
         <div class="opt-control">
           <select id="lowNoteSelect">
@@ -1084,6 +1110,10 @@
         <div class="status-row">
           <span class="status-key">Mode</span>
           <span class="status-val" id="dbgSens">Easy</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Stretch</span>
+          <span class="status-val" id="dbgStretch">None (Equal Temperament)</span>
         </div>
         <div class="status-row">
           <span class="status-key">Dead Zone</span>
@@ -1219,6 +1249,7 @@
 
   const sensitivitySelect = document.getElementById("sensitivitySelect");
   const historySelect     = document.getElementById("historySelect");
+  const stretchSelect     = document.getElementById("stretchSelect");
 
   const noteGrid      = document.getElementById("noteGrid");
 
@@ -1241,6 +1272,7 @@
   const dbgGuidance   = document.getElementById("dbgGuidance");
 
   const dbgSens       = document.getElementById("dbgSens");
+  const dbgStretch    = document.getElementById("dbgStretch");
   const dbgDeadZone   = document.getElementById("dbgDeadZone");
   const dbgHold       = document.getElementById("dbgHold");
   const dbgHist       = document.getElementById("dbgHist");
@@ -1342,6 +1374,19 @@
   // History windows (accumulated voiced seconds)
   const HISTORY_SHORT_S = 3;
   const HISTORY_LONG_S  = 20;
+
+  // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
+  const RAILSBACK_ANCHORS = [
+    { midi: 21, cents: -40 },  // A0
+    { midi: 33, cents: -25 },  // A1
+    { midi: 45, cents: -10 },  // A2
+    { midi: 57, cents: -4 },   // A3
+    { midi: 69, cents: 0 },    // A4
+    { midi: 81, cents: 6 },    // A5
+    { midi: 93, cents: 15 },   // A6
+    { midi: 105, cents: 28 },  // A7
+    { midi: 108, cents: 35 }   // C8
+  ];
 
   // time to reach full brightness in the cell heatmap
   const FULL_CONF_MS = 1500;
@@ -1507,6 +1552,38 @@
     return Math.sqrt(sumSq / buf.length);
   }
 
+  function interpolateRailsbackCents(midi) {
+    if (!Number.isFinite(midi)) return 0;
+    const anchors = RAILSBACK_ANCHORS;
+    if (anchors.length === 0) return 0;
+    if (midi <= anchors[0].midi) return anchors[0].cents;
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const a = anchors[i];
+      const b = anchors[i + 1];
+      if (midi >= a.midi && midi <= b.midi) {
+        const span = b.midi - a.midi;
+        const t = span === 0 ? 0 : (midi - a.midi) / span;
+        return a.cents + (b.cents - a.cents) * t;
+      }
+    }
+    return anchors[anchors.length - 1].cents;
+  }
+
+  function getStretchCents(midi) {
+    if (!stretchSelect) return 0;
+    const mode = stretchSelect.value || "none";
+    if (mode === "full") {
+      return interpolateRailsbackCents(midi);
+    }
+    if (mode === "minimal") {
+      if (midi > 81) {
+        return 0.5 * interpolateRailsbackCents(midi);
+      }
+      return 0;
+    }
+    return 0;
+  }
+
   function freqToNoteData(freq, A4ref) {
     if (!freq || !isFinite(freq)) {
       return {
@@ -1515,18 +1592,21 @@
         cents: 0,
         roundedFreq: 0,
         midi: null,
-        idealFreq: null,
-        errRatio: 0
+        targetFreq: null,
+        errRatio: 0,
+        stretchCents: 0
       };
     }
 
     const semitonesFromA4 = 12 * (Math.log(freq / A4ref) / Math.log(2));
     const midi = Math.round(semitonesFromA4) + 69;
 
-    const idealFreq = A4ref * Math.pow(2, (midi - 69) / 12);
+    const equalTempFreq = A4ref * Math.pow(2, (midi - 69) / 12);
+    const stretchCents = getStretchCents(midi);
+    const targetFreq = equalTempFreq * Math.pow(2, stretchCents / 1200);
 
-    const cents = 1200 * (Math.log(freq / idealFreq) / Math.log(2));
-    const errRatio = (freq - idealFreq) / idealFreq;
+    const cents = 1200 * (Math.log(freq / targetFreq) / Math.log(2));
+    const errRatio = (freq - targetFreq) / targetFreq;
 
     const noteIndex = (midi % 12 + 12) % 12;
     const noteName = NOTE_NAMES[noteIndex];
@@ -1538,8 +1618,9 @@
       cents,
       roundedFreq: freq.toFixed(2),
       midi,
-      idealFreq,
-      errRatio
+      targetFreq,
+      errRatio,
+      stretchCents
     };
   }
 
@@ -1569,6 +1650,17 @@
         dbgSens.textContent     = "Hard";
         dbgDeadZone.textContent = "~0.12%";
         dbgHold.textContent     = "0.05 s";
+    }
+
+    if (dbgStretch) {
+      let stretchLabel = "None (Equal Temperament)";
+      if (stretchSelect && stretchSelect.options && stretchSelect.selectedIndex >= 0) {
+        const opt = stretchSelect.options[stretchSelect.selectedIndex];
+        if (opt) {
+          stretchLabel = opt.textContent;
+        }
+      }
+      dbgStretch.textContent = stretchLabel;
     }
 
     const histLabel = (historySelect.value === "short") ? "Short" : "Long";
@@ -2392,6 +2484,14 @@
     fullResetState();
     updateDebugPanel({});
   });
+
+  if (stretchSelect) {
+    stretchSelect.addEventListener("change", () => {
+      updateDebugPanel({});
+      fullResetState();
+      updateDebugPanel({});
+    });
+  }
 
   // History change reinterprets stain (no reset)
   historySelect.addEventListener("change", () => {
