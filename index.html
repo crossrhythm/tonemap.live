@@ -1517,6 +1517,7 @@
     startTime: 0,
     accumTimeMs: 0,
     accumErrWeighted: 0,
+    stretchCents: 0,
   };
 
   // Range warning hysteresis
@@ -1910,16 +1911,18 @@
     }
   }
 
-  function beginActiveNote(midi) {
+  function beginActiveNote(midi, stretchCents = getStretchCents(midi)) {
     activeNoteInfo.midi = midi;
     activeNoteInfo.startTime = nowMs();
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
+    activeNoteInfo.stretchCents = stretchCents ?? 0;
   }
 
-  function accumulateActiveNoteFrame(errRatio, dtMs) {
+  function accumulateActiveNoteFrame(errRatio, stretchCents, dtMs) {
     activeNoteInfo.accumTimeMs += dtMs;
     activeNoteInfo.accumErrWeighted += errRatio * dtMs;
+    activeNoteInfo.stretchCents = stretchCents ?? activeNoteInfo.stretchCents ?? 0;
   }
 
   function getCurrentMinHoldMs() {
@@ -1936,17 +1939,25 @@
     return base * HARD_RESPONSE_FACTOR;
   }
 
-  function getRecentWeightedErr(segments, windowSec) {
+  function rebaseErrRatio(errRatio, fromStretchCents, toStretchCents) {
+    const diffFactor = Math.pow(2, (fromStretchCents - toStretchCents) / 1200);
+    return diffFactor * (1 + (errRatio || 0)) - 1;
+  }
+
+  function getRecentWeightedErr(segments, windowSec, midi) {
     const windowMs = windowSec * 1000;
     let remaining = windowMs;
     let totalDur = 0;
     let weightedErrSum = 0;
+    const targetStretch = getStretchCents(midi);
 
     for (let i = segments.length - 1; i >= 0 && remaining > 0; i--) {
       const seg = segments[i];
       const take = Math.min(seg.durMs, remaining);
       if (take > 0) {
-        weightedErrSum += seg.avgErrRatio * take;
+        const segStretch = seg.stretchCents ?? 0;
+        const rebasedErr = rebaseErrRatio(seg.avgErrRatio, segStretch, targetStretch);
+        weightedErrSum += rebasedErr * take;
         totalDur += take;
         remaining -= take;
       }
@@ -1959,17 +1970,19 @@
   }
 
   function finalizeActiveSegment() {
-    const { midi, accumTimeMs, accumErrWeighted } = activeNoteInfo;
+    const { midi, accumTimeMs, accumErrWeighted, stretchCents } = activeNoteInfo;
     if (midi == null) return;
     if (!cellState[midi]) return;
     if (accumTimeMs <= 0) return;
 
     const st = cellState[midi];
     const avgErr = accumErrWeighted / accumTimeMs;
+    const segStretch = stretchCents ?? getStretchCents(midi);
 
     st.segments.push({
       durMs: accumTimeMs,
-      avgErrRatio: avgErr
+      avgErrRatio: avgErr,
+      stretchCents: segStretch
     });
 
     st.totalVoiceMs += accumTimeMs;
@@ -1977,7 +1990,7 @@
     const intensity = Math.min(1, st.totalVoiceMs / FULL_CONF_MS);
 
     const windowSec = getHistoryWindowSeconds();
-    const recentWeighted = getRecentWeightedErr(st.segments, windowSec);
+    const recentWeighted = getRecentWeightedErr(st.segments, windowSec, midi);
 
     const biasColor = computeColorBiasFromErr(recentWeighted.avgErrRatio);
 
@@ -1995,6 +2008,7 @@
     activeNoteInfo.startTime = 0;
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
+    activeNoteInfo.stretchCents = 0;
   }
 
   function renderHeatmap() {
@@ -2019,7 +2033,7 @@
       const intensity = Math.min(1, st.totalVoiceMs / FULL_CONF_MS);
 
       const windowSec = getHistoryWindowSeconds();
-      const recentWeighted = getRecentWeightedErr(st.segments, windowSec);
+      const recentWeighted = getRecentWeightedErr(st.segments, windowSec, Number(midi));
 
       const biasColor = computeColorBiasFromErr(recentWeighted.avgErrRatio);
 
@@ -2181,7 +2195,7 @@
 
     if (pitchValid && loudEnough) {
       const nd = freqToNoteData(pitch, A4);
-      const { noteName, octave, cents, roundedFreq, midi, errRatio } = nd;
+      const { noteName, octave, cents, roundedFreq, midi, errRatio, stretchCents } = nd;
 
       const absErr = Math.abs(errRatio);
       inDeadZoneNow = (absErr <= deadZoneRatio);
@@ -2198,15 +2212,15 @@
 
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
-        beginActiveNote(midi);
+        beginActiveNote(midi, stretchCents);
       } else {
-        accumulateActiveNoteFrame(errRatio, dtMs);
+        accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
       }
 
       const heldForMs = nowT - currentMidiHoldStart;
       if (heldForMs >= minHold) {
         finalizeActiveSegment();
-        beginActiveNote(midi);
+        beginActiveNote(midi, stretchCents);
         currentMidiHoldStart = nowT;
         capturingNow = true;
       }
@@ -2487,8 +2501,12 @@
 
   if (stretchSelect) {
     stretchSelect.addEventListener("change", () => {
-      updateDebugPanel({});
-      fullResetState();
+      finalizeActiveSegment();
+      clearActiveNote();
+      currentMidiHeld = null;
+      currentMidiHoldStart = nowMs();
+      highlightGridCell(null, 0);
+      recomputeAllCellColorsAndRender();
       updateDebugPanel({});
     });
   }
