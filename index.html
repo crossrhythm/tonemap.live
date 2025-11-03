@@ -1027,7 +1027,7 @@
         <div class="opt-control">
           <select id="stretchSelect">
             <option value="none" selected>None (Equal Temperament)</option>
-            <option value="minimal">Minimal (½ Railsback above A5)</option>
+            <option value="minimal">Minimal (¼ Railsback above A4)</option>
             <option value="full">Full (Railsback)</option>
           </select>
         </div>
@@ -1577,10 +1577,9 @@
       return interpolateRailsbackCents(midi);
     }
     if (mode === "minimal") {
-      if (midi > 81) {
-        return 0.5 * interpolateRailsbackCents(midi);
-      }
-      return 0;
+      const cents = interpolateRailsbackCents(midi);
+      // scale to 25% intensity and only apply above A4
+      return midi > 69 ? 0.25 * cents : 0;
     }
     return 0;
   }
