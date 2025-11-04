@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.14 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.15 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -470,7 +470,8 @@
   .options-btn,
   .status-btn,
   .options-close-btn,
-  .status-close-btn {
+  .status-close-btn,
+  .toggle-btn {
     appearance: none;
     background: transparent;
     color: var(--text-lite);
@@ -490,24 +491,33 @@
   .options-close-btn:hover,
   .options-close-btn:focus-visible,
   .status-close-btn:hover,
-  .status-close-btn:focus-visible {
+  .status-close-btn:focus-visible,
+  .toggle-btn:hover,
+  .toggle-btn:focus-visible {
     border-color: var(--accent-green);
     color: var(--accent-green);
     outline: none;
   }
 
-  .options-btn:active,
-  .status-btn:active,
-  .options-close-btn:active,
-  .status-close-btn:active {
-    background-color: rgba(34,197,94,0.12);
-  }
+.options-btn:active,
+.status-btn:active,
+.options-close-btn:active,
+.status-close-btn:active,
+.toggle-btn:active {
+  background-color: rgba(34,197,94,0.12);
+}
 
-  .options-btn.alert {
-    border-color: var(--warn-color);
-    color: var(--warn-color);
-    box-shadow: 0 0 0 0.3rem rgba(250,204,21,0.12);
-  }
+.options-btn.alert {
+  border-color: var(--warn-color);
+  color: var(--warn-color);
+  box-shadow: 0 0 0 0.3rem rgba(250,204,21,0.12);
+}
+
+.toggle-btn.active {
+  background-color: rgba(34,197,94,0.12);
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
 
   .options-overlay,
   .status-overlay {
@@ -924,7 +934,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.14";
+  window.APP_VERSION = "1.15";
 </script>
 
 <div class="page">
@@ -1027,9 +1037,16 @@
         <div class="opt-control">
           <select id="stretchSelect">
             <option value="none" selected>None (Equal Temperament)</option>
-            <option value="minimal">Minimal (¼ Railsback above A4)</option>
+            <option value="minimal">Minimal (¼ Railsback from A4)</option>
             <option value="full">Full (Railsback)</option>
           </select>
+        </div>
+      </div>
+
+      <div class="option-field">
+        <label class="opt-label" for="accidentalToggle">Accidentals</label>
+        <div class="opt-control">
+          <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
         </div>
       </div>
 
@@ -1185,7 +1202,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.14";
+  const APP_VERSION = window.APP_VERSION || "1.15";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -1250,6 +1267,7 @@
   const sensitivitySelect = document.getElementById("sensitivitySelect");
   const historySelect     = document.getElementById("historySelect");
   const stretchSelect     = document.getElementById("stretchSelect");
+  const accidentalToggle  = document.getElementById("accidentalToggle");
 
   const noteGrid      = document.getElementById("noteGrid");
 
@@ -1529,14 +1547,111 @@
   const HIGH_WARNING_HOLD_MS = 300;
 
   // Last displayed pitch (volume gated)
-  let lastDisplayedNoteName = "--";
-  let lastDisplayedHz       = "-- Hz";
-  let lastDisplayedCents    = "-- cents";
+  let lastDisplayedMidi     = null;
+  let lastDisplayedHzText   = "-- Hz";
+  let lastDisplayedCentsText = "-- cents";
+  let lastHighlightedMidi   = null;
+  let lastHighlightedCents  = 0;
 
   // tick timing
   let lastFrameTime = performance.now();
 
-  const NOTE_NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const NOTE_NAMES_SHARP = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+  const NOTE_NAMES_SHARP_UNICODE = NOTE_NAMES_SHARP.map(name => name.replace("#", "♯"));
+  const NOTE_NAMES_FLAT_ASCII  = ["C","Db","D","Eb","E","F","Gb","G","Ab","A","Bb","B"];
+  const NOTE_NAMES_FLAT_DISPLAY = ["C","D♭","D","E♭","E","F","G♭","G","A♭","A","B♭","B"];
+
+  function buildNoteLookup(variantSets) {
+    const map = {};
+    for (const set of variantSets) {
+      set.forEach((name, idx) => {
+        map[name] = idx;
+      });
+    }
+    return map;
+  }
+
+  const NOTE_NAME_LOOKUP = {
+    sharps: buildNoteLookup([NOTE_NAMES_SHARP, NOTE_NAMES_SHARP_UNICODE]),
+    flats: buildNoteLookup([NOTE_NAMES_FLAT_ASCII, NOTE_NAMES_FLAT_DISPLAY])
+  };
+
+  let accidentalMode = "sharps";
+
+  function getNoteNamesForMode(mode = accidentalMode) {
+    return mode === "flats" ? NOTE_NAMES_FLAT_DISPLAY : NOTE_NAMES_SHARP;
+  }
+
+  function getNoteNameForMidi(midi, mode = accidentalMode) {
+    const names = getNoteNamesForMode(mode);
+    const idx = ((midi % 12) + 12) % 12;
+    return names[idx] ?? NOTE_NAMES_SHARP[idx];
+  }
+
+  function getNoteIndexFromName(name) {
+    if (!name) return -1;
+    const attempts = new Set();
+    attempts.add(name);
+    const upper = name.toUpperCase();
+    attempts.add(upper);
+    attempts.add(upper.replace("B", "b"));
+    attempts.add(name.replace("♭", "b"));
+    attempts.add(name.replace("♯", "#"));
+    attempts.add(name.replace("b", "♭"));
+    attempts.add(name.replace("#", "♯"));
+    attempts.add(upper.replace("♭", "♭"));
+    attempts.add(upper.replace("♯", "♯"));
+
+    for (const candidate of attempts) {
+      const sharpIdx = NOTE_NAME_LOOKUP.sharps[candidate];
+      if (sharpIdx !== undefined) return sharpIdx;
+      const flatIdx = NOTE_NAME_LOOKUP.flats[candidate];
+      if (flatIdx !== undefined) return flatIdx;
+    }
+    return -1;
+  }
+
+  function updateAccidentalToggleUI() {
+    if (!accidentalToggle) return;
+    accidentalToggle.dataset.mode = accidentalMode;
+    accidentalToggle.textContent = accidentalMode === "flats" ? "Flats" : "Sharps";
+    accidentalToggle.classList.toggle("active", accidentalMode === "flats");
+    accidentalToggle.setAttribute("aria-pressed", accidentalMode === "flats" ? "true" : "false");
+  }
+
+  function updateGridLabelsForAccidentals() {
+    for (const midi in midiToCellEl) {
+      const cell = midiToCellEl[midi];
+      if (!cell) continue;
+      const label = cell.querySelector(".note-label");
+      if (!label) continue;
+      const midiNum = Number(midi);
+      const noteName = getNoteNameForMidi(midiNum);
+      const octave = Math.floor(midiNum / 12) - 1;
+      label.innerHTML = `${noteName}<sup>${octave}</sup>`;
+    }
+  }
+
+  function updateNoteReadoutText() {
+    if (lastDisplayedMidi != null) {
+      const noteName = getNoteNameForMidi(lastDisplayedMidi);
+      const octave = Math.floor(lastDisplayedMidi / 12) - 1;
+      noteEl.textContent = `${noteName}${octave}`;
+    } else {
+      noteEl.textContent = "--";
+    }
+    freqEl.textContent = lastDisplayedHzText;
+    centsEl.textContent = lastDisplayedCentsText;
+  }
+
+  function setAccidentalMode(mode) {
+    const nextMode = mode === "flats" ? "flats" : "sharps";
+    accidentalMode = nextMode;
+    updateAccidentalToggleUI();
+    updateGridLabelsForAccidentals();
+    updateNoteReadoutText();
+    highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
+  }
 
   /**********************
    * HELPERS
@@ -1579,7 +1694,7 @@
     if (mode === "minimal") {
       const cents = interpolateRailsbackCents(midi);
       // scale to 25% intensity and only apply above A4
-      return midi > 69 ? 0.25 * cents : 0;
+      return midi >= 69 ? 0.25 * cents : 0;
     }
     return 0;
   }
@@ -1608,8 +1723,7 @@
     const cents = 1200 * (Math.log(freq / targetFreq) / Math.log(2));
     const errRatio = (freq - targetFreq) / targetFreq;
 
-    const noteIndex = (midi % 12 + 12) % 12;
-    const noteName = NOTE_NAMES[noteIndex];
+    const noteName = getNoteNameForMidi(midi);
     const octave = Math.floor(midi / 12) - 1;
 
     return {
@@ -1683,8 +1797,6 @@
   /**********************
    * GRID / RANGE LOGIC
    **********************/
-  const NOTE_NAMES_ORDER = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
-
   function getViewportSize() {
     return {
       width: window.innerWidth || document.documentElement.clientWidth || 0,
@@ -1716,13 +1828,29 @@
   }
 
   function noteNameToMidiC(noteNameWithOctave) {
-    const m = /^([A-G]#?)(\d+)$/.exec(noteNameWithOctave);
+    const m = /^([A-G](?:#|b|♯|♭)?)(\d+)$/i.exec(noteNameWithOctave);
     if (!m) return 24;
-    const baseName = m[1];
+    const rawBase = m[1];
     const octave   = parseInt(m[2], 10);
+    const letter = rawBase.charAt(0).toUpperCase();
+    const accidentalRaw = rawBase.slice(1);
+
+    const variants = new Set();
+    const base = `${letter}${accidentalRaw}`;
+    variants.add(base);
+    variants.add(`${letter}${accidentalRaw.replace(/B/g, "b")}`);
+    variants.add(`${letter}${accidentalRaw.replace(/♭/g, "b")}`);
+    variants.add(`${letter}${accidentalRaw.replace(/♯/g, "#")}`);
+    variants.add(`${letter}${accidentalRaw.replace(/b/g, "♭")}`);
+    variants.add(`${letter}${accidentalRaw.replace(/#/g, "♯")}`);
+
+    let idx = -1;
+    for (const variant of variants) {
+      idx = getNoteIndexFromName(variant);
+      if (idx !== -1) break;
+    }
 
     const baseForOct = 12 + octave * 12;
-    const idx = NOTE_NAMES_ORDER.indexOf(baseName);
     if (idx === -1) return baseForOct;
     return baseForOct + idx;
   }
@@ -1803,8 +1931,7 @@
     for (let rowStartMidi of rowsReversed) {
       for (let i = 0; i < 12; i++) {
         const midiVal = rowStartMidi + i;
-        const noteIndex = ((midiVal % 12) + 12) % 12;
-        const name = NOTE_NAMES_ORDER[noteIndex];
+        const noteName = getNoteNameForMidi(midiVal);
         const octave   = Math.floor(midiVal / 12) - 1;
 
         const cell = document.createElement("div");
@@ -1813,7 +1940,7 @@
 
         const label = document.createElement("span");
         label.className = "note-label";
-        label.innerHTML = `${name}<sup>${octave}</sup>`;
+        label.innerHTML = `${noteName}<sup>${octave}</sup>`;
         cell.appendChild(label);
 
         const indicator = document.createElement("div");
@@ -2071,6 +2198,8 @@
         ind.style.top = yPercent + "%";
       }
     }
+    lastHighlightedMidi = activeMidi != null ? activeMidi : null;
+    lastHighlightedCents = cents || 0;
   }
 
   /**********************
@@ -2194,15 +2323,15 @@
 
     if (pitchValid && loudEnough) {
       const nd = freqToNoteData(pitch, A4);
-      const { noteName, octave, cents, roundedFreq, midi, errRatio, stretchCents } = nd;
+      const { cents, roundedFreq, midi, errRatio, stretchCents } = nd;
 
       const absErr = Math.abs(errRatio);
       inDeadZoneNow = (absErr <= deadZoneRatio);
 
       // gated display of pitch readout
-      lastDisplayedNoteName = noteName + octave;
-      lastDisplayedHz       = `${roundedFreq} Hz`;
-      lastDisplayedCents    = `${cents.toFixed(1)} cents`;
+      lastDisplayedMidi     = midi;
+      lastDisplayedHzText   = `${roundedFreq} Hz`;
+      lastDisplayedCentsText = `${cents.toFixed(1)} cents`;
 
       // active note hold logic
       if (currentMidiHeld !== midi) {
@@ -2234,6 +2363,10 @@
       currentMidiHeld = null;
       currentMidiHoldStart = nowT;
 
+      lastDisplayedMidi     = null;
+      lastDisplayedHzText   = "-- Hz";
+      lastDisplayedCentsText = "-- cents";
+
       updateDebugPanel({
         freq: pitchValid ? pitch : null,
         clarity,
@@ -2243,9 +2376,7 @@
     }
 
     // apply displayed values
-    noteEl.textContent  = lastDisplayedNoteName;
-    freqEl.textContent  = lastDisplayedHz;
-    centsEl.textContent = lastDisplayedCents;
+    updateNoteReadoutText();
 
     // grid, status, LED
     highlightGridCell(activeMidiForUI, centsForUI);
@@ -2355,12 +2486,10 @@
     }
     renderHeatmap();
 
-    lastDisplayedNoteName = "--";
-    lastDisplayedHz       = "-- Hz";
-    lastDisplayedCents    = "-- cents";
-    noteEl.textContent    = lastDisplayedNoteName;
-    freqEl.textContent    = lastDisplayedHz;
-    centsEl.textContent   = lastDisplayedCents;
+    lastDisplayedMidi     = null;
+    lastDisplayedHzText   = "-- Hz";
+    lastDisplayedCentsText = "-- cents";
+    updateNoteReadoutText();
 
     // reset LED state
     ledTargetGreen = false;
@@ -2510,6 +2639,13 @@
     });
   }
 
+  if (accidentalToggle) {
+    accidentalToggle.addEventListener("click", () => {
+      const nextMode = accidentalMode === "sharps" ? "flats" : "sharps";
+      setAccidentalMode(nextMode);
+    });
+  }
+
   // History change reinterprets stain (no reset)
   historySelect.addEventListener("change", () => {
     updateDebugPanel({});
@@ -2528,12 +2664,12 @@
   updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
   updateDebugPanel({});
 
-  lastDisplayedNoteName = "--";
-  lastDisplayedHz       = "-- Hz";
-  lastDisplayedCents    = "-- cents";
-  noteEl.textContent  = lastDisplayedNoteName;
-  freqEl.textContent  = lastDisplayedHz;
-  centsEl.textContent = lastDisplayedCents;
+  lastDisplayedMidi     = null;
+  lastDisplayedHzText   = "-- Hz";
+  lastDisplayedCentsText = "-- cents";
+  updateAccidentalToggleUI();
+  updateGridLabelsForAccidentals();
+  updateNoteReadoutText();
 
 </script>
 </body>
