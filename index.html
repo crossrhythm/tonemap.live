@@ -619,6 +619,12 @@
     justify-content: flex-start;
   }
 
+  .option-field .opt-hint {
+    font-size: 0.7rem;
+    color: var(--panel-text-dim);
+    line-height: 1.4;
+  }
+
   .option-field select {
     width: 100%;
   }
@@ -1036,7 +1042,8 @@
   <div class="options-overlay-card" role="dialog" aria-modal="true" aria-labelledby="optionsOverlayTitle">
     <div class="options-overlay-header">
       <div class="options-overlay-title" id="optionsOverlayTitle">Options</div>
-      <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Close options overlay">Close ✕</button>
+        <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset</button>
+        <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Close options overlay">Close ✕</button>
     </div>
 
     <div class="options-overlay-body">
@@ -1056,8 +1063,8 @@
         <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
         <div class="opt-control">
           <select id="sensitivitySelect">
-            <option value="easy" selected>Easy</option>
-            <option value="hard">Hard</option>
+            <option value="easy" selected>Easy (more forgiving, slower response)</option>
+            <option value="hard">Hard (no dead zone, quicker response)</option>
           </select>
         </div>
       </div>
@@ -1124,11 +1131,7 @@
         </div>
       </div>
 
-      <div class="option-field">
-        <div class="opt-control reset-stack">
-          <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset Settings</button>
-        </div>
-      </div>
+
       </div>
     </div>
   </div>
