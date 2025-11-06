@@ -575,6 +575,12 @@
     color: var(--text-lite);
   }
 
+  .options-header-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
   .status-overlay-version {
     font-size: 0.8rem;
     font-weight: 500;
@@ -1028,7 +1034,7 @@
             <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
           </div>
         </div>
-        <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, buy me a coffee! ☕️
+        <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, you can buy me a coffee! ☕️
 </a></div>
         <div class="footer-line">© 2025, <a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> &nbsp;| &nbsp;<a href="mailto:contact@eastendviolinstudio.com">contact@eastendviolinstudio.com</a></div>
       </div>
@@ -1042,8 +1048,10 @@
   <div class="options-overlay-card" role="dialog" aria-modal="true" aria-labelledby="optionsOverlayTitle">
     <div class="options-overlay-header">
       <div class="options-overlay-title" id="optionsOverlayTitle">Options</div>
+      <div class="options-header-actions">
         <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset</button>
         <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Close options overlay">Close ✕</button>
+      </div>
     </div>
 
     <div class="options-overlay-body">
@@ -1130,7 +1138,6 @@
           </div>
         </div>
       </div>
-
 
       </div>
     </div>
