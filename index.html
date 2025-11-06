@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.15 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.16 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -623,6 +623,36 @@
     width: 100%;
   }
 
+  .option-field .reset-stack {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .reset-btn-secondary {
+    appearance: none;
+    background: transparent;
+    color: var(--text-lite);
+    border: 1px solid var(--border-dim);
+    border-radius: 0.75rem;
+    padding: 0.45rem 1.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .reset-btn-secondary:hover,
+  .reset-btn-secondary:focus-visible {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    outline: none;
+  }
+
+  .reset-btn-secondary:active {
+    background: rgba(34,197,94,0.12);
+  }
+
   .option-field .volume-wrap {
     width: 100%;
     justify-content: space-between;
@@ -934,7 +964,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.15";
+  window.APP_VERSION = "1.16";
 </script>
 
 <div class="page">
@@ -1093,6 +1123,12 @@
           </div>
         </div>
       </div>
+
+      <div class="option-field">
+        <div class="opt-control reset-stack">
+          <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset Settings</button>
+        </div>
+      </div>
       </div>
     </div>
   </div>
@@ -1202,7 +1238,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.15";
+  const APP_VERSION = window.APP_VERSION || "1.16";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -1268,6 +1304,7 @@
   const historySelect     = document.getElementById("historySelect");
   const stretchSelect     = document.getElementById("stretchSelect");
   const accidentalToggle  = document.getElementById("accidentalToggle");
+  const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
 
   const noteGrid      = document.getElementById("noteGrid");
 
@@ -1578,6 +1615,44 @@
 
   let accidentalMode = "sharps";
 
+  const STORAGE_KEY = "tonemap.live.settings";
+
+  const DEFAULT_SETTINGS = {
+    a4: 440,
+    sensitivity: "easy",
+    stretch: "none",
+    accidentalMode: "sharps",
+    lowNote: "C3",
+    history: "short",
+    range: null, // computed default
+    minVol: 0.1
+  };
+
+  function loadSettings() {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { ...DEFAULT_SETTINGS };
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.range != null) {
+        parsed.range = String(parsed.range);
+      }
+      return { ...DEFAULT_SETTINGS, ...parsed };
+    } catch (err) {
+      console.warn("Failed to load settings, using defaults", err);
+      return { ...DEFAULT_SETTINGS };
+    }
+  }
+
+  function persistSettings(settings) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (err) {
+      console.warn("Failed to persist settings", err);
+    }
+  }
+
+  let currentSettings = loadSettings();
+
   function getNoteNamesForMode(mode = accidentalMode) {
     return mode === "flats" ? NOTE_NAMES_FLAT_DISPLAY : NOTE_NAMES_SHARP;
   }
@@ -1644,9 +1719,75 @@
     centsEl.textContent = lastDisplayedCentsText;
   }
 
-  function setAccidentalMode(mode) {
+  function applySettingsToUI(settings) {
+    let needsPersist = false;
+
+    const originalA4 = settings.a4;
+    const a4ValRaw = Number(originalA4);
+    const normalizedA4 = Number.isFinite(a4ValRaw) ? a4ValRaw : DEFAULT_SETTINGS.a4;
+    if (aRefSelect) aRefSelect.value = String(normalizedA4);
+    if (!Number.isFinite(a4ValRaw) || normalizedA4 !== a4ValRaw) {
+      needsPersist = true;
+    }
+    currentSettings.a4 = normalizedA4;
+
+    const originalSensitivity = settings.sensitivity;
+    const sensitivityVal = (originalSensitivity === "hard") ? "hard" : "easy";
+    if (sensitivitySelect) sensitivitySelect.value = sensitivityVal;
+    if (originalSensitivity !== sensitivityVal) needsPersist = true;
+    currentSettings.sensitivity = sensitivityVal;
+
+    const originalStretch = settings.stretch;
+    const stretchVal = (originalStretch === "minimal" || originalStretch === "full") ? originalStretch : "none";
+    if (stretchSelect) stretchSelect.value = stretchVal;
+    if (originalStretch !== stretchVal) needsPersist = true;
+    currentSettings.stretch = stretchVal;
+
+    const originalHistory = settings.history;
+    const historyVal = (originalHistory === "long") ? "long" : "short";
+    if (historySelect) historySelect.value = historyVal;
+    if (originalHistory !== historyVal) needsPersist = true;
+    currentSettings.history = historyVal;
+
+    const originalLowNote = settings.lowNote;
+    let lowNoteVal = originalLowNote;
+    if (!lowNoteSelect || !lowNoteSelect.querySelector(`option[value="${lowNoteVal}"]`)) {
+      lowNoteVal = DEFAULT_SETTINGS.lowNote;
+    }
+    if (lowNoteSelect) lowNoteSelect.value = lowNoteVal;
+    if (originalLowNote !== lowNoteVal) needsPersist = true;
+    currentSettings.lowNote = lowNoteVal;
+
+    const originalMinVol = settings.minVol;
+    let minVolVal = originalMinVol;
+    if (typeof minVolVal !== "number" || Number.isNaN(minVolVal)) {
+      const parsed = parseFloat(minVolVal);
+      minVolVal = Number.isFinite(parsed) ? parsed : DEFAULT_SETTINGS.minVol;
+    }
+    minVolVal = Math.min(Math.max(minVolVal, 0), 1);
+    if (minVolVal !== originalMinVol) needsPersist = true;
+    currentSettings.minVol = minVolVal;
+    if (volThreshEl) {
+      volThreshEl.value = String(minVolVal);
+    }
+    volumeThreshold = sliderToThreshold(minVolVal);
+    dbgThresh.textContent = volumeThreshold.toExponential(2);
+
+    const originalAccidental = settings.accidentalMode;
+    const accidentalVal = originalAccidental === "flats" ? "flats" : "sharps";
+    if (originalAccidental !== accidentalVal) needsPersist = true;
+    setAccidentalMode(accidentalVal, { skipPersist: true });
+
+    if (needsPersist) {
+      persistSettings(currentSettings);
+    }
+  }
+
+  function setAccidentalMode(mode, { skipPersist = false } = {}) {
     const nextMode = mode === "flats" ? "flats" : "sharps";
     accidentalMode = nextMode;
+    currentSettings.accidentalMode = nextMode;
+    if (!skipPersist) persistSettings(currentSettings);
     updateAccidentalToggleUI();
     updateGridLabelsForAccidentals();
     updateNoteReadoutText();
@@ -1855,7 +1996,7 @@
     return baseForOct + idx;
   }
 
-  function rebuildRangeOptions({forceDefault=false} = {}) {
+  function rebuildRangeOptions({forceDefault=false, desiredRange=null} = {}) {
     const lowNoteName = lowNoteSelect.value;
     const lowMidiC = noteNameToMidiC(lowNoteName);
 
@@ -1879,21 +2020,29 @@
     }
 
     let chosen;
-    if (forceDefault) {
-      const desiredDefault = computeResponsiveDefaultOctaves(startOcts, endOcts);
-      if (rangeSelect.querySelector(`option[value="${desiredDefault}"]`)) {
-        chosen = desiredDefault;
+    const desiredInt = desiredRange != null ? parseInt(desiredRange, 10) : NaN;
+    if (!Number.isNaN(desiredInt) && desiredInt >= startOcts && desiredInt <= endOcts) {
+      chosen = desiredInt;
+    } else if (!forceDefault && prevVal >= startOcts && prevVal <= endOcts) {
+      chosen = prevVal;
+    } else if (forceDefault) {
+      const responsiveDefault = computeResponsiveDefaultOctaves(startOcts, endOcts);
+      if (rangeSelect.querySelector(`option[value="${responsiveDefault}"]`)) {
+        chosen = responsiveDefault;
       } else if (rangeSelect.querySelector('option[value="5"]')) {
         chosen = 5;
       } else {
         chosen = endOcts;
       }
-    } else if (prevVal >= startOcts && prevVal <= endOcts) {
-      chosen = prevVal;
     } else {
       chosen = endOcts;
     }
-    rangeSelect.value = String(chosen);
+    const chosenStr = String(chosen);
+    rangeSelect.value = chosenStr;
+    if (currentSettings.range !== chosenStr) {
+      currentSettings.range = chosenStr;
+      persistSettings(currentSettings);
+    }
   }
 
   function buildGrid() {
@@ -2292,7 +2441,7 @@
   function sliderToThreshold(val) {
     return Math.pow(10, (val - 1) * 3);
   }
-  let volumeThreshold = sliderToThreshold(0.1);
+  let volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
 
   function tick() {
     if (!running) return;
@@ -2586,6 +2735,8 @@
     if (!isNaN(val)) {
       A4 = val;
       dbgARef.textContent = `${A4}`;
+      currentSettings.a4 = A4;
+      persistSettings(currentSettings);
     }
   });
 
@@ -2594,15 +2745,20 @@
     if (!isNaN(val)) {
       volumeThreshold = sliderToThreshold(val);
       dbgThresh.textContent = volumeThreshold.toExponential(2);
+      currentSettings.minVol = val;
+      persistSettings(currentSettings);
     }
   });
   // initialize
-  volThreshEl.value = 0.1;
-  volumeThreshold = sliderToThreshold(0.1);
+  applySettingsToUI(currentSettings);
+  A4 = currentSettings.a4;
+  dbgARef.textContent = `${A4}`;
+  volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
+  if (volThreshEl) volThreshEl.value = String(currentSettings.minVol ?? 0.1);
   dbgThresh.textContent = volumeThreshold.toExponential(2);
 
   function rebuildAll({forceDefaultRange=false} = {}) {
-    rebuildRangeOptions({forceDefault: forceDefaultRange});
+    rebuildRangeOptions({forceDefault: forceDefaultRange, desiredRange: currentSettings.range});
     buildGrid();
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
@@ -2610,10 +2766,14 @@
   }
 
   lowNoteSelect.addEventListener("change", () => {
+    currentSettings.lowNote = lowNoteSelect.value;
+    persistSettings(currentSettings);
     rebuildAll();
   });
 
   rangeSelect.addEventListener("change", () => {
+    currentSettings.range = rangeSelect.value;
+    persistSettings(currentSettings);
     buildGrid();
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
@@ -2622,6 +2782,8 @@
 
   // Mode change = full reset (new session/clears stain)
   sensitivitySelect.addEventListener("change", () => {
+    currentSettings.sensitivity = sensitivitySelect.value;
+    persistSettings(currentSettings);
     updateDebugPanel({});
     fullResetState();
     updateDebugPanel({});
@@ -2629,6 +2791,8 @@
 
   if (stretchSelect) {
     stretchSelect.addEventListener("change", () => {
+      currentSettings.stretch = stretchSelect.value;
+      persistSettings(currentSettings);
       finalizeActiveSegment();
       clearActiveNote();
       currentMidiHeld = null;
@@ -2646,8 +2810,33 @@
     });
   }
 
+  if (resetSettingsBtn) {
+    resetSettingsBtn.addEventListener("click", () => {
+      currentSettings = { ...DEFAULT_SETTINGS };
+      persistSettings(currentSettings);
+      applySettingsToUI(currentSettings);
+      A4 = currentSettings.a4;
+      dbgARef.textContent = `${A4}`;
+      volumeThreshold = sliderToThreshold(currentSettings.minVol);
+      if (volThreshEl) volThreshEl.value = String(currentSettings.minVol);
+      dbgThresh.textContent = volumeThreshold.toExponential(2);
+      finalizeActiveSegment();
+      clearActiveNote();
+      currentMidiHeld = null;
+      currentMidiHoldStart = nowMs();
+      lastDisplayedMidi = null;
+      lastDisplayedHzText = "-- Hz";
+      lastDisplayedCentsText = "-- cents";
+      updateNoteReadoutText();
+      rebuildAll({forceDefaultRange:true});
+      updateDebugPanel({});
+    });
+  }
+
   // History change reinterprets stain (no reset)
   historySelect.addEventListener("change", () => {
+    currentSettings.history = historySelect.value;
+    persistSettings(currentSettings);
     updateDebugPanel({});
     recomputeAllCellColorsAndRender();
   });
