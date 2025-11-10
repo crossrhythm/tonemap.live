@@ -1096,6 +1096,37 @@
       </div>
 
       <div class="option-field">
+        <label class="opt-label" for="transpositionSelect">Transposition</label>
+        <div class="opt-control">
+          <select id="transpositionSelect">
+            <option value="-11">D♭ (−11)</option>
+            <option value="-10">D (−10)</option>
+            <option value="-9">E♭ (−9)</option>
+            <option value="-8">E (−8)</option>
+            <option value="-7">F (−7)</option>
+            <option value="-6">G♭ (−6)</option>
+            <option value="-5">G (−5)</option>
+            <option value="-4">A♭ (−4)</option>
+            <option value="-3">A (−3)</option>
+            <option value="-2">B♭ (−2)</option>
+            <option value="-1">B (−1)</option>
+            <option value="0" selected>C (+0) Concert</option>
+            <option value="1">D♭ (+1)</option>
+            <option value="2">D (+2)</option>
+            <option value="3">E♭ (+3)</option>
+            <option value="4">E (+4)</option>
+            <option value="5">F (+5)</option>
+            <option value="6">G♭ (+6)</option>
+            <option value="7">G (+7)</option>
+            <option value="8">A♭ (+8)</option>
+            <option value="9">A (+9)</option>
+            <option value="10">B♭ (+10)</option>
+            <option value="11">B (+11)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="option-field">
         <label id="lowNoteLabel" class="opt-label" for="lowNoteSelect">Low Note</label>
         <div class="opt-control">
           <select id="lowNoteSelect">
@@ -1302,6 +1333,7 @@
   const resetIcon     = resetBtn.querySelector(".icon-reset");
 
   const aRefSelect    = document.getElementById("aRefSelect");
+  const transpositionSelect = document.getElementById("transpositionSelect");
 
   const volThreshEl   = document.getElementById("volThresh");
   const ledEl         = document.getElementById("led");
@@ -1634,6 +1666,7 @@
     sensitivity: "easy",
     stretch: "none",
     accidentalMode: "sharps",
+    transposition: "0",
     lowNote: "C3",
     history: "short",
     range: null, // computed default
@@ -1789,6 +1822,23 @@
     const accidentalVal = originalAccidental === "flats" ? "flats" : "sharps";
     if (originalAccidental !== accidentalVal) needsPersist = true;
     setAccidentalMode(accidentalVal, { skipPersist: true });
+
+    const originalTransposition = settings.transposition;
+    let transposeVal = originalTransposition;
+    if (transposeVal == null) {
+      transposeVal = DEFAULT_SETTINGS.transposition;
+    }
+    transposeVal = String(transposeVal);
+    if (!transpositionSelect || !transpositionSelect.querySelector(`option[value="${transposeVal}"]`)) {
+      transposeVal = DEFAULT_SETTINGS.transposition;
+    }
+    if (transpositionSelect) {
+      transpositionSelect.value = transposeVal;
+    }
+    if (originalTransposition !== transposeVal) {
+      needsPersist = true;
+    }
+    currentSettings.transposition = transposeVal;
 
     if (needsPersist) {
       persistSettings(currentSettings);
@@ -2226,6 +2276,14 @@
     return base * HARD_RESPONSE_FACTOR;
   }
 
+  function getTransposeOffset() {
+    const raw = transpositionSelect ? parseInt(transpositionSelect.value, 10) : parseInt(currentSettings.transposition ?? "0", 10);
+    if (Number.isFinite(raw)) {
+      return raw;
+    }
+    return 0;
+  }
+
   function rebaseErrRatio(errRatio, fromStretchCents, toStretchCents) {
     const diffFactor = Math.pow(2, (fromStretchCents - toStretchCents) / 1200);
     return diffFactor * (1 + (errRatio || 0)) - 1;
@@ -2483,15 +2541,18 @@
     let inDeadZoneNow = false;
 
     if (pitchValid && loudEnough) {
-      const nd = freqToNoteData(pitch, A4);
-      const { cents, roundedFreq, midi, errRatio, stretchCents } = nd;
+      const transposeOffset = getTransposeOffset();
+      const transposeFactor = Math.pow(2, -transposeOffset / 12);
+      const adjustedPitch = pitch * transposeFactor;
+      const nd = freqToNoteData(adjustedPitch, A4);
+      const { cents, midi, errRatio, stretchCents } = nd;
 
       const absErr = Math.abs(errRatio);
       inDeadZoneNow = (absErr <= deadZoneRatio);
 
       // gated display of pitch readout
       lastDisplayedMidi     = midi;
-      lastDisplayedHzText   = `${roundedFreq} Hz`;
+      lastDisplayedHzText   = `${pitch.toFixed(2)} Hz`;
       lastDisplayedCentsText = `${cents.toFixed(1)} cents`;
 
       // active note hold logic
@@ -2852,6 +2913,19 @@
     updateDebugPanel({});
     recomputeAllCellColorsAndRender();
   });
+
+  if (transpositionSelect) {
+    transpositionSelect.addEventListener("change", () => {
+      currentSettings.transposition = transpositionSelect.value;
+      persistSettings(currentSettings);
+      finalizeActiveSegment();
+      clearActiveNote();
+      currentMidiHeld = null;
+      currentMidiHoldStart = nowMs();
+      highlightGridCell(null, 0);
+      updateDebugPanel({});
+    });
+  }
 
   /**********************
    * INITIALIZATION
