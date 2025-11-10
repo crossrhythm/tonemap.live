@@ -1034,7 +1034,7 @@
             <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
           </div>
         </div>
-        <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, you can buy me a coffee! ☕️
+        <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, please buy me a coffee! ☕️
 </a></div>
         <div class="footer-line">© 2025, <a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> &nbsp;| &nbsp;<a href="mailto:contact@eastendviolinstudio.com">contact@eastendviolinstudio.com</a></div>
       </div>
@@ -1099,6 +1099,7 @@
         <label id="lowNoteLabel" class="opt-label" for="lowNoteSelect">Low Note</label>
         <div class="opt-control">
           <select id="lowNoteSelect">
+            <option value="C0">C0</option>
             <option value="C1">C1</option>
             <option value="C2">C2</option>
             <option value="C3" selected>C3</option>
@@ -1228,7 +1229,7 @@
         </div>
         <div class="status-row">
           <span class="status-key">Range Gate</span>
-          <span class="status-val" id="dbgRange">20–8200 Hz</span>
+          <span class="status-val" id="dbgRange">15–8200 Hz</span>
         </div>
         <div class="status-row">
           <span class="status-key">FFT Size</span>
@@ -1424,8 +1425,9 @@
 
   let A4 = 440;
 
-  const MIN_FREQ = 20;
+  const MIN_FREQ = 15;
   const MAX_FREQ = 8200;
+  const RANGE_GATE_TEXT = `${MIN_FREQ}–${MAX_FREQ} Hz`;
 
   // Easy vs Hard behavior
   const EASY_DEADZONE_RATIO = 0.0023; // ~0.23%
@@ -1903,7 +1905,7 @@
                               : "--";
     dbgThresh.textContent  = volumeThreshold.toExponential(2);
     dbgSR.textContent      = sampleRate ? `${Math.round(sampleRate)} Hz` : "--";
-    dbgRange.textContent   = "20–8200 Hz";
+    dbgRange.textContent   = RANGE_GATE_TEXT;
     dbgFft.textContent     = "2048";
 
     const isEasy = (sensitivitySelect.value === "easy");
@@ -2857,7 +2859,7 @@
   updateGridAppearanceForViewport();
   rebuildAll({forceDefaultRange:true});
 
-  dbgRange.textContent = "20–8200 Hz";
+  dbgRange.textContent = RANGE_GATE_TEXT;
   dbgFft.textContent   = "2048";
   dbgSR.textContent    = "--";
   updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
