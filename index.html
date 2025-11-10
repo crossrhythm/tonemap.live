@@ -2395,6 +2395,32 @@
     renderHeatmap();
   }
 
+  function shiftCellStateBySemitones(deltaSemis) {
+    if (!deltaSemis) return;
+    const shifted = {};
+    for (const midi in midiToCellEl) {
+      shifted[midi] = {
+        totalVoiceMs: 0,
+        segments: [],
+        colorRGB: { r: 0, g: 0, b: 0 },
+        visited: false
+      };
+    }
+    for (const midi in cellState) {
+      const st = cellState[midi];
+      const targetMidi = Number(midi) + deltaSemis;
+      if (!Number.isFinite(targetMidi)) continue;
+      const targetKey = String(targetMidi);
+      if (!shifted[targetKey]) continue;
+      const dest = shifted[targetKey];
+      dest.totalVoiceMs += st.totalVoiceMs;
+      dest.segments.push(...st.segments);
+      dest.visited = dest.visited || st.visited;
+    }
+    cellState = shifted;
+    recomputeAllCellColorsAndRender();
+  }
+
   function highlightGridCell(activeMidi, cents) {
     for (const midi in midiToCellEl) {
       const cell = midiToCellEl[midi];
@@ -2916,9 +2942,16 @@
 
   if (transpositionSelect) {
     transpositionSelect.addEventListener("change", () => {
-      currentSettings.transposition = transpositionSelect.value;
+      const oldOffset = parseInt(currentSettings.transposition ?? "0", 10) || 0;
+      const newVal = transpositionSelect.value;
+      currentSettings.transposition = newVal;
       persistSettings(currentSettings);
       finalizeActiveSegment();
+      const newOffset = parseInt(newVal, 10) || 0;
+      const deltaSemis = oldOffset - newOffset;
+      if (deltaSemis !== 0) {
+        shiftCellStateBySemitones(deltaSemis);
+      }
       clearActiveNote();
       currentMidiHeld = null;
       currentMidiHoldStart = nowMs();
