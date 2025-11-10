@@ -2107,7 +2107,7 @@
     }
   }
 
-  function buildGrid() {
+  function buildGrid({ preserveStain = true } = {}) {
     const lowNoteName = lowNoteSelect.value;
     const numOct      = parseInt(rangeSelect.value, 10);
 
@@ -2130,9 +2130,11 @@
       gridHighestMidiLastNote = lowMidiC + 11;
     }
 
+    const prevState = preserveStain ? cellState : null;
+
     noteGrid.innerHTML = "";
     midiToCellEl = {};
-    cellState = {};
+    const nextCellState = {};
 
     noteGrid.style.height = "100%";
     noteGrid.style.gridTemplateColumns = `repeat(12, 1fr)`;
@@ -2159,9 +2161,10 @@
         cell.appendChild(indicator);
 
         noteGrid.appendChild(cell);
-        midiToCellEl[midiVal] = cell;
+        const key = String(midiVal);
+        midiToCellEl[key] = cell;
 
-        cellState[midiVal] = {
+        nextCellState[key] = {
           totalVoiceMs: 0,
           segments: [],
           colorRGB: {r:0,g:0,b:0},
@@ -2169,6 +2172,22 @@
         };
       }
     }
+
+    if (prevState) {
+      for (const midi in prevState) {
+        const dest = nextCellState[midi];
+        if (!dest) continue;
+        const src = prevState[midi];
+        dest.totalVoiceMs = src.totalVoiceMs;
+        const segments = Array.isArray(src.segments) ? src.segments : [];
+        dest.segments = segments.map(seg => ({ ...seg }));
+        const color = src.colorRGB || { r: 0, g: 0, b: 0 };
+        dest.colorRGB = { r: color.r ?? 0, g: color.g ?? 0, b: color.b ?? 0 };
+        dest.visited = !!src.visited;
+      }
+    }
+
+    cellState = nextCellState;
   }
 
   /**********************
@@ -2856,9 +2875,9 @@
   if (volThreshEl) volThreshEl.value = String(currentSettings.minVol ?? 0.1);
   dbgThresh.textContent = volumeThreshold.toExponential(2);
 
-  function rebuildAll({forceDefaultRange=false} = {}) {
+  function rebuildAll({forceDefaultRange=false, preserveStain=true} = {}) {
     rebuildRangeOptions({forceDefault: forceDefaultRange, desiredRange: currentSettings.range});
-    buildGrid();
+    buildGrid({ preserveStain });
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
@@ -2873,7 +2892,7 @@
   rangeSelect.addEventListener("change", () => {
     currentSettings.range = rangeSelect.value;
     persistSettings(currentSettings);
-    buildGrid();
+    buildGrid({ preserveStain: true });
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
@@ -2927,7 +2946,7 @@
       lastDisplayedHzText = "-- Hz";
       lastDisplayedCentsText = "-- cents";
       updateNoteReadoutText();
-      rebuildAll({forceDefaultRange:true});
+      rebuildAll({forceDefaultRange:true, preserveStain:false});
       updateDebugPanel({});
     });
   }
