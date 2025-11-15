@@ -351,6 +351,34 @@
     box-shadow: 0 0 0 0.25rem rgba(250,204,21,0.15);
   }
 
+  input[type="number"] {
+    appearance: textfield;
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    border: 1px solid var(--border-dim);
+    border-radius: .5rem;
+    padding: .3rem .5rem;
+    font-size: 0.8rem;
+    width: auto;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  input[type="number"]:focus-visible {
+    outline: none;
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 0.2rem rgba(34,197,94,0.25);
+  }
+
+  input[type="number"].invalid {
+    border-color: var(--err-color);
+    box-shadow: 0 0 0 0.25rem rgba(239,68,68,0.25);
+  }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    filter: invert(1);
+  }
+
   .opt-label,
   label {
     display: flex;
@@ -376,6 +404,29 @@
     justify-content: flex-start;
     width: auto;
     padding: 0 2px;
+  }
+
+  .a-ref-control {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .a-ref-control select,
+  .a-ref-control input {
+    flex: 1 1 130px;
+  }
+
+  .a-ref-preset {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: 1 1 160px;
+  }
+
+  .preset-label {
+    font-size: 0.75rem;
+    color: var(--panel-text-dim);
+    white-space: nowrap;
   }
 
   .row-inline {
@@ -633,6 +684,18 @@
 
   .option-field select {
     width: 100%;
+  }
+
+  .option-field .a-ref-control select {
+    width: auto;
+  }
+
+  .opt-error {
+    width: 100%;
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--err-color);
+    min-height: 0.9rem;
   }
 
   .option-field .reset-stack {
@@ -1058,21 +1121,39 @@
       <div class="options-grid">
       <div class="option-field">
         <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
-        <div class="opt-control">
-          <select id="aRefSelect">
-            <option value="392">392</option>
-            <option value="415">415</option>
-            <option value="430">430</option>
-            <option value="432">432</option>
-            <option value="438">438</option>
-            <option value="440" selected>440</option>
-            <option value="442">442</option>
-            <option value="443">443</option>
-            <option value="444">444</option>
-            <option value="466">466</option>
-            <option value="470">470</option>
-          </select>
+        <div class="opt-control a-ref-control">
+          <input
+            id="aRefInput"
+            class="a-ref-input"
+            type="number"
+            min="100"
+            max="1000"
+            step="1"
+            inputmode="decimal"
+            aria-label="Custom performance pitch in Hz"
+            placeholder="Custom Hz"
+            value="440"
+          />
+          <div class="a-ref-preset">
+            <span class="preset-label" id="presetLabel">Presets:</span>
+            <select id="aRefSelect" aria-labelledby="presetLabel">
+              <option value="392">392</option>
+              <option value="415">415</option>
+              <option value="430">430</option>
+              <option value="432">432</option>
+              <option value="438">438</option>
+              <option value="440" selected>440</option>
+              <option value="441">441</option>
+              <option value="442">442</option>
+              <option value="443">443</option>
+              <option value="444">444</option>
+              <option value="466">466</option>
+              <option value="470">470</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
         </div>
+        <p class="opt-error" id="aRefError" role="alert" aria-live="polite"></p>
       </div>
 
       <div class="option-field">
@@ -1168,7 +1249,7 @@
       </div>
 
       <div class="option-field">
-        <label class="opt-label" for="volThresh">Min Vol</label>
+        <label class="opt-label" for="volThresh">Volume Sensitivity</label>
         <div class="opt-control opt-control-slider">
           <div class="volume-wrap">
             <div class="slider-col">
@@ -1341,6 +1422,8 @@
   const resetIcon     = resetBtn.querySelector(".icon-reset");
 
   const aRefSelect    = document.getElementById("aRefSelect");
+  const aRefInput     = document.getElementById("aRefInput");
+  const aRefError     = document.getElementById("aRefError");
   const transpositionSelect = document.getElementById("transpositionSelect");
 
   const volThreshEl   = document.getElementById("volThresh");
@@ -1681,6 +1764,12 @@
     minVol: 0.1
   };
 
+  const A_REF_PRESET_VALUES = Object.freeze(["392","415","430","432","438","440","441","442","443","444","466","470"]);
+  const A_REF_CUSTOM_VALUE = "custom";
+  const A_REF_MIN = 100;
+  const A_REF_MAX = 1000;
+  const A_REF_ERROR_MESSAGE = "Please enter a value between 100 and 1000 (e.g., 440).";
+
   function loadSettings() {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -1772,13 +1861,70 @@
     centsEl.textContent = lastDisplayedCentsText;
   }
 
+  function syncARefControls(value) {
+    const valueText = Number.isFinite(value) ? `${value}` : "";
+    if (aRefInput) {
+      aRefInput.value = valueText;
+    }
+    if (aRefSelect) {
+      if (valueText && A_REF_PRESET_VALUES.includes(valueText)) {
+        aRefSelect.value = valueText;
+      } else {
+        aRefSelect.value = A_REF_CUSTOM_VALUE;
+      }
+    }
+  }
+
+  function showARefError(message) {
+    if (aRefError) aRefError.textContent = message ?? "";
+    if (aRefInput) aRefInput.classList.add("invalid");
+  }
+
+  function clearARefError() {
+    if (aRefError) aRefError.textContent = "";
+    if (aRefInput) aRefInput.classList.remove("invalid");
+  }
+
+  function isValidARefValue(value) {
+    return Number.isFinite(value) && value >= A_REF_MIN && value <= A_REF_MAX;
+  }
+
+  function setA4Value(newValue, { persist = true } = {}) {
+    if (!isValidARefValue(newValue)) {
+      showARefError(A_REF_ERROR_MESSAGE);
+      if (aRefSelect) aRefSelect.value = A_REF_CUSTOM_VALUE;
+      return;
+    }
+    A4 = newValue;
+    dbgARef.textContent = `${A4}`;
+    currentSettings.a4 = A4;
+    syncARefControls(A4);
+    clearARefError();
+    if (persist) {
+      persistSettings(currentSettings);
+    }
+  }
+
+  function handleARefInputChange() {
+    if (!aRefInput) return;
+    const raw = aRefInput.value.trim();
+    const parsed = Number(raw);
+    if (!raw || !isValidARefValue(parsed)) {
+      showARefError(A_REF_ERROR_MESSAGE);
+      if (aRefSelect) aRefSelect.value = A_REF_CUSTOM_VALUE;
+      return;
+    }
+    setA4Value(parsed);
+  }
+
   function applySettingsToUI(settings) {
     let needsPersist = false;
 
     const originalA4 = settings.a4;
     const a4ValRaw = Number(originalA4);
     const normalizedA4 = Number.isFinite(a4ValRaw) ? a4ValRaw : DEFAULT_SETTINGS.a4;
-    if (aRefSelect) aRefSelect.value = String(normalizedA4);
+    syncARefControls(normalizedA4);
+    clearARefError();
     if (!Number.isFinite(a4ValRaw) || normalizedA4 !== a4ValRaw) {
       needsPersist = true;
     }
@@ -2075,7 +2221,7 @@
     let maxOctavesPossible = Math.floor(diffSemis / 12) + 1;
     if (maxOctavesPossible > 8) maxOctavesPossible = 8;
 
-    const minOctaves = 3;
+    const minOctaves = 2;
     const startOcts  = minOctaves;
     const endOcts    = Math.max(minOctaves, maxOctavesPossible);
 
@@ -2856,15 +3002,23 @@
     });
   }
 
-  aRefSelect.addEventListener("change", () => {
-    const val = parseFloat(aRefSelect.value);
-    if (!isNaN(val)) {
-      A4 = val;
-      dbgARef.textContent = `${A4}`;
-      currentSettings.a4 = A4;
-      persistSettings(currentSettings);
-    }
-  });
+  if (aRefSelect) {
+    aRefSelect.addEventListener("change", () => {
+      const value = aRefSelect.value;
+      if (value === A_REF_CUSTOM_VALUE) {
+        if (aRefInput) aRefInput.focus();
+        return;
+      }
+      const parsed = parseFloat(value);
+      if (!Number.isNaN(parsed)) {
+        setA4Value(parsed);
+      }
+    });
+  }
+
+  if (aRefInput) {
+    aRefInput.addEventListener("input", handleARefInputChange);
+  }
 
   volThreshEl.addEventListener("input", () => {
     const val = parseFloat(volThreshEl.value);
