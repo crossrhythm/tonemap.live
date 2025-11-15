@@ -1230,11 +1230,13 @@
       </div>
 
       <div class="option-field">
-        <label id="historyLabel" class="opt-label" for="historySelect">History</label>
+        <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
         <div class="opt-control">
           <select id="historySelect">
-            <option value="short" selected>Short (3 seconds)</option>
-            <option value="long">Long (20 seconds)</option>
+            <option value="short" selected>Short (1 second)</option>
+            <option value="medium">Medium (3 seconds)</option>
+            <option value="long">Long (30 seconds)</option>
+            <option value="unlimited">Unlimited</option>
           </select>
         </div>
       </div>
@@ -1559,11 +1561,6 @@
   // Hard mode softened but still tighter than Easy
   const HARD_DEADZONE_RATIO = EASY_DEADZONE_RATIO / 2; // ~0.12%
   const HARD_MIN_HOLD_MS = 50;
-  const HARD_RESPONSE_FACTOR = 0.75; // 25% quicker response in hard mode
-
-  // History windows (accumulated voiced seconds)
-  const HISTORY_SHORT_S = 3;
-  const HISTORY_LONG_S  = 20;
 
   // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
   const RAILSBACK_ANCHORS = [
@@ -1752,6 +1749,15 @@
 
   const STORAGE_KEY = "tonemap.live.settings";
 
+  const HISTORY_DEFAULT = "short";
+  const HISTORY_WINDOWS = Object.freeze({
+    short: 1,
+    medium: 3,
+    long: 30,
+    unlimited: Infinity
+  });
+  const HISTORY_KEYS = Object.keys(HISTORY_WINDOWS);
+
   const DEFAULT_SETTINGS = {
     a4: 440,
     sensitivity: "easy",
@@ -1759,7 +1765,7 @@
     accidentalMode: "sharps",
     transposition: "0",
     lowNote: "C3",
-    history: "short",
+    history: HISTORY_DEFAULT,
     range: null, // computed default
     minVol: 0.1
   };
@@ -1943,7 +1949,7 @@
     currentSettings.stretch = stretchVal;
 
     const originalHistory = settings.history;
-    const historyVal = (originalHistory === "long") ? "long" : "short";
+    const historyVal = HISTORY_KEYS.includes(originalHistory) ? originalHistory : HISTORY_DEFAULT;
     if (historySelect) historySelect.value = historyVal;
     if (originalHistory !== historyVal) needsPersist = true;
     currentSettings.history = historyVal;
@@ -2134,13 +2140,31 @@
       dbgStretch.textContent = stretchLabel;
     }
 
-    const histLabel = (historySelect.value === "short") ? "Short" : "Long";
+    let histLabel = "Short (1 second)";
+    if (historySelect && historySelect.selectedIndex >= 0) {
+      const opt = historySelect.options[historySelect.selectedIndex];
+      if (opt && opt.textContent) {
+        histLabel = opt.textContent;
+      }
+    }
     const effectiveWindow = getHistoryWindowSeconds();
-    const isWhole = Math.abs(effectiveWindow - Math.round(effectiveWindow)) < 0.05;
-    const windowText = isWhole
-      ? `${Math.round(effectiveWindow)} s`
-      : `${effectiveWindow.toFixed(1)} s`;
-    dbgHist.textContent     = `${histLabel} (${windowText})`;
+    if (Number.isFinite(effectiveWindow)) {
+      let windowText;
+      if (effectiveWindow >= 60) {
+        const minutes = effectiveWindow / 60;
+        windowText = Number.isInteger(minutes)
+          ? `${minutes} min`
+          : `${minutes.toFixed(1)} min`;
+      } else {
+        const isWhole = Math.abs(effectiveWindow - Math.round(effectiveWindow)) < 0.05;
+        windowText = isWhole
+          ? `${Math.round(effectiveWindow)} s`
+          : `${effectiveWindow.toFixed(1)} s`;
+      }
+      dbgHist.textContent = `${histLabel} (${windowText})`;
+    } else {
+      dbgHist.textContent = histLabel;
+    }
   }
 
   function setDeadZoneHighlight(inDeadZone) {
@@ -2392,7 +2416,7 @@
     if (absErr <= dz) {
       return base;
     } else {
-      const span = 8 * dz * HARD_RESPONSE_FACTOR;
+      const span = 8 * dz;
       let t = span > 0 ? (absErr - dz) / span : 1;
       if (t<0) t=0;
       if (t>1) t=1;
@@ -2442,11 +2466,9 @@
   }
 
   function getHistoryWindowSeconds() {
-    const base = (historySelect.value === "short") ? HISTORY_SHORT_S : HISTORY_LONG_S;
-    if (sensitivitySelect.value === "easy") {
-      return base;
-    }
-    return base * HARD_RESPONSE_FACTOR;
+    const mode = historySelect ? historySelect.value : HISTORY_DEFAULT;
+    const base = HISTORY_WINDOWS[mode] ?? HISTORY_WINDOWS[HISTORY_DEFAULT];
+    return base;
   }
 
   function getTransposeOffset() {
