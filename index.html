@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.17 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.18 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -1039,7 +1039,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.17";
+  window.APP_VERSION = "1.18";
 </script>
 
 <div class="page">
@@ -1240,6 +1240,16 @@
           </select>
         </div>
       </div>
+      <div class="option-field">
+        <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Stain Hold Time</label>
+        <div class="opt-control">
+          <select id="stainHoldSelect">
+            <option value="5">5 seconds</option>
+            <option value="15" selected>15 seconds</option>
+            <option value="30">30 seconds</option>
+          </select>
+        </div>
+      </div>
 
       <div class="option-field">
         <label id="rangeLabel" class="opt-label" for="rangeSelect">Range</label>
@@ -1371,7 +1381,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.17";
+  const APP_VERSION = window.APP_VERSION || "1.18";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -1438,6 +1448,7 @@
 
   const sensitivitySelect = document.getElementById("sensitivitySelect");
   const historySelect     = document.getElementById("historySelect");
+  const stainHoldSelect   = document.getElementById("stainHoldSelect");
   const stretchSelect     = document.getElementById("stretchSelect");
   const accidentalToggle  = document.getElementById("accidentalToggle");
   const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
@@ -1577,6 +1588,9 @@
 
   // time to reach full brightness in the cell heatmap
   const FULL_CONF_MS = 1500;
+  const STAIN_MIN_FRACTION = 0.3;
+  const STAIN_FADE_SECONDS = 10;
+  const STAIN_FADE_IN_MS = 1200;
 
   // LED smoothing
   let ledTargetGreen = false;
@@ -1693,6 +1707,22 @@
   // Per-note memory (intonation map)
   let midiToCellEl = {};
   let cellState = {};
+
+  function createEmptyCellState() {
+    return {
+      totalVoiceMs: 0,
+      segments: [],
+      colorRGB: { r: 0, g: 0, b: 0 },
+      biasRGB: { r: 0, g: 0, b: 0 },
+      visited: false,
+      baseIntensity: 0,
+      displayIntensity: 0,
+      lastStainAtMs: 0,
+      lastDisplayUpdateMs: 0,
+      fadeAnchorIntensity: null,
+      justStained: false
+    };
+  }
   let gridLowestMidiC = null;
   let gridHighestMidiLastNote = null;
 
@@ -1757,6 +1787,12 @@
     unlimited: Infinity
   });
   const HISTORY_KEYS = Object.keys(HISTORY_WINDOWS);
+  const STAIN_HOLD_DEFAULT = "15";
+  const STAIN_HOLD_SECONDS = Object.freeze({
+    "5": 5,
+    "15": 15,
+    "30": 30
+  });
 
   const DEFAULT_SETTINGS = {
     a4: 440,
@@ -1766,6 +1802,7 @@
     transposition: "0",
     lowNote: "C3",
     history: HISTORY_DEFAULT,
+    stainHold: STAIN_HOLD_DEFAULT,
     range: null, // computed default
     minVol: 0.1
   };
@@ -1953,6 +1990,12 @@
     if (historySelect) historySelect.value = historyVal;
     if (originalHistory !== historyVal) needsPersist = true;
     currentSettings.history = historyVal;
+
+    const originalStainHold = settings.stainHold;
+    const stainHoldVal = STAIN_HOLD_SECONDS[originalStainHold] ? originalStainHold : STAIN_HOLD_DEFAULT;
+    if (stainHoldSelect) stainHoldSelect.value = stainHoldVal;
+    if (originalStainHold !== stainHoldVal) needsPersist = true;
+    currentSettings.stainHold = stainHoldVal;
 
     const originalLowNote = settings.lowNote;
     let lowNoteVal = originalLowNote;
@@ -2342,12 +2385,7 @@
         const key = String(midiVal);
         midiToCellEl[key] = cell;
 
-        nextCellState[key] = {
-          totalVoiceMs: 0,
-          segments: [],
-          colorRGB: {r:0,g:0,b:0},
-          visited: false
-        };
+        nextCellState[key] = createEmptyCellState();
       }
     }
 
@@ -2361,7 +2399,15 @@
         dest.segments = segments.map(seg => ({ ...seg }));
         const color = src.colorRGB || { r: 0, g: 0, b: 0 };
         dest.colorRGB = { r: color.r ?? 0, g: color.g ?? 0, b: color.b ?? 0 };
+        const bias = src.biasRGB || color;
+        dest.biasRGB = { r: bias.r ?? 0, g: bias.g ?? 0, b: bias.b ?? 0 };
         dest.visited = !!src.visited;
+        dest.baseIntensity = src.baseIntensity ?? 0;
+        dest.displayIntensity = src.displayIntensity ?? 0;
+        dest.lastStainAtMs = src.lastStainAtMs ?? 0;
+        dest.lastDisplayUpdateMs = src.lastDisplayUpdateMs ?? 0;
+        dest.fadeAnchorIntensity = src.fadeAnchorIntensity ?? null;
+        dest.justStained = false;
       }
     }
 
@@ -2445,6 +2491,82 @@
     }
   }
 
+  function updateCellColorMetadata(st, biasColor, intensity, { markStained = false } = {}) {
+    if (!st) return;
+    const clampedIntensity = Math.max(0, Math.min(1, Number.isFinite(intensity) ? intensity : 0));
+    st.baseIntensity = clampedIntensity;
+    st.biasRGB = {
+      r: biasColor?.r ?? 0,
+      g: biasColor?.g ?? 0,
+      b: biasColor?.b ?? 0
+    };
+    st.lastStainAtMs = nowMs();
+    st.fadeAnchorIntensity = null;
+    if (markStained) {
+      st.justStained = true;
+    }
+    if (clampedIntensity > 0) {
+      st.visited = true;
+    }
+  }
+
+  function updateCellDisplayColor(st, holdSeconds, nowTimeMs) {
+    if (!st) return { r: 0, g: 0, b: 0 };
+    const bias = st.biasRGB || { r: 0, g: 0, b: 0 };
+    const baseIntensity = st.baseIntensity ?? 0;
+    let display = Math.max(0, Math.min(1, st.displayIntensity ?? 0));
+    const lastUpdate = st.lastDisplayUpdateMs ?? nowTimeMs;
+    const deltaMs = Math.max(0, nowTimeMs - lastUpdate);
+
+    if (baseIntensity <= 0) {
+      display = 0;
+      st.fadeAnchorIntensity = null;
+      st.justStained = false;
+    } else if (st.justStained) {
+      const alpha = 1 - Math.exp(-deltaMs / STAIN_FADE_IN_MS);
+      display = display + (baseIntensity - display) * alpha;
+      st.fadeAnchorIntensity = null;
+    } else {
+      const lastStain = st.lastStainAtMs ?? 0;
+      if (!lastStain) {
+        display = 0;
+      } else if (!Number.isFinite(holdSeconds)) {
+        // Unlimited hold -> no decay
+        st.fadeAnchorIntensity = null;
+      } else {
+        const elapsedSec = Math.max(0, (nowTimeMs - lastStain) / 1000);
+        const fadeTarget = baseIntensity * STAIN_MIN_FRACTION;
+        if (elapsedSec <= holdSeconds) {
+          st.fadeAnchorIntensity = display;
+        } else if (elapsedSec >= holdSeconds + STAIN_FADE_SECONDS) {
+          display = Math.min(display, fadeTarget);
+          st.fadeAnchorIntensity = null;
+        } else {
+          if (st.fadeAnchorIntensity == null) {
+            st.fadeAnchorIntensity = display;
+          }
+          const startVal = st.fadeAnchorIntensity;
+          const fadeProgress = (elapsedSec - holdSeconds) / STAIN_FADE_SECONDS;
+          const clamped = Math.max(0, Math.min(1, fadeProgress));
+          display = startVal + (fadeTarget - startVal) * clamped;
+        }
+      }
+    }
+
+    display = Math.max(0, Math.min(1, display));
+    st.displayIntensity = display;
+    st.lastDisplayUpdateMs = nowTimeMs;
+    st.justStained = false;
+
+    const finalColor = {
+      r: Math.round((bias.r ?? 0) * display),
+      g: Math.round((bias.g ?? 0) * display),
+      b: Math.round((bias.b ?? 0) * display),
+    };
+    st.colorRGB = finalColor;
+    return finalColor;
+  }
+
   function beginActiveNote(midi, stretchCents = getStretchCents(midi)) {
     activeNoteInfo.midi = midi;
     activeNoteInfo.startTime = nowMs();
@@ -2469,6 +2591,14 @@
     const mode = historySelect ? historySelect.value : HISTORY_DEFAULT;
     const base = HISTORY_WINDOWS[mode] ?? HISTORY_WINDOWS[HISTORY_DEFAULT];
     return base;
+  }
+
+  function getStainHoldSeconds() {
+    const selected = stainHoldSelect ? stainHoldSelect.value : (currentSettings.stainHold ?? STAIN_HOLD_DEFAULT);
+    if (selected && STAIN_HOLD_SECONDS[selected] != null) {
+      return STAIN_HOLD_SECONDS[selected];
+    }
+    return STAIN_HOLD_SECONDS[STAIN_HOLD_DEFAULT];
   }
 
   function getTransposeOffset() {
@@ -2534,13 +2664,7 @@
 
     const biasColor = computeColorBiasFromErr(recentWeighted.avgErrRatio);
 
-    st.colorRGB = {
-      r: Math.round(biasColor.r * intensity),
-      g: Math.round(biasColor.g * intensity),
-      b: Math.round(biasColor.b * intensity),
-    };
-
-    st.visited = true;
+    updateCellColorMetadata(st, biasColor, intensity, { markStained: true });
   }
 
   function clearActiveNote() {
@@ -2552,11 +2676,13 @@
   }
 
   function renderHeatmap() {
+    const holdSeconds = getStainHoldSeconds();
+    const nowTime = nowMs();
     for (const midi in midiToCellEl) {
       const cell = midiToCellEl[midi];
       const st = cellState[midi];
       if (!st) continue;
-      const c = st.colorRGB;
+      const c = updateCellDisplayColor(st, holdSeconds, nowTime);
       cell.style.backgroundColor = `rgb(${c.r},${c.g},${c.b})`;
       if (st.visited) {
         cell.classList.add("visited");
@@ -2577,15 +2703,7 @@
 
       const biasColor = computeColorBiasFromErr(recentWeighted.avgErrRatio);
 
-      st.colorRGB = {
-        r: Math.round(biasColor.r * intensity),
-        g: Math.round(biasColor.g * intensity),
-        b: Math.round(biasColor.b * intensity),
-      };
-
-      if (st.totalVoiceMs > 0) {
-        st.visited = true;
-      }
+      updateCellColorMetadata(st, biasColor, intensity);
     }
     renderHeatmap();
   }
@@ -2594,12 +2712,7 @@
     if (!deltaSemis) return;
     const shifted = {};
     for (const midi in midiToCellEl) {
-      shifted[midi] = {
-        totalVoiceMs: 0,
-        segments: [],
-        colorRGB: { r: 0, g: 0, b: 0 },
-        visited: false
-      };
+      shifted[midi] = createEmptyCellState();
     }
     for (const midi in cellState) {
       const st = cellState[midi];
@@ -2611,6 +2724,18 @@
       dest.totalVoiceMs += st.totalVoiceMs;
       dest.segments.push(...st.segments);
       dest.visited = dest.visited || st.visited;
+      dest.biasRGB = {
+        r: st.biasRGB?.r ?? dest.biasRGB.r,
+        g: st.biasRGB?.g ?? dest.biasRGB.g,
+        b: st.biasRGB?.b ?? dest.biasRGB.b
+      };
+      dest.baseIntensity = Math.max(dest.baseIntensity, st.baseIntensity ?? 0);
+      dest.displayIntensity = Math.max(dest.displayIntensity, st.displayIntensity ?? 0);
+      dest.lastStainAtMs = Math.max(dest.lastStainAtMs ?? 0, st.lastStainAtMs ?? 0);
+      dest.lastDisplayUpdateMs = Math.max(dest.lastDisplayUpdateMs ?? 0, st.lastDisplayUpdateMs ?? 0);
+      dest.fadeAnchorIntensity = null;
+      dest.justStained = dest.justStained || st.justStained;
+      dest.colorRGB = { r: st.colorRGB?.r ?? 0, g: st.colorRGB?.g ?? 0, b: st.colorRGB?.b ?? 0 };
     }
     cellState = shifted;
     recomputeAllCellColorsAndRender();
@@ -2920,7 +3045,14 @@
       cellState[midi].totalVoiceMs = 0;
       cellState[midi].segments = [];
       cellState[midi].colorRGB = {r:0,g:0,b:0};
+      cellState[midi].biasRGB = {r:0,g:0,b:0};
       cellState[midi].visited = false;
+      cellState[midi].baseIntensity = 0;
+      cellState[midi].displayIntensity = 0;
+      cellState[midi].lastStainAtMs = 0;
+      cellState[midi].lastDisplayUpdateMs = 0;
+      cellState[midi].fadeAnchorIntensity = null;
+      cellState[midi].justStained = false;
       const cell = midiToCellEl[midi];
       if (cell) {
         cell.classList.remove("visited");
@@ -3142,6 +3274,14 @@
     updateDebugPanel({});
     recomputeAllCellColorsAndRender();
   });
+
+  if (stainHoldSelect) {
+    stainHoldSelect.addEventListener("change", () => {
+      currentSettings.stainHold = stainHoldSelect.value;
+      persistSettings(currentSettings);
+      renderHeatmap();
+    });
+  }
 
   if (transpositionSelect) {
     transpositionSelect.addEventListener("change", () => {
