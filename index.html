@@ -2524,14 +2524,19 @@
       display = 0;
       st.fadeAnchorIntensity = null;
       st.justStained = false;
-    } else if (st.justStained) {
-      const alpha = 1 - Math.exp(-deltaMs / STAIN_FADE_IN_MS);
-      display = display + (baseIntensity - display) * alpha;
-      st.fadeAnchorIntensity = null;
     } else {
+      const fadeInAlpha = 1 - Math.exp(-deltaMs / STAIN_FADE_IN_MS);
+      if (fadeInAlpha > 0) {
+        display = display + (baseIntensity - display) * fadeInAlpha;
+      }
+      if (st.justStained) {
+        st.fadeAnchorIntensity = null;
+      }
+
       const lastStain = st.lastStainAtMs ?? 0;
       if (!lastStain) {
         display = 0;
+        st.fadeAnchorIntensity = null;
       } else if (!Number.isFinite(holdSeconds)) {
         // Unlimited hold -> no decay
         st.fadeAnchorIntensity = null;
@@ -2553,12 +2558,13 @@
           display = startVal + (fadeTarget - startVal) * clamped;
         }
       }
+
+      st.justStained = false;
     }
 
     display = Math.max(0, Math.min(1, display));
     st.displayIntensity = display;
     st.lastDisplayUpdateMs = nowTimeMs;
-    st.justStained = false;
 
     const finalColor = {
       r: Math.round((bias.r ?? 0) * display),
