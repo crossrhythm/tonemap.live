@@ -1057,12 +1057,20 @@
     <div class="options-overlay-body">
       <div class="options-grid">
       <div class="option-field">
-        <label class="opt-label" for="aRefSelect">A4</label>
+        <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
         <div class="opt-control">
           <select id="aRefSelect">
+            <option value="392">392</option>
+            <option value="415">415</option>
+            <option value="430">430</option>
+            <option value="432">432</option>
+            <option value="438">438</option>
             <option value="440" selected>440</option>
-            <option value="441">441</option>
             <option value="442">442</option>
+            <option value="443">443</option>
+            <option value="444">444</option>
+            <option value="466">466</option>
+            <option value="470">470</option>
           </select>
         </div>
       </div>
@@ -1457,7 +1465,7 @@
 
   let A4 = 440;
 
-  const MIN_FREQ = 15;
+  const MIN_FREQ = 14;
   const MAX_FREQ = 8200;
   const RANGE_GATE_TEXT = `${MIN_FREQ}–${MAX_FREQ} Hz`;
 
