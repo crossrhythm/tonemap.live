@@ -2992,6 +2992,7 @@
       clarity > 0.8 &&
       pitch > MIN_FREQ &&
       pitch < MAX_FREQ;
+
     const mode = sensitivitySelect.value;
     const minHold = getCurrentMinHoldMs();
     const deadZoneRatio = getCurrentDeadzoneRatio();
@@ -3010,16 +3011,11 @@
 
       let displayCents = cents;
       if (mode === "relaxed") {
-        if (currentMidiHeld !== midi || !pitchValid || !loudEnough) {
+        if (!Number.isFinite(relaxedNeedleCents)) {
           relaxedNeedleCents = cents;
-          relaxedNeedleLastMs = nowT;
-        } else {
-          if (!Number.isFinite(relaxedNeedleCents)) {
-            relaxedNeedleCents = cents;
-          }
-          const alpha = 1 - Math.exp(-dtMs / RELAXED_NEEDLE_TAU_MS);
-          relaxedNeedleCents = relaxedNeedleCents + (cents - relaxedNeedleCents) * alpha;
         }
+        const alpha = 1 - Math.exp(-dtMs / RELAXED_NEEDLE_TAU_MS);
+        relaxedNeedleCents = relaxedNeedleCents + (cents - relaxedNeedleCents) * alpha;
         displayCents = relaxedNeedleCents;
       } else {
         relaxedNeedleCents = cents;
@@ -3055,10 +3051,6 @@
         beginActiveNote(midi, stretchCents);
         currentMidiHoldStart = nowT;
         capturingNow = true;
-        if (mode === "relaxed") {
-          relaxedNeedleCents = cents;
-          relaxedNeedleLastMs = nowT;
-        }
       }
 
       activeMidiForUI = midi;
