@@ -661,7 +661,7 @@
 }
 
 .options-overlay-footer {
-  padding: 0 0 1.5rem;
+  padding: 0 1.5rem 1.5rem;
   display: flex;
   justify-content: flex-end;
 }
@@ -1174,7 +1174,8 @@
         <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
         <div class="opt-control">
           <select id="sensitivitySelect">
-            <option value="easy" selected>Easy (more forgiving, slower response)</option>
+            <option value="relaxed">Relaxed (Vocal - forgiving)</option>
+            <option value="medium" selected>Medium (no damping, faster response)</option>
             <option value="hard">Hard (no dead zone, quicker response)</option>
           </select>
         </div>
@@ -1184,8 +1185,8 @@
         <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
         <div class="opt-control">
           <select id="stretchSelect">
-            <option value="none" selected>None (Equal Temperament)</option>
-            <option value="minimal">Minimal (¼ Railsback from A4)</option>
+            <option value="none">None (Equal Temperament)</option>
+            <option value="minimal" selected>Minimal (¼ Railsback from A4)</option>
             <option value="full">Full (Railsback)</option>
           </select>
         </div>
@@ -1585,12 +1586,17 @@
   const MAX_FREQ = 8200;
   const RANGE_GATE_TEXT = `${MIN_FREQ}–${MAX_FREQ} Hz`;
 
-  // Easy vs Hard behavior
-  const EASY_DEADZONE_RATIO = 0.0023; // ~0.23%
-  const EASY_MIN_HOLD_MS = 100;
+  // Modes
+  const RELAXED_DEADZONE_RATIO = 0.003;  // 0.3%
+  const RELAXED_MIN_HOLD_MS = 150;
+  const RELAXED_ERR_SCALE = 0.5; // 50% less sensitive stain/color
+  const RELAXED_NEEDLE_TAU_MS = 400; // EMA time constant for needle damping (vocal-friendly)
 
-  // Hard mode softened but still tighter than Easy
-  const HARD_DEADZONE_RATIO = EASY_DEADZONE_RATIO / 2; // ~0.12%
+  const MEDIUM_DEADZONE_RATIO = 0.0023; // ~0.23%
+  const MEDIUM_MIN_HOLD_MS = 100;
+
+  // Hard mode softened but still tighter than Medium
+  const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 2; // ~0.12%
   const HARD_MIN_HOLD_MS = 50;
 
   // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
@@ -1745,6 +1751,8 @@
   }
   let gridLowestMidiC = null;
   let gridHighestMidiLastNote = null;
+  let relaxedNeedleCents = 0;
+  let relaxedNeedleLastMs = performance.now();
 
   // Active note tracking
   let currentMidiHeld = null;
@@ -1817,7 +1825,7 @@
 
   const DEFAULT_SETTINGS = {
     a4: 440,
-    sensitivity: "easy",
+    sensitivity: "medium",
     stretch: "none",
     accidentalMode: "sharps",
     transposition: "0",
@@ -1948,7 +1956,13 @@
       keyText = text ? text.split(" ")[0] : keyText;
       keyText = `Key=${keyText.replace(/\s+/g,"")}`;
     }
-    const modeText = (sensitivitySelect && sensitivitySelect.value === "hard") ? "Hard Mode" : "Easy Mode";
+    let modeText = "Medium Mode";
+    if (sensitivitySelect) {
+      const val = sensitivitySelect.value;
+      if (val === "relaxed") modeText = "Relaxed Mode";
+      else if (val === "hard") modeText = "Hard Mode";
+      else modeText = "Medium Mode";
+    }
     quickLine2.textContent = `${keyText} • ${modeText}`;
   }
 
@@ -2022,7 +2036,8 @@
     currentSettings.a4 = normalizedA4;
 
     const originalSensitivity = settings.sensitivity;
-    const sensitivityVal = (originalSensitivity === "hard") ? "hard" : "easy";
+    const validModes = new Set(["relaxed","medium","hard"]);
+    const sensitivityVal = validModes.has(originalSensitivity) ? originalSensitivity : "medium";
     if (sensitivitySelect) sensitivitySelect.value = sensitivityVal;
     if (originalSensitivity !== sensitivityVal) needsPersist = true;
     currentSettings.sensitivity = sensitivityVal;
@@ -2211,9 +2226,13 @@
     dbgFft.textContent     = "2048";
     updateQuickState();
 
-    const isEasy = (sensitivitySelect.value === "easy");
-    if (isEasy) {
-        dbgSens.textContent     = "Easy";
+    const mode = sensitivitySelect.value;
+    if (mode === "relaxed") {
+        dbgSens.textContent     = "Relaxed";
+        dbgDeadZone.textContent = "~0.30%";
+        dbgHold.textContent     = "0.15 s";
+    } else if (mode === "medium") {
+        dbgSens.textContent     = "Medium";
         dbgDeadZone.textContent = "~0.23%";
         dbgHold.textContent     = "0.10 s";
     } else {
@@ -2469,19 +2488,52 @@
    **********************/
   function lerp(a,b,t){return a+(b-a)*t;}
 
-  function biasEasy(avgErrRatio) {
+  function biasRelaxed(avgErrRatio) {
     const base = {r:34,g:197,b:94};
     const sharpCol = {r:249,g:115,b:22};
     const flatCol  = {r:147,g:51,b:234};
 
-    const dz = EASY_DEADZONE_RATIO;
-    const absErr = Math.abs(avgErrRatio);
+    const dz = RELAXED_DEADZONE_RATIO;
+    const scaledErr = avgErrRatio * RELAXED_ERR_SCALE;
+    const absErr = Math.abs(scaledErr);
 
     if (absErr <= dz) {
       return base;
     } else {
       const span = 4*dz;
       let t = (absErr - dz)/span;
+      if (t<0) t=0;
+      if (t>1) t=1;
+
+      if (scaledErr > 0) {
+        return {
+          r: lerp(base.r, sharpCol.r, t),
+          g: lerp(base.g, sharpCol.g, t),
+          b: lerp(base.b, sharpCol.b, t),
+        };
+      } else {
+        return {
+          r: lerp(base.r, flatCol.r, t),
+          g: lerp(base.g, flatCol.g, t),
+          b: lerp(base.b, flatCol.b, t),
+        };
+      }
+    }
+  }
+
+  function biasMedium(avgErrRatio) {
+    const base = {r:34,g:197,b:94};
+    const sharpCol = {r:249,g:115,b:22};
+    const flatCol  = {r:147,g:51,b:234};
+
+    const dz = MEDIUM_DEADZONE_RATIO;
+    const absErr = Math.abs(avgErrRatio);
+
+    if (absErr <= dz) {
+      return base;
+    } else {
+      const span = 4*dz;
+      let t = span > 0 ? (absErr - dz) / span : 1;
       if (t<0) t=0;
       if (t>1) t=1;
 
@@ -2534,11 +2586,10 @@
   }
 
   function computeColorBiasFromErr(avgErrRatio) {
-    if (sensitivitySelect.value === "easy") {
-      return biasEasy(avgErrRatio);
-    } else {
-      return biasHard(avgErrRatio);
-    }
+    const mode = sensitivitySelect.value;
+    if (mode === "relaxed") return biasRelaxed(avgErrRatio);
+    if (mode === "medium") return biasMedium(avgErrRatio);
+    return biasHard(avgErrRatio);
   }
 
   function updateCellColorMetadata(st, biasColor, intensity, { markStained = false } = {}) {
@@ -2638,9 +2689,17 @@
   }
 
   function getCurrentMinHoldMs() {
-    return (sensitivitySelect.value === "easy")
-      ? EASY_MIN_HOLD_MS
-      : HARD_MIN_HOLD_MS;
+    const mode = sensitivitySelect.value;
+    if (mode === "relaxed") return RELAXED_MIN_HOLD_MS;
+    if (mode === "medium") return MEDIUM_MIN_HOLD_MS;
+    return HARD_MIN_HOLD_MS;
+  }
+
+  function getCurrentDeadzoneRatio() {
+    const mode = sensitivitySelect.value;
+    if (mode === "relaxed") return RELAXED_DEADZONE_RATIO;
+    if (mode === "medium") return MEDIUM_DEADZONE_RATIO;
+    return HARD_DEADZONE_RATIO;
   }
 
   function getHistoryWindowSeconds() {
@@ -2729,6 +2788,7 @@
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
     activeNoteInfo.stretchCents = 0;
+    relaxedNeedleCents = 0;
   }
 
   function renderHeatmap() {
@@ -2826,11 +2886,11 @@
   /**********************
    * RANGE / STATUS MESSAGING
    **********************/
-  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = EASY_MIN_HOLD_MS) {
+  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = MEDIUM_MIN_HOLD_MS) {
     const t = nowMs();
     let belowNow = false;
     let aboveNow = false;
-    const holdMs = outOfRangeHoldMs ?? EASY_MIN_HOLD_MS;
+    const holdMs = outOfRangeHoldMs ?? MEDIUM_MIN_HOLD_MS;
 
     if (activeMidi != null) {
       if (activeMidi < gridLowestMidiC) {
@@ -2932,10 +2992,9 @@
       clarity > 0.8 &&
       pitch > MIN_FREQ &&
       pitch < MAX_FREQ;
-
-    const isEasy = (sensitivitySelect.value === "easy");
-    const minHold = isEasy ? EASY_MIN_HOLD_MS : HARD_MIN_HOLD_MS;
-    const deadZoneRatio = isEasy ? EASY_DEADZONE_RATIO : HARD_DEADZONE_RATIO;
+    const mode = sensitivitySelect.value;
+    const minHold = getCurrentMinHoldMs();
+    const deadZoneRatio = getCurrentDeadzoneRatio();
 
     let capturingNow = false;
     let activeMidiForUI = null;
@@ -2949,13 +3008,30 @@
       const nd = freqToNoteData(adjustedPitch, A4);
       const { cents, midi, errRatio, stretchCents } = nd;
 
+      let displayCents = cents;
+      if (mode === "relaxed") {
+        if (currentMidiHeld !== midi || !pitchValid || !loudEnough) {
+          relaxedNeedleCents = cents;
+          relaxedNeedleLastMs = nowT;
+        } else {
+          if (!Number.isFinite(relaxedNeedleCents)) {
+            relaxedNeedleCents = cents;
+          }
+          const alpha = 1 - Math.exp(-dtMs / RELAXED_NEEDLE_TAU_MS);
+          relaxedNeedleCents = relaxedNeedleCents + (cents - relaxedNeedleCents) * alpha;
+        }
+        displayCents = relaxedNeedleCents;
+      } else {
+        relaxedNeedleCents = cents;
+      }
+
       const absErr = Math.abs(errRatio);
       inDeadZoneNow = (absErr <= deadZoneRatio);
 
       // gated display of pitch readout
       lastDisplayedMidi     = midi;
       lastDisplayedHzText   = `${pitch.toFixed(2)} Hz`;
-      lastDisplayedCentsText = `${cents.toFixed(1)} cents`;
+      lastDisplayedCentsText = `${displayCents.toFixed(1)} cents`;
 
       // active note hold logic
       if (currentMidiHeld !== midi) {
@@ -2964,6 +3040,10 @@
 
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
+        if (mode === "relaxed") {
+          relaxedNeedleCents = cents;
+          relaxedNeedleLastMs = nowT;
+        }
         beginActiveNote(midi, stretchCents);
       } else {
         accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
@@ -2975,10 +3055,14 @@
         beginActiveNote(midi, stretchCents);
         currentMidiHoldStart = nowT;
         capturingNow = true;
+        if (mode === "relaxed") {
+          relaxedNeedleCents = cents;
+          relaxedNeedleLastMs = nowT;
+        }
       }
 
       activeMidiForUI = midi;
-      centsForUI = cents;
+      centsForUI = displayCents;
 
       updateDebugPanel({ freq: pitch, clarity, cents, rms });
     } else {
@@ -3075,6 +3159,7 @@
 
     finalizeActiveSegment();
     clearActiveNote();
+    relaxedNeedleCents = 0;
 
     if (micStream) {
       micStream.getTracks().forEach(track => track.stop());
