@@ -1594,10 +1594,12 @@
 
   const MEDIUM_DEADZONE_RATIO = 0.0023; // ~0.23%
   const MEDIUM_MIN_HOLD_MS = 100;
+  const MEDIUM_ERR_SCALE = 0.7;
 
   // Hard mode softened but still tighter than Medium
   const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 2; // ~0.12%
   const HARD_MIN_HOLD_MS = 50;
+  const HARD_ERR_SCALE = 0.9;
 
   // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
   const RAILSBACK_ANCHORS = [
@@ -2528,7 +2530,8 @@
     const flatCol  = {r:147,g:51,b:234};
 
     const dz = MEDIUM_DEADZONE_RATIO;
-    const absErr = Math.abs(avgErrRatio);
+    const scaledErr = avgErrRatio * MEDIUM_ERR_SCALE;
+    const absErr = Math.abs(scaledErr);
 
     if (absErr <= dz) {
       return base;
@@ -2538,7 +2541,7 @@
       if (t<0) t=0;
       if (t>1) t=1;
 
-      if (avgErrRatio > 0) {
+      if (scaledErr > 0) {
         return {
           r: lerp(base.r, sharpCol.r, t),
           g: lerp(base.g, sharpCol.g, t),
@@ -2560,7 +2563,8 @@
     const flatCol  = {r:147,g:51,b:234};
 
     const dz = HARD_DEADZONE_RATIO;
-    const absErr = Math.abs(avgErrRatio);
+    const scaledErr = avgErrRatio * HARD_ERR_SCALE;
+    const absErr = Math.abs(scaledErr);
 
     if (absErr <= dz) {
       return base;
@@ -2570,7 +2574,7 @@
       if (t<0) t=0;
       if (t>1) t=1;
 
-      if (avgErrRatio > 0) {
+      if (scaledErr > 0) {
         return {
           r: lerp(base.r, sharpCol.r, t),
           g: lerp(base.g, sharpCol.g, t),
