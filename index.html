@@ -2815,11 +2815,12 @@
     return { avgErrRatio: (weightedErrSum / totalDur) };
   }
 
-  function finalizeActiveSegment() {
+  function finalizeActiveSegment(minHoldMs = 0) {
     const { midi, accumTimeMs, accumErrWeighted, stretchCents } = activeNoteInfo;
     if (midi == null) return;
     if (!cellState[midi]) return;
     if (accumTimeMs <= 0) return;
+    if (minHoldMs > 0 && accumTimeMs < minHoldMs) return;
 
     const st = cellState[midi];
     const avgErr = accumErrWeighted / accumTimeMs;
@@ -3122,7 +3123,7 @@
 
       // active note hold logic
       if (currentMidiHeld !== midi) {
-        finalizeActiveSegment();
+        finalizeActiveSegment(minHold);
         clearActiveNote();
 
         currentMidiHeld = midi;
@@ -3135,7 +3136,7 @@
 
       const heldForMs = nowT - currentMidiHoldStart;
       if (heldForMs >= minHold) {
-        finalizeActiveSegment();
+        finalizeActiveSegment(minHold);
         beginActiveNote(midi, stretchCents);
         currentMidiHoldStart = nowT;
         capturingNow = true;
@@ -3143,6 +3144,7 @@
         heldMidiForDisplay = midi;
         heldCentsForDisplay = displayCents;
         lastDisplayedMidi = midi;
+        highlightGridCell(heldMidiForDisplay, heldCentsForDisplay);
       }
 
       if (heldMidiForDisplay != null) {
@@ -3161,7 +3163,7 @@
 
       updateDebugPanel({ freq: pitch, clarity, cents, rms });
     } else {
-      finalizeActiveSegment();
+      finalizeActiveSegment(minHold);
       clearActiveNote();
       currentMidiHeld = null;
       currentMidiHoldStart = nowT;
