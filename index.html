@@ -1192,11 +1192,34 @@
         <div class="opt-control">
           <select id="sensitivitySelect">
             <option value="relaxed">Relaxed (Vocal - forgiving)</option>
-            <option value="medium" selected>Medium (no damping, faster response)</option>
-            <option value="hard">Hard (no dead zone, quicker response)</option>
+            <option value="medium" selected>Medium (no damping, medium response)</option>
+            <option value="hard">Hard (no dead zone, fast response)</option>
           </select>
         </div>
       </div>
+
+      <div class="option-field">
+        <label id="lowNoteLabel" class="opt-label" for="lowNoteSelect">Low Note</label>
+        <div class="opt-control">
+          <select id="lowNoteSelect">
+            <option value="C0">C0</option>
+            <option value="C1">C1</option>
+            <option value="C2">C2</option>
+            <option value="C3" selected>C3</option>
+            <option value="C4">C4</option>
+            <option value="C5">C5</option>
+          </select>
+        </div>
+      </div>
+      <div class="option-field">
+        <label id="rangeLabel" class="opt-label" for="rangeSelect">Range</label>
+        <div class="opt-control">
+          <select id="rangeSelect">
+            <!-- populated dynamically -->
+          </select>
+        </div>
+      </div>
+
 
       <div class="option-field">
         <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
@@ -1219,8 +1242,8 @@
         <label class="opt-label" for="needleDirSelect">Needle Direction</label>
         <div class="opt-control">
           <select id="needleDirSelect">
-            <option value="horizontal" selected>Horizontal</option>
-            <option value="vertical">Vertical</option>
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical" selected>Vertical</option>
           </select>
         </div>
       </div>
@@ -1256,19 +1279,7 @@
         </div>
       </div>
 
-      <div class="option-field">
-        <label id="lowNoteLabel" class="opt-label" for="lowNoteSelect">Low Note</label>
-        <div class="opt-control">
-          <select id="lowNoteSelect">
-            <option value="C0">C0</option>
-            <option value="C1">C1</option>
-            <option value="C2">C2</option>
-            <option value="C3" selected>C3</option>
-            <option value="C4">C4</option>
-            <option value="C5">C5</option>
-          </select>
-        </div>
-      </div>
+
 
       <div class="option-field">
         <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
@@ -1293,14 +1304,7 @@
         </div>
       </div>
 
-      <div class="option-field">
-        <label id="rangeLabel" class="opt-label" for="rangeSelect">Range</label>
-        <div class="opt-control">
-          <select id="rangeSelect">
-            <!-- populated dynamically -->
-          </select>
-        </div>
-      </div>
+
 
       <div class="option-field">
         <label class="opt-label" for="volThresh">Volume Sensitivity</label>
