@@ -868,13 +868,31 @@
       overflow: hidden;
     }
     .right-fixed {
+      flex-direction: row;
       align-items: center;
-      padding-bottom: 0.4rem;
+      justify-content: center;
+      gap: 0.75rem;
+      padding: 0 0 0.4rem 0;
       margin-bottom: 0;
       border: none;
+      width: 100%;
+    }
+    .right-fixed > * {
+      flex: 1 1 0;
     }
     .app-title {
       font-size: 1.3rem;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+    }
+    .overlay-actions {
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+    }
+    .quick-state {
       text-align: center;
     }
     .layout-stack {
@@ -917,6 +935,17 @@
     }
     .overlay-button-stack {
       flex-wrap: wrap;
+    }
+  }
+
+  /* Landscape: shrink logo once viewport gets narrow */
+  @media (min-aspect-ratio: 1/1) and (max-width: 850px) {
+    .right-col {
+      flex: 0 0 160px;
+      max-width: 160px;
+    }
+    .app-title {
+      max-width: 160px;
     }
   }
 
