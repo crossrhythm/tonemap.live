@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.19 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.20 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -1053,7 +1053,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.19";
+  window.APP_VERSION = "1.20";
 </script>
 
 <div class="page">
@@ -1400,7 +1400,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.19";
+  const APP_VERSION = window.APP_VERSION || "1.20";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -1751,8 +1751,9 @@
   }
   let gridLowestMidiC = null;
   let gridHighestMidiLastNote = null;
-  let relaxedNeedleCents = 0;
+  let relaxedNeedleCents = NaN;
   let relaxedNeedleLastMs = performance.now();
+  let relaxedSmoothingActive = false;
 
   // Active note tracking
   let currentMidiHeld = null;
@@ -2788,7 +2789,8 @@
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
     activeNoteInfo.stretchCents = 0;
-    relaxedNeedleCents = 0;
+    relaxedNeedleCents = NaN;
+    relaxedSmoothingActive = false;
   }
 
   function renderHeatmap() {
@@ -3011,16 +3013,20 @@
 
       let displayCents = cents;
       if (mode === "relaxed") {
-        if (!Number.isFinite(relaxedNeedleCents)) {
+        if (!relaxedSmoothingActive) {
           relaxedNeedleCents = cents;
+          relaxedNeedleLastMs = nowT;
+        } else {
+          if (!Number.isFinite(relaxedNeedleCents)) {
+            relaxedNeedleCents = cents;
+          }
+          const alpha = 1 - Math.exp(-dtMs / RELAXED_NEEDLE_TAU_MS);
+          relaxedNeedleCents = relaxedNeedleCents + (cents - relaxedNeedleCents) * alpha;
         }
-        const alpha = 1 - Math.exp(-dtMs / RELAXED_NEEDLE_TAU_MS);
-        relaxedNeedleCents = relaxedNeedleCents + (cents - relaxedNeedleCents) * alpha;
         displayCents = relaxedNeedleCents;
       } else {
         relaxedNeedleCents = cents;
       }
-
       const absErr = Math.abs(errRatio);
       inDeadZoneNow = (absErr <= deadZoneRatio);
 
@@ -3036,10 +3042,6 @@
 
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
-        if (mode === "relaxed") {
-          relaxedNeedleCents = cents;
-          relaxedNeedleLastMs = nowT;
-        }
         beginActiveNote(midi, stretchCents);
       } else {
         accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
@@ -3051,6 +3053,9 @@
         beginActiveNote(midi, stretchCents);
         currentMidiHoldStart = nowT;
         capturingNow = true;
+        if (mode === "relaxed") {
+          relaxedSmoothingActive = true;
+        }
       }
 
       activeMidiForUI = midi;
@@ -3151,7 +3156,8 @@
 
     finalizeActiveSegment();
     clearActiveNote();
-    relaxedNeedleCents = 0;
+    relaxedNeedleCents = NaN;
+    relaxedSmoothingActive = false;
 
     if (micStream) {
       micStream.getTracks().forEach(track => track.stop());
