@@ -1791,6 +1791,7 @@
   let heldMidiForDisplay = null;
   let heldCentsForDisplay = 0;
   let stainedThisTick = new Set();
+  let lastActiveMidiForUI = null;
 
   // Active note tracking
   let currentMidiHeld = null;
@@ -2922,15 +2923,18 @@
   }
 
   function highlightGridCell(activeMidi, cents) {
-    for (const midi in midiToCellEl) {
-      const cell = midiToCellEl[midi];
-      cell.classList.remove("active");
-      cell.classList.remove("vertical-needle");
-      const ind = cell.querySelector(".tune-indicator");
-      if (ind) {
-        ind.style.display = "none";
-        ind.style.top = "";
-        ind.style.left = "";
+    const prevMidi = lastActiveMidiForUI;
+    if (prevMidi != null && prevMidi !== activeMidi) {
+      const prevCell = midiToCellEl[prevMidi];
+      if (prevCell) {
+        prevCell.classList.remove("active");
+        prevCell.classList.remove("vertical-needle");
+        const indPrev = prevCell.querySelector(".tune-indicator");
+        if (indPrev) {
+          indPrev.style.display = "none";
+          indPrev.style.top = "";
+          indPrev.style.left = "";
+        }
       }
     }
 
@@ -2961,6 +2965,7 @@
         }
       }
     }
+    lastActiveMidiForUI = activeMidi != null ? activeMidi : null;
     lastHighlightedMidi = activeMidi != null ? activeMidi : null;
     lastHighlightedCents = cents || 0;
   }
