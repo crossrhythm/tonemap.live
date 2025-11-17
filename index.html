@@ -963,19 +963,20 @@
     left: 0;
     right: 0;
     top: 50%;
-    height: 3px;
-    background: var(--grid-line);
+    height: 8px;
+    background: #000;
     transform: translateY(-50%);
     z-index: 0;
   }
 
   .grid-cell.vertical-needle.active::after {
-    width: 3px;
+    width: 8px;
     height: 100%;
     left: 50%;
     right: auto;
     top: 0;
     transform: translateX(-50%);
+    background: #000;
   }
 
   .grid-cell .note-label {
