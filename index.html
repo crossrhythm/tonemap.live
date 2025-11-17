@@ -3123,8 +3123,7 @@
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
         beginActiveNote(midi, stretchCents);
-        heldMidiForDisplay = null;
-        heldCentsForDisplay = 0;
+        // keep previous held display until new note meets hold gate
       } else {
         accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
       }
@@ -3143,7 +3142,12 @@
 
       if (heldMidiForDisplay != null) {
         activeMidiForUI = heldMidiForDisplay;
-        centsForUI = displayCents;
+        if (currentMidiHeld === heldMidiForDisplay) {
+          heldCentsForDisplay = displayCents;
+          centsForUI = displayCents;
+        } else {
+          centsForUI = heldCentsForDisplay;
+        }
         lastDisplayedMidi = heldMidiForDisplay;
       } else {
         activeMidiForUI = null;
