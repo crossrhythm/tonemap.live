@@ -1,2 +1,49 @@
-1. Make cents display glow with color for sharp or flat (similar scale to grid color, should respond to Easy and Hard mode as well, with a "dead zone" for Easy Mode)
+2.	Add a visible color key on the main page
+	•	Add a small, always-visible legend near the Reset/Play controls that explains the color mapping: GREEN = centered pitch, shading upward through YELLOW to ORANGE = sharp, shading downward through BLUE to PURPLE = flat.
+	3.	Improve Android microphone-permission guidance
+	•	Detect when the microphone is blocked (e.g., getUserMedia failure) and display clear, app-specific instructions for Android/Chrome users on how to manually enable mic access in browser settings, including a “Help with microphone access” link that opens a short text explanation.
+	6.	Make the center pitch line more readable
+	•	Increase the thickness of the central vertical “in-tune” line slightly and change its color to a neutral light gray or white so it remains clearly visible against both green and red background colors.
+	7.	Clarify the Options dialog action button
+	•	In the Options window, rename the “Close” button to “Apply” (or “Save & Close”) and ensure that clicking it commits any changed settings and returns to the main view, while any separate “Cancel” or “X” action discards changes.
+	8.	Annotate transposition choices with instrument names
+	•	In the transposition control, display the common instruments next to each transposition value, for example:
+	•	Bb (−2): Bb Trumpet, Soprano Sax, Bb Clarinet, Tenor Sax, Piccolo Trumpet, Bass Clarinet
+	•	Eb (+3): Alto Sax, Baritone Sax, Eb Clarinet
+	•	F (+4): English Horn, French Horn
+	•	G (−5 / +7): Alto Flute
+	•	A (−3): Clarinet in A
+	•	C (0): “Concert pitch (Flute, Oboe, Violin, Voice, etc.)”
+	9.	Add hover tooltips for Options controls
+	•	For each control in the Options screen (range, transposition, sensitivity, history length, etc.), add a short tooltip that appears on hover, explaining what the control does and when a user might change it.
+	12.	Add a link to a walkthrough video or studio site
 
+	•	Add an “Info / Walkthrough” link in the Options menu that opens a new tab to either a YouTube video demonstrating Tonemap usage or a specific page on eastendviolinstudio.com that explains practice strategies with Tonemap.
+
+⸻
+
+Category 2: Larger feature and layout changes
+(ordered from most to least central to the core experience)
+	1.	Expose mic sensitivity and live level meter on the main page
+	•	Move or duplicate the microphone sensitivity / noise-gate control from Options to the main screen and add a simple live input level meter (horizontal or vertical bar) that shows current microphone level so users can tune the threshold in real time.
+	4.	Add click-to-play reference tones for each note
+	•	Allow users to click on a grid note (or a dedicated control) to play a synthesized reference tone (e.g., triangle or sine wave) at that pitch, using the current tuning (A4 frequency and temperament), with a short “ping” mode and a sustained “drone” mode.
+	5.	Prevent self-feedback from reference tones into the analyzer
+	•	When playing a reference tone, route audio so the analyzer either ignores or compensates for that internally generated tone (e.g., by not feeding it into the detection pipeline or by subtracting the generated signal) so the grid reflects only the user’s live playing.
+	6.	Add alternate tuning systems (temperaments)
+	•	Extend the tuning system so that users can select between Equal Temperament and at least one or two musical temperaments (e.g., Just Intonation, Pythagorean), and adjust pitch mapping and displayed cents offsets accordingly, while keeping Railsback-like options clearly distinguished if they are already present.
+	7.	Add center-line customization options
+	•	Create a “Center Line Options” section where users can pick the line’s color (e.g., via a color picker or predefined swatches) and optionally enable an “Advanced” mode where the line’s color reflects current instantaneous pitch offset (e.g., same hue as the sharp/flat color but with lower saturation).
+	8.	Add selectable color schemes for pitch error display
+	•	Implement a color-scheme selector with presets such as:
+	•	Full Spectrum (current default)
+	•	Dark Red → Green → Dark Red (flat to center to sharp)
+	•	Dark Green → Blue → Dark Red
+	•	Light Blue → White → Red
+	•	Monochrome mode driven by a user-selected hue, mapping flat → center → sharp across that hue range
+	•	Ensure the on-screen color key dynamically updates to match the active scheme.
+	9.	Add a vertical grid layout mode
+	•	Provide a layout option where each octave is arranged vertically from low to high (bottom to top), and octaves progress horizontally, so that the red pitch indicator moves primarily up and down with pitch changes instead of jumping across a wide horizontal span.
+	10.	Add a piano-keyboard layout mode
+
+	•	Implement an alternate view where pitches are laid out like a piano keyboard, with white and black keys in correct relative widths and positions (e.g., C#4 overlapping between C4 and D4), and map the pitch detection and colorization logic onto these keys instead of square grid cells.

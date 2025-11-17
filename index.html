@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.20 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.21 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -963,14 +963,14 @@
     left: 0;
     right: 0;
     top: 50%;
-    height: 2px;
+    height: 3px;
     background: var(--grid-line);
     transform: translateY(-50%);
     z-index: 0;
   }
 
   .grid-cell.vertical-needle.active::after {
-    width: 2px;
+    width: 3px;
     height: 100%;
     left: 50%;
     right: auto;
@@ -1070,7 +1070,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.20";
+  window.APP_VERSION = "1.21";
 </script>
 
 <div class="page">
@@ -1430,7 +1430,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.20";
+  const APP_VERSION = window.APP_VERSION || "1.21";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -1787,6 +1787,8 @@
   let relaxedNeedleCents = NaN;
   let relaxedNeedleLastMs = performance.now();
   let relaxedSmoothingActive = false;
+  let heldMidiForDisplay = null;
+  let heldCentsForDisplay = 0;
 
   // Active note tracking
   let currentMidiHeld = null;
@@ -2661,18 +2663,24 @@
     let display = Math.max(0, Math.min(1, st.displayIntensity ?? 0));
     const lastUpdate = st.lastDisplayUpdateMs ?? nowTimeMs;
     const deltaMs = Math.max(0, nowTimeMs - lastUpdate);
+    const mode = sensitivitySelect?.value || "medium";
 
     if (baseIntensity <= 0) {
       display = 0;
       st.fadeAnchorIntensity = null;
       st.justStained = false;
     } else {
-      const fadeInAlpha = 1 - Math.exp(-deltaMs / STAIN_FADE_IN_MS);
-      if (fadeInAlpha > 0) {
-        display = display + (baseIntensity - display) * fadeInAlpha;
-      }
-      if (st.justStained) {
-        st.fadeAnchorIntensity = null;
+      if (mode === "relaxed") {
+        const fadeInAlpha = 1 - Math.exp(-deltaMs / STAIN_FADE_IN_MS);
+        if (fadeInAlpha > 0) {
+          display = display + (baseIntensity - display) * fadeInAlpha;
+        }
+        if (st.justStained) {
+          st.fadeAnchorIntensity = null;
+        }
+      } else {
+        // Medium/Hard: no stain fade-in EMA; display matches base immediately
+        display = baseIntensity;
       }
 
       const lastStain = st.lastStainAtMs ?? 0;
@@ -2833,6 +2841,8 @@
     activeNoteInfo.stretchCents = 0;
     relaxedNeedleCents = NaN;
     relaxedSmoothingActive = false;
+    heldMidiForDisplay = null;
+    heldCentsForDisplay = 0;
   }
 
   function renderHeatmap() {
@@ -3066,11 +3076,11 @@
     if (pitchValid && loudEnough) {
       const transposeOffset = getTransposeOffset();
       const transposeFactor = Math.pow(2, -transposeOffset / 12);
-      const adjustedPitch = pitch * transposeFactor;
-      const nd = freqToNoteData(adjustedPitch, A4);
-      const { cents, midi, errRatio, stretchCents } = nd;
+    const adjustedPitch = pitch * transposeFactor;
+    const nd = freqToNoteData(adjustedPitch, A4);
+    const { cents, midi, errRatio, stretchCents } = nd;
 
-      let displayCents = cents;
+    let displayCents = cents;
       if (mode === "relaxed") {
         if (!relaxedSmoothingActive) {
           relaxedNeedleCents = cents;
@@ -3086,13 +3096,12 @@
       } else {
         relaxedNeedleCents = cents;
       }
-      const absErr = Math.abs(errRatio);
-      inDeadZoneNow = (absErr <= deadZoneRatio);
+    const absErr = Math.abs(errRatio);
+    inDeadZoneNow = (absErr <= deadZoneRatio);
 
-      // gated display of pitch readout
-      lastDisplayedMidi     = midi;
-      lastDisplayedHzText   = `${pitch.toFixed(2)} Hz`;
-      lastDisplayedCentsText = `${displayCents.toFixed(1)} cents`;
+    // gated display of pitch readout
+    lastDisplayedHzText   = `${pitch.toFixed(2)} Hz`;
+    lastDisplayedCentsText = `${displayCents.toFixed(1)} cents`;
 
       // active note hold logic
       if (currentMidiHeld !== midi) {
@@ -3102,6 +3111,8 @@
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
         beginActiveNote(midi, stretchCents);
+        heldMidiForDisplay = null;
+        heldCentsForDisplay = 0;
       } else {
         accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
       }
@@ -3112,13 +3123,18 @@
         beginActiveNote(midi, stretchCents);
         currentMidiHoldStart = nowT;
         capturingNow = true;
-        if (mode === "relaxed") {
-          relaxedSmoothingActive = true;
-        }
+        relaxedSmoothingActive = (mode === "relaxed");
+        heldMidiForDisplay = midi;
+        heldCentsForDisplay = displayCents;
       }
 
-      activeMidiForUI = midi;
-      centsForUI = displayCents;
+      if (heldMidiForDisplay != null) {
+        activeMidiForUI = heldMidiForDisplay;
+        centsForUI = displayCents;
+      } else {
+        activeMidiForUI = null;
+        centsForUI = 0;
+      }
 
       updateDebugPanel({ freq: pitch, clarity, cents, rms });
     } else {
@@ -3126,6 +3142,8 @@
       clearActiveNote();
       currentMidiHeld = null;
       currentMidiHoldStart = nowT;
+      heldMidiForDisplay = null;
+      heldCentsForDisplay = 0;
 
       lastDisplayedMidi     = null;
       lastDisplayedHzText   = "-- Hz";
@@ -3217,6 +3235,8 @@
     clearActiveNote();
     relaxedNeedleCents = NaN;
     relaxedSmoothingActive = false;
+    heldMidiForDisplay = null;
+    heldCentsForDisplay = 0;
 
     if (micStream) {
       micStream.getTracks().forEach(track => track.stop());
