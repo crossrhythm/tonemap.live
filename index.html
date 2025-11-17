@@ -949,7 +949,7 @@
   }
 
   .grid-cell.visited {
-    color: var(--grid-text-seen);
+    color: var(--grid-text-on);
   }
 
   .grid-cell.active {
@@ -1650,7 +1650,7 @@
   const FULL_CONF_MS = 1500;
   const STAIN_MIN_FRACTION = 0.3;
   const STAIN_FADE_SECONDS = 10;
-  const STAIN_FADE_IN_MS = 1200;
+  const STAIN_FADE_IN_MS = 250;
 
   // LED smoothing
   let ledTargetGreen = false;
@@ -1790,6 +1790,7 @@
   let relaxedSmoothingActive = false;
   let heldMidiForDisplay = null;
   let heldCentsForDisplay = 0;
+  let stainedThisTick = new Set();
 
   // Active note tracking
   let currentMidiHeld = null;
@@ -2651,9 +2652,10 @@
     st.fadeAnchorIntensity = null;
     if (markStained) {
       st.justStained = true;
-    }
-    if (clampedIntensity > 0) {
-      st.visited = true;
+      stainedThisTick.add(st);
+      if (clampedIntensity > 0) {
+        st.visited = true;
+      }
     }
   }
 
@@ -2665,6 +2667,7 @@
     const lastUpdate = st.lastDisplayUpdateMs ?? nowTimeMs;
     const deltaMs = Math.max(0, nowTimeMs - lastUpdate);
     const mode = sensitivitySelect?.value || "medium";
+    const stainedNow = st.justStained || stainedThisTick.has(st);
 
     if (baseIntensity <= 0) {
       display = 0;
@@ -2672,12 +2675,17 @@
       st.justStained = false;
     } else {
       if (mode === "relaxed") {
-        const fadeInAlpha = 1 - Math.exp(-deltaMs / STAIN_FADE_IN_MS);
-        if (fadeInAlpha > 0) {
-          display = display + (baseIntensity - display) * fadeInAlpha;
-        }
-        if (st.justStained) {
-          st.fadeAnchorIntensity = null;
+        if (stainedNow) {
+          const fadeInAlpha = 1 - Math.exp(-deltaMs / STAIN_FADE_IN_MS);
+          if (fadeInAlpha > 0) {
+            display = display + (baseIntensity - display) * fadeInAlpha;
+          }
+          if (st.justStained) {
+            st.fadeAnchorIntensity = null;
+          }
+        } else {
+          // No new stain this frame; hold at current display level
+          display = display;
         }
       } else {
         // Medium/Hard: no stain fade-in EMA; display matches base immediately
@@ -2861,6 +2869,7 @@
         cell.classList.remove("visited");
       }
     }
+    stainedThisTick.clear();
   }
 
   // History change reinterprets stain (doesn't clear)
@@ -2928,6 +2937,7 @@
     if (activeMidi != null && midiToCellEl[activeMidi]) {
       const cell = midiToCellEl[activeMidi];
       cell.classList.add("active");
+      cell.classList.add("visited");
 
       const ind = cell.querySelector(".tune-indicator");
       if (ind) {
@@ -3078,10 +3088,10 @@
       const transposeOffset = getTransposeOffset();
       const transposeFactor = Math.pow(2, -transposeOffset / 12);
     const adjustedPitch = pitch * transposeFactor;
-    const nd = freqToNoteData(adjustedPitch, A4);
-    const { cents, midi, errRatio, stretchCents } = nd;
+      const nd = freqToNoteData(adjustedPitch, A4);
+      const { cents, midi, errRatio, stretchCents } = nd;
 
-    let displayCents = cents;
+      let displayCents = cents;
       if (mode === "relaxed") {
         if (!relaxedSmoothingActive) {
           relaxedNeedleCents = cents;
@@ -3101,6 +3111,7 @@
     inDeadZoneNow = (absErr <= deadZoneRatio);
 
     // gated display of pitch readout
+    lastDisplayedMidi     = midi;
     lastDisplayedHzText   = `${pitch.toFixed(2)} Hz`;
     lastDisplayedCentsText = `${displayCents.toFixed(1)} cents`;
 
@@ -3134,9 +3145,6 @@
         activeMidiForUI = heldMidiForDisplay;
         centsForUI = displayCents;
         lastDisplayedMidi = heldMidiForDisplay;
-        if (cellState[heldMidiForDisplay]) {
-          cellState[heldMidiForDisplay].visited = true;
-        }
       } else {
         activeMidiForUI = null;
         centsForUI = 0;
