@@ -969,6 +969,15 @@
     z-index: 0;
   }
 
+  .grid-cell.vertical-needle.active::after {
+    width: 2px;
+    height: 100%;
+    left: 50%;
+    right: auto;
+    top: 0;
+    transform: translateX(-50%);
+  }
+
   .grid-cell .note-label {
     color: inherit;
     display: inline-flex;
@@ -996,6 +1005,14 @@
     transform: translate(-50%, -50%);
     display: none;
     z-index: 2;
+  }
+
+  .grid-cell.vertical-needle .tune-indicator {
+    width: 4px;
+    height: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 
   /********************
@@ -1196,6 +1213,15 @@
         <label class="opt-label" for="accidentalToggle">Accidentals</label>
         <div class="opt-control">
           <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
+        </div>
+      </div>
+      <div class="option-field">
+        <label class="opt-label" for="needleDirSelect">Needle Direction</label>
+        <div class="opt-control">
+          <select id="needleDirSelect">
+            <option value="horizontal" selected>Horizontal</option>
+            <option value="vertical">Vertical</option>
+          </select>
         </div>
       </div>
 
@@ -1470,6 +1496,7 @@
   const stainHoldSelect   = document.getElementById("stainHoldSelect");
   const stretchSelect     = document.getElementById("stretchSelect");
   const accidentalToggle  = document.getElementById("accidentalToggle");
+  const needleDirSelect   = document.getElementById("needleDirSelect");
   const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
 
   const noteGrid      = document.getElementById("noteGrid");
@@ -1835,6 +1862,7 @@
     lowNote: "C3",
     history: HISTORY_DEFAULT,
     stainHold: STAIN_HOLD_DEFAULT,
+    needleDirection: "horizontal",
     range: null, // computed default
     minVol: 0.1
   };
@@ -2091,6 +2119,12 @@
     const accidentalVal = originalAccidental === "flats" ? "flats" : "sharps";
     if (originalAccidental !== accidentalVal) needsPersist = true;
     setAccidentalMode(accidentalVal, { skipPersist: true });
+
+    const originalNeedleDir = settings.needleDirection;
+    const needleDirVal = (originalNeedleDir === "vertical") ? "vertical" : "horizontal";
+    if (needleDirSelect) needleDirSelect.value = needleDirVal;
+    if (originalNeedleDir !== needleDirVal) needsPersist = true;
+    currentSettings.needleDirection = needleDirVal;
 
     const originalTransposition = settings.transposition;
     let transposeVal = originalTransposition;
@@ -2867,8 +2901,13 @@
     for (const midi in midiToCellEl) {
       const cell = midiToCellEl[midi];
       cell.classList.remove("active");
+      cell.classList.remove("vertical-needle");
       const ind = cell.querySelector(".tune-indicator");
-      if (ind) ind.style.display = "none";
+      if (ind) {
+        ind.style.display = "none";
+        ind.style.top = "";
+        ind.style.left = "";
+      }
     }
 
     if (activeMidi != null && midiToCellEl[activeMidi]) {
@@ -2878,11 +2917,23 @@
       const ind = cell.querySelector(".tune-indicator");
       if (ind) {
         ind.style.display = "block";
-        const maxCents = 50;
-        let clamped = Math.max(-maxCents, Math.min(maxCents, cents || 0));
-        const pctUp = (clamped + maxCents) / (2 * maxCents); // 0..1
-        const yPercent = 90 - (pctUp * 80); // map to 10..90%
-        ind.style.top = yPercent + "%";
+        const isVertical = currentSettings.needleDirection === "vertical";
+        if (isVertical) {
+          cell.classList.add("vertical-needle");
+          const maxCents = 50;
+          let clamped = Math.max(-maxCents, Math.min(maxCents, cents || 0));
+          const pct = (clamped + maxCents) / (2 * maxCents); // 0..1
+          const xPercent = 10 + (pct * 80); // map to 10..90%
+          ind.style.left = xPercent + "%";
+          ind.style.top = "50%";
+        } else {
+          const maxCents = 50;
+          let clamped = Math.max(-maxCents, Math.min(maxCents, cents || 0));
+          const pctUp = (clamped + maxCents) / (2 * maxCents); // 0..1
+          const yPercent = 90 - (pctUp * 80); // map to 10..90%
+          ind.style.top = yPercent + "%";
+          ind.style.left = "50%";
+        }
       }
     }
     lastHighlightedMidi = activeMidi != null ? activeMidi : null;
@@ -3386,6 +3437,14 @@
     accidentalToggle.addEventListener("click", () => {
       const nextMode = accidentalMode === "sharps" ? "flats" : "sharps";
       setAccidentalMode(nextMode);
+    });
+  }
+
+  if (needleDirSelect) {
+    needleDirSelect.addEventListener("change", () => {
+      currentSettings.needleDirection = needleDirSelect.value === "vertical" ? "vertical" : "horizontal";
+      persistSettings(currentSettings);
+      highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
     });
   }
 
