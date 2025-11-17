@@ -3127,11 +3127,16 @@
         relaxedSmoothingActive = (mode === "relaxed");
         heldMidiForDisplay = midi;
         heldCentsForDisplay = displayCents;
+        lastDisplayedMidi = midi;
       }
 
       if (heldMidiForDisplay != null) {
         activeMidiForUI = heldMidiForDisplay;
         centsForUI = displayCents;
+        lastDisplayedMidi = heldMidiForDisplay;
+        if (cellState[heldMidiForDisplay]) {
+          cellState[heldMidiForDisplay].visited = true;
+        }
       } else {
         activeMidiForUI = null;
         centsForUI = 0;
