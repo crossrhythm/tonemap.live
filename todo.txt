@@ -2,21 +2,11 @@
 	•	Add a small, always-visible legend near the Reset/Play controls that explains the color mapping: GREEN = centered pitch, shading upward through YELLOW to ORANGE = sharp, shading downward through BLUE to PURPLE = flat.
 	3.	Improve Android microphone-permission guidance
 	•	Detect when the microphone is blocked (e.g., getUserMedia failure) and display clear, app-specific instructions for Android/Chrome users on how to manually enable mic access in browser settings, including a “Help with microphone access” link that opens a short text explanation.
-	6.	Make the center pitch line more readable
-	•	Increase the thickness of the central vertical “in-tune” line slightly and change its color to a neutral light gray or white so it remains clearly visible against both green and red background colors.
-	7.	Clarify the Options dialog action button
-	•	In the Options window, rename the “Close” button to “Apply” (or “Save & Close”) and ensure that clicking it commits any changed settings and returns to the main view, while any separate “Cancel” or “X” action discards changes.
-	8.	Annotate transposition choices with instrument names
-	•	In the transposition control, display the common instruments next to each transposition value, for example:
-	•	Bb (−2): Bb Trumpet, Soprano Sax, Bb Clarinet, Tenor Sax, Piccolo Trumpet, Bass Clarinet
-	•	Eb (+3): Alto Sax, Baritone Sax, Eb Clarinet
-	•	F (+4): English Horn, French Horn
-	•	G (−5 / +7): Alto Flute
-	•	A (−3): Clarinet in A
-	•	C (0): “Concert pitch (Flute, Oboe, Violin, Voice, etc.)”
 	9.	Add hover tooltips for Options controls
 	•	For each control in the Options screen (range, transposition, sensitivity, history length, etc.), add a short tooltip that appears on hover, explaining what the control does and when a user might change it.
 	12.	Add a link to a walkthrough video or studio site
+	13. Fix Apply/Reset buttons
+	14. reduce fade further
 
 	•	Add an “Info / Walkthrough” link in the Options menu that opens a new tab to either a YouTube video demonstrating Tonemap usage or a specific page on eastendviolinstudio.com that explains practice strategies with Tonemap.
 
