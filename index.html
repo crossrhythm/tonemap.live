@@ -139,6 +139,13 @@
     align-items: center;
   }
 
+  .edge-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   .edge-btn {
     appearance: none;
     width: var(--edge-btn-size);
@@ -244,6 +251,18 @@
   .title-block {
     display: flex;
     justify-content: center;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .control-row {
@@ -1207,12 +1226,14 @@
       </div>
       <div class="edge-controls" aria-label="Range controls">
         <div class="edge-group edge-group-top">
-          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range">▲</button>
-          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range">▼</button>
+          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range">+</button>
+          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range">-</button>
+          <div class="edge-label">High</div>
         </div>
         <div class="edge-group edge-group-bottom">
-          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave">▲</button>
-          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave">▼</button>
+          <div class="edge-label">Low</div>
+          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave">-</button>
+          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave">+</button>
         </div>
       </div>
     </div>
@@ -1263,6 +1284,20 @@
 
   </div><!-- /.right-col -->
 </div><!-- /.page -->
+
+<div class="visually-hidden" aria-hidden="true">
+  <span id="lowNoteLabel"></span>
+  <span id="rangeLabel"></span>
+  <select id="lowNoteSelect">
+    <option value="C0">C0</option>
+    <option value="C1">C1</option>
+    <option value="C2">C2</option>
+    <option value="C3" selected>C3</option>
+    <option value="C4">C4</option>
+    <option value="C5">C5</option>
+  </select>
+  <select id="rangeSelect"></select>
+</div>
 
 <div id="optionsOverlay" class="options-overlay" aria-hidden="true">
       <div class="options-overlay-card" role="dialog" aria-modal="true" aria-labelledby="optionsOverlayTitle">
@@ -1322,29 +1357,6 @@
           </select>
         </div>
       </div>
-
-      <div class="option-field">
-        <label id="lowNoteLabel" class="opt-label" for="lowNoteSelect">Low Note</label>
-        <div class="opt-control">
-          <select id="lowNoteSelect">
-            <option value="C0">C0</option>
-            <option value="C1">C1</option>
-            <option value="C2">C2</option>
-            <option value="C3" selected>C3</option>
-            <option value="C4">C4</option>
-            <option value="C5">C5</option>
-          </select>
-        </div>
-      </div>
-      <div class="option-field">
-        <label id="rangeLabel" class="opt-label" for="rangeSelect">Range</label>
-        <div class="opt-control">
-          <select id="rangeSelect">
-            <!-- populated dynamically -->
-          </select>
-        </div>
-      </div>
-
 
       <div class="option-field">
         <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
