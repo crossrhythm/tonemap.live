@@ -34,6 +34,9 @@
     --panel-text-dim: #94a3b8;
     --panel-text-lite: #f8fafc;
     --panel-highlight: rgb(34,197,94);
+
+    --edge-btn-size: 32px;
+    --edge-col-width: calc(var(--edge-btn-size) + 4px);
   }
 
   *, *::before, *::after {
@@ -56,6 +59,13 @@
   @media (min-aspect-ratio: 1/1) {
     body {
       min-width: 525px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    :root {
+      --edge-btn-size: 30px;
+      --edge-col-width: calc(var(--edge-btn-size) + 4px);
     }
   }
 
@@ -89,12 +99,85 @@
   }
 
   .grid-surface {
+    grid-column: 1 / 2;
     flex: 1 1 auto;
     min-height: 0;
     min-width: 0;
     height: 100%;
     display: grid;
     background: var(--grid-bg);
+  }
+
+  .grid-shell {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr var(--edge-col-width);
+  }
+
+  .edge-controls {
+    position: relative;
+    grid-column: 2 / 3;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px;
+    background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.8) 100%);
+    box-shadow: -10px 0 16px rgba(0,0,0,0.55);
+    border-left: 1px solid var(--grid-line);
+  }
+
+  .edge-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  .edge-btn {
+    appearance: none;
+    width: var(--edge-btn-size);
+    height: var(--edge-btn-size);
+    min-width: var(--edge-btn-size);
+    min-height: var(--edge-btn-size);
+    border-radius: 0.45rem;
+    border: 2px solid var(--border-dim);
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .edge-btn:hover,
+  .edge-btn:focus-visible {
+    border-color: var(--accent-green);
+    outline: none;
+  }
+
+  .edge-btn:active {
+    transform: translateY(1px);
+  }
+
+  .edge-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    filter: grayscale(0.4);
+  }
+
+  .edge-btn.alert {
+    border-color: var(--warn-color);
+    color: var(--warn-color);
+    box-shadow: 0 0 0 0.18rem rgba(250,204,21,0.15);
   }
 
   /* RIGHT COLUMN:
@@ -1118,8 +1201,20 @@
 
   <!-- LEFT: NOTE GRID -->
   <div id="gridWrapper" class="left-col">
-    <div id="noteGrid" class="grid-surface">
-      <!-- cells injected dynamically -->
+    <div class="grid-shell">
+      <div id="noteGrid" class="grid-surface">
+        <!-- cells injected dynamically -->
+      </div>
+      <div class="edge-controls" aria-label="Range controls">
+        <div class="edge-group edge-group-top">
+          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range">▲</button>
+          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range">▼</button>
+        </div>
+        <div class="edge-group edge-group-bottom">
+          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave">▲</button>
+          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave">▼</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1550,6 +1645,10 @@
   const statusCloseBtn  = document.getElementById("statusCloseBtn");
   const quickLine1 = document.getElementById("quickLine1");
   const quickLine2 = document.getElementById("quickLine2");
+  const rangeGrowBtn   = document.getElementById("rangeGrowBtn");
+  const rangeShrinkBtn = document.getElementById("rangeShrinkBtn");
+  const lowNoteUpBtn   = document.getElementById("lowNoteUpBtn");
+  const lowNoteDownBtn = document.getElementById("lowNoteDownBtn");
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -2395,6 +2494,17 @@
     document.documentElement.style.setProperty("--grid-active-border", `${borderPx}px`);
   }
 
+  function getRangeLimitsForLow(lowNoteName) {
+    const lowMidiC = noteNameToMidiC(lowNoteName);
+    const maxTopMidiC = noteNameToMidiC("C8");
+    const diffSemis = maxTopMidiC - lowMidiC;
+    let maxOctavesPossible = Math.floor(diffSemis / 12) + 1;
+    if (maxOctavesPossible > 8) maxOctavesPossible = 8;
+    const minOctaves = 2;
+    const maxOctaves = Math.max(minOctaves, maxOctavesPossible);
+    return { minOctaves, maxOctaves };
+  }
+
   function noteNameToMidiC(noteNameWithOctave) {
     const m = /^([A-G](?:#|b|♯|♭)?)(\d+)$/i.exec(noteNameWithOctave);
     if (!m) return 24;
@@ -2425,16 +2535,9 @@
 
   function rebuildRangeOptions({forceDefault=false, desiredRange=null} = {}) {
     const lowNoteName = lowNoteSelect.value;
-    const lowMidiC = noteNameToMidiC(lowNoteName);
-
-    const maxTopMidiC = noteNameToMidiC("C8");
-    const diffSemis = maxTopMidiC - lowMidiC;
-    let maxOctavesPossible = Math.floor(diffSemis / 12) + 1;
-    if (maxOctavesPossible > 8) maxOctavesPossible = 8;
-
-    const minOctaves = 2;
+    const { minOctaves, maxOctaves } = getRangeLimitsForLow(lowNoteName);
     const startOcts  = minOctaves;
-    const endOcts    = Math.max(minOctaves, maxOctavesPossible);
+    const endOcts    = Math.max(minOctaves, maxOctaves);
 
     const prevVal = parseInt(rangeSelect.value || "0", 10);
 
@@ -2556,6 +2659,91 @@
     }
 
     cellState = nextCellState;
+  }
+
+  function getLowNoteOptionsList() {
+    return Array.from(lowNoteSelect?.options || []).map(opt => opt.value);
+  }
+
+  function getAdjacentLowNote(step = 0) {
+    if (!lowNoteSelect) return null;
+    const options = getLowNoteOptionsList();
+    const idx = options.indexOf(lowNoteSelect.value);
+    if (idx === -1) return null;
+    const nextIdx = idx + step;
+    if (nextIdx < 0 || nextIdx >= options.length) return null;
+    return options[nextIdx];
+  }
+
+  function updateEdgeControlStates({ rangeAlert = false, lowAlert = false } = {}) {
+    if (!rangeGrowBtn || !rangeShrinkBtn || !lowNoteUpBtn || !lowNoteDownBtn) return;
+    if (!lowNoteSelect || !rangeSelect) return;
+
+    const { minOctaves, maxOctaves } = getRangeLimitsForLow(lowNoteSelect.value);
+    const currentRange = parseInt(rangeSelect.value, 10) || minOctaves;
+    const atMaxRange = currentRange >= maxOctaves;
+    const atMinRange = currentRange <= minOctaves;
+
+    const nextLowDown = getAdjacentLowNote(-1);
+    const nextLowUp = getAdjacentLowNote(1);
+    const canAddBottom = !!nextLowDown && (currentRange + 1) <= getRangeLimitsForLow(nextLowDown).maxOctaves;
+    const canRemoveBottom = !!nextLowUp && currentRange > minOctaves;
+
+    rangeGrowBtn.disabled = atMaxRange;
+    rangeShrinkBtn.disabled = atMinRange;
+
+    lowNoteUpBtn.disabled = !canRemoveBottom;
+    lowNoteDownBtn.disabled = !canAddBottom;
+
+    rangeGrowBtn.classList.toggle("alert", !!rangeAlert);
+    lowNoteDownBtn.classList.toggle("alert", !!lowAlert);
+  }
+
+  function applyRangeAndLow(newRangeVal, newLowNoteVal, { preserveStain = true } = {}) {
+    if (!lowNoteSelect || !rangeSelect) return;
+    if (!lowNoteSelect.querySelector(`option[value="${newLowNoteVal}"]`)) return;
+    const { minOctaves, maxOctaves } = getRangeLimitsForLow(newLowNoteVal);
+    const parsedRange = parseInt(newRangeVal, 10);
+    const nextRange = Number.isFinite(parsedRange) ? parsedRange : minOctaves;
+    const clampedRange = Math.max(minOctaves, Math.min(maxOctaves, nextRange));
+
+    lowNoteSelect.value = newLowNoteVal;
+    rangeSelect.value = String(clampedRange);
+    currentSettings.lowNote = newLowNoteVal;
+    currentSettings.range = String(clampedRange);
+    persistSettings(currentSettings);
+    rebuildAll({ preserveStain });
+  }
+
+  function setRangeByStep(deltaOctaves) {
+    if (!rangeSelect || !lowNoteSelect) return;
+    const { minOctaves, maxOctaves } = getRangeLimitsForLow(lowNoteSelect.value);
+    const currentRange = parseInt(rangeSelect.value, 10) || minOctaves;
+    let nextRange = currentRange + deltaOctaves;
+    nextRange = Math.max(minOctaves, Math.min(maxOctaves, nextRange));
+    if (nextRange === currentRange) return;
+    rangeSelect.value = String(nextRange);
+    rangeSelect.dispatchEvent(new Event("change"));
+  }
+
+  function shiftLowNote(stepOctaves) {
+    if (!lowNoteSelect || !rangeSelect) return;
+    const currentRange = parseInt(rangeSelect.value, 10) || 0;
+    const { minOctaves } = getRangeLimitsForLow(lowNoteSelect.value);
+
+    if (stepOctaves > 0) {
+      if (currentRange <= minOctaves) return;
+      const nextHigher = getAdjacentLowNote(1);
+      if (!nextHigher) return;
+      applyRangeAndLow(currentRange - 1, nextHigher);
+    } else if (stepOctaves < 0) {
+      const nextLower = getAdjacentLowNote(-1);
+      if (!nextLower) return;
+      const desiredRange = currentRange + 1;
+      const { maxOctaves } = getRangeLimitsForLow(nextLower);
+      if (desiredRange > maxOctaves) return;
+      applyRangeAndLow(desiredRange, nextLower);
+    }
   }
 
   /**********************
@@ -3080,6 +3268,8 @@
     dbgListening.textContent = listeningStr;
     dbgGuidance.textContent  = guidanceStr;
 
+    updateEdgeControlStates({ rangeAlert: highRecent, lowAlert: lowRecent });
+
     updateLEDSticky(capturingNow);
     setDeadZoneHighlight(inDeadZoneNow);
   }
@@ -3379,6 +3569,30 @@
   resetBtn.addEventListener("click", () => {
     resetHeatmapOnly();
   });
+
+  if (rangeGrowBtn) {
+    rangeGrowBtn.addEventListener("click", () => {
+      setRangeByStep(1);
+    });
+  }
+
+  if (rangeShrinkBtn) {
+    rangeShrinkBtn.addEventListener("click", () => {
+      setRangeByStep(-1);
+    });
+  }
+
+  if (lowNoteUpBtn) {
+    lowNoteUpBtn.addEventListener("click", () => {
+      shiftLowNote(1);
+    });
+  }
+
+  if (lowNoteDownBtn) {
+    lowNoteDownBtn.addEventListener("click", () => {
+      shiftLowNote(-1);
+    });
+  }
 
   if (optionsToggleBtn && optionsOverlay) {
     optionsToggleBtn.addEventListener("click", () => {
