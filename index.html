@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.22 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.23 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -37,6 +37,10 @@
 
     --edge-btn-size: 32px;
     --edge-col-width: calc(var(--edge-btn-size) + 4px);
+
+    --pitch-color-sharp: rgb(249,115,22);
+    --pitch-color-center: rgb(34,197,94);
+    --pitch-color-flat: rgb(147,51,234);
   }
 
   *, *::before, *::after {
@@ -122,14 +126,22 @@
     position: relative;
     grid-column: 2 / 3;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    justify-items: center;
+    align-items: start;
+    align-content: start;
     padding: 2px;
     background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.8) 100%);
     box-shadow: -10px 0 16px rgba(0,0,0,0.55);
     border-left: 1px solid var(--grid-line);
+    gap: 0.15rem;
+    grid-template-areas:
+      "top"
+      "sepTop"
+      "key"
+      "sepBot"
+      "bottom";
   }
 
   .edge-group {
@@ -139,11 +151,102 @@
     align-items: center;
   }
 
+  .edge-group-top { grid-area: top; }
+  .edge-group-bottom { grid-area: bottom; }
+
+  .edge-separator-top { grid-area: sepTop; }
+  .edge-separator-bottom { grid-area: sepBot; }
+
+  .edge-key-block { grid-area: key; }
+
   .edge-label {
     font-size: 0.65rem;
     color: var(--text-dim);
     text-transform: uppercase;
     letter-spacing: 0.04em;
+  }
+
+  .edge-key {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .edge-gradient {
+    position: relative;
+    width: calc(var(--edge-btn-size) + 6px);
+    height: 130px;
+    border: 1px solid var(--grid-line);
+    border-radius: 0.35rem;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--pitch-color-sharp, rgb(249,115,22)) 0%, var(--pitch-color-center, rgb(34,197,94)) 50%, var(--pitch-color-flat, rgb(147,51,234)) 100%);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+  }
+
+  .edge-gradient .pitch-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.6);
+    writing-mode: vertical-rl;
+    transform: none;
+    text-orientation: mixed;
+    letter-spacing: 0.08em;
+    z-index: 2;
+  }
+
+  .edge-symbol {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.3rem;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    pointer-events: none;
+    z-index: 3;
+  }
+  .edge-symbol-top { top: 0px; }
+  .edge-symbol-bottom { bottom: 0px; }
+
+  .edge-key-block {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    align-self: stretch;
+  }
+
+  .edge-separator {
+    width: 100%;
+    height: 1px;
+    background: var(--grid-line);
+    opacity: 0.9;
+  }
+
+  .edge-key.hidden {
+    display: none;
+  }
+
+  .edge-center-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 8px;
+    background: #000;
+    opacity: 0.9;
+    z-index: 1;
   }
 
   .edge-btn {
@@ -762,11 +865,12 @@
   padding: 0 1.5rem 1.5rem;
 }
 
-.options-overlay-footer {
-  padding: 0 1.5rem 1.5rem;
-  display: flex;
-  justify-content: flex-end;
-}
+  .options-overlay-footer {
+    padding: 0 1.5rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
 
   .option-field {
     display: flex;
@@ -935,6 +1039,128 @@
     padding: 0.4rem 1rem;
   }
 
+  /* Palette overlay */
+  .palette-layout {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .palette-preview {
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .palette-gradient {
+    position: relative;
+    width: 160px;
+    height: 260px;
+    border-radius: 0.6rem;
+    border: 1px solid var(--grid-line);
+    background: linear-gradient(180deg, var(--pitch-color-sharp) 0%, var(--pitch-color-center) 50%, var(--pitch-color-flat) 100%);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35), 0 12px 32px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+
+  .palette-gradient .pitch-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.7);
+    writing-mode: horizontal-tb;
+    transform: none;
+    letter-spacing: 0.12em;
+    z-index: 2;
+  }
+
+  .palette-symbol {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.6rem;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    pointer-events: none;
+  }
+  .palette-symbol-top {
+    top: 10px;
+  }
+  .palette-symbol-bottom {
+    bottom: 10px;
+  }
+
+  .palette-center-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 8px;
+    background: #000;
+    opacity: 0.9;
+    z-index: 1;
+  }
+
+  .palette-stops {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 150px;
+    height: 260px;
+  }
+
+  .palette-stop {
+    appearance: none;
+    border: 1px solid var(--border-dim);
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    border-radius: 0.55rem;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  }
+  .palette-stop:hover,
+  .palette-stop:focus-visible {
+    border-color: var(--accent-green);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(34,197,94,0.18);
+  }
+  .palette-stop:active {
+    transform: translateY(1px);
+  }
+  .palette-stop-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .palette-chip {
+    width: 34px;
+    height: 24px;
+    border-radius: 0.35rem;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
+    flex: 0 0 auto;
+  }
+  .palette-color-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    height: 0;
+  }
+
   @media (max-aspect-ratio: 1/1) {
     body {
       padding: 0.75rem;
@@ -1037,6 +1263,10 @@
     }
     .overlay-button-stack {
       flex-wrap: wrap;
+    }
+
+    .edge-gradient {
+      height: 110px;
     }
   }
 
@@ -1202,7 +1432,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.22";
+  window.APP_VERSION = "1.23";
 </script>
 
 <div class="page">
@@ -1230,6 +1460,18 @@
           <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range">-</button>
           <div class="edge-label">High</div>
         </div>
+        <div class="edge-separator edge-separator-top"></div>
+        <div class="edge-key-block" id="edgeKeyBlock">
+          <div id="edgeKey" class="edge-key" role="button" tabindex="0" aria-label="Open pitch color key">
+            <div class="edge-gradient">
+              <div class="pitch-label">PITCH</div>
+              <div class="edge-center-line"></div>
+              <div class="edge-symbol edge-symbol-top">#</div>
+              <div class="edge-symbol edge-symbol-bottom">♭</div>
+            </div>
+          </div>
+        </div>
+        <div class="edge-separator edge-separator-bottom"></div>
         <div class="edge-group edge-group-bottom">
           <div class="edge-label">Low</div>
           <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave">-</button>
@@ -1304,7 +1546,6 @@
         <div class="options-overlay-header">
           <div class="options-overlay-title" id="optionsOverlayTitle">Options</div>
           <div class="options-header-actions">
-            <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset</button>
             <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close options overlay">Apply ✕</button>
           </div>
         </div>
@@ -1457,7 +1698,11 @@
 
       </div>
       <div class="options-overlay-footer">
-        <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
+        <div class="overlay-button-stack">
+          <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
+          <button id="optionsPaletteBtn" class="options-btn" type="button">Grid Cell Colors</button>
+          <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1564,10 +1809,56 @@
   </div>
 </div>
 
+<div id="paletteOverlay" class="options-overlay" aria-hidden="true">
+  <div class="options-overlay-card palette-card" role="dialog" aria-modal="true" aria-labelledby="paletteOverlayTitle">
+    <div class="options-overlay-header">
+      <div class="options-overlay-title" id="paletteOverlayTitle">Grid Cell Colors</div>
+      <div class="options-header-actions">
+        <button id="paletteToOptionsBtn" class="status-btn" type="button">Options</button>
+        <button id="paletteCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close color picker overlay">Apply ✕</button>
+      </div>
+    </div>
+    <div class="options-overlay-body">
+      <div class="palette-layout">
+          <div class="palette-preview" id="palettePreview">
+          <div class="palette-gradient" id="paletteGradientBox">
+            <div class="pitch-label">PITCH</div>
+            <div class="palette-center-line"></div>
+            <div class="palette-symbol palette-symbol-top">#</div>
+            <div class="palette-symbol palette-symbol-bottom">♭</div>
+          </div>
+          <div class="palette-stops">
+            <button class="palette-stop" id="paletteSharpBtn" type="button">
+              <span class="palette-stop-label">Sharp</span>
+              <span class="palette-chip" id="paletteSharpChip"></span>
+            </button>
+            <button class="palette-stop" id="paletteCenterBtn" type="button">
+              <span class="palette-stop-label">Center</span>
+              <span class="palette-chip" id="paletteCenterChip"></span>
+            </button>
+            <button class="palette-stop" id="paletteFlatBtn" type="button">
+              <span class="palette-stop-label">Flat</span>
+              <span class="palette-chip" id="paletteFlatChip"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <input id="paletteSharpInput" class="palette-color-input" type="color" aria-label="Pick sharp color">
+      <input id="paletteCenterInput" class="palette-color-input" type="color" aria-label="Pick center color">
+      <input id="paletteFlatInput" class="palette-color-input" type="color" aria-label="Pick flat color">
+    </div>
+    <div class="options-overlay-footer">
+      <div class="overlay-button-stack">
+        <button id="paletteResetBtn" class="reset-btn-secondary" type="button">Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.22";
+  const APP_VERSION = window.APP_VERSION || "1.23";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -1641,6 +1932,7 @@
   const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
 
   const noteGrid      = document.getElementById("noteGrid");
+  const gridWrapper   = document.getElementById("gridWrapper");
 
   const pitchBlockEl          = document.getElementById("pitchBlock");
   const pitchBlockFixedSlot   = document.getElementById("pitchBlockFixedSlot");
@@ -1661,6 +1953,23 @@
   const rangeShrinkBtn = document.getElementById("rangeShrinkBtn");
   const lowNoteUpBtn   = document.getElementById("lowNoteUpBtn");
   const lowNoteDownBtn = document.getElementById("lowNoteDownBtn");
+  const edgeKey        = document.getElementById("edgeKey");
+  const paletteOverlay = document.getElementById("paletteOverlay");
+  const paletteCloseBtn = document.getElementById("paletteCloseBtn");
+  const paletteResetBtn = document.getElementById("paletteResetBtn");
+  const paletteSharpBtn = document.getElementById("paletteSharpBtn");
+  const paletteCenterBtn = document.getElementById("paletteCenterBtn");
+  const paletteFlatBtn   = document.getElementById("paletteFlatBtn");
+  const paletteSharpChip = document.getElementById("paletteSharpChip");
+  const paletteCenterChip = document.getElementById("paletteCenterChip");
+  const paletteFlatChip   = document.getElementById("paletteFlatChip");
+  const paletteSharpInput = document.getElementById("paletteSharpInput");
+  const paletteCenterInput = document.getElementById("paletteCenterInput");
+  const paletteFlatInput   = document.getElementById("paletteFlatInput");
+  const paletteGradientBox = document.getElementById("paletteGradientBox");
+  const optionsPaletteBtn = document.getElementById("optionsPaletteBtn");
+  const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
+  const edgeKeyBlock = document.getElementById("edgeKeyBlock");
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -1732,9 +2041,53 @@
     }
   }
 
+  function updateEdgeKeyVisibility() {
+    if (!edgeKeyBlock || !edgeKey) return;
+    const gridH = gridWrapper?.clientHeight || window.innerHeight;
+    const windowH = window.innerHeight;
+    const visible = Math.min(gridH, windowH) >= 400;
+    edgeKey.classList.toggle("hidden", !visible);
+  }
+
   function onStatusOverlayKeyDown(event) {
     if (event.key === "Escape") {
       closeStatusOverlay();
+    }
+  }
+
+  function openPaletteOverlay() {
+    if (!paletteOverlay) return;
+    pendingPalette = normalizePalette(currentPalette);
+    updatePalettePreview(pendingPalette);
+    paletteOverlay.classList.add("open");
+    paletteOverlay.setAttribute("aria-hidden", "false");
+    document.addEventListener("keydown", onPaletteOverlayKeyDown);
+    if (paletteCloseBtn) paletteCloseBtn.focus();
+  }
+
+  function closePaletteOverlay({ apply = false } = {}) {
+    if (!paletteOverlay) return;
+    paletteOverlay.classList.remove("open");
+    paletteOverlay.setAttribute("aria-hidden", "true");
+    document.removeEventListener("keydown", onPaletteOverlayKeyDown);
+    if (apply) {
+      currentPalette = normalizePalette(pendingPalette);
+      applyPaletteToDocument(currentPalette);
+      currentSettings.colorPalette = currentPalette;
+      persistSettings(currentSettings);
+      recomputeAllCellColorsAndRender();
+      syncPaletteUI(currentPalette);
+      pendingPalette = normalizePalette(currentPalette);
+    } else {
+      pendingPalette = normalizePalette(currentPalette);
+      updatePalettePreview(pendingPalette);
+    }
+    if (edgeKey) edgeKey.focus();
+  }
+
+  function onPaletteOverlayKeyDown(event) {
+    if (event.key === "Escape") {
+      closePaletteOverlay({ apply: false });
     }
   }
 
@@ -1787,8 +2140,8 @@
   ];
 
   // time to reach full brightness in the cell heatmap
-  const FULL_CONF_MS = 1500;
-  const STAIN_MIN_FRACTION = 0.3;
+  const FULL_CONF_MS = 1000;
+  const STAIN_MIN_FRACTION = 0.25;
   const STAIN_FADE_SECONDS = 10;
   const STAIN_FADE_IN_MS = 250;
 
@@ -1907,6 +2260,9 @@
   // Per-note memory (intonation map)
   let midiToCellEl = {};
   let cellState = {};
+  let masterCellState = {};
+  const MASTER_MIDI_MIN = 0;
+  const MASTER_MIDI_MAX = 127;
 
   function createEmptyCellState() {
     return {
@@ -1922,6 +2278,16 @@
       fadeAnchorIntensity: null,
       justStained: false
     };
+  }
+  function resetMasterCellState() {
+    masterCellState = {};
+  }
+  function getMasterCellState(midi) {
+    const key = String(midi);
+    if (!masterCellState[key]) {
+      masterCellState[key] = createEmptyCellState();
+    }
+    return masterCellState[key];
   }
   let gridLowestMidiC = null;
   let gridHighestMidiLastNote = null;
@@ -2013,7 +2379,14 @@
     stainHold: STAIN_HOLD_DEFAULT,
     needleDirection: "horizontal",
     range: null, // computed default
-    minVol: 0.1
+    minVol: 0.1,
+    colorPalette: null
+  };
+
+  const DEFAULT_PALETTE = {
+    sharp: { r: 249, g: 115, b: 22 },
+    center: { r: 34, g: 197, b: 94 },
+    flat: { r: 147, g: 51, b: 234 }
   };
 
   const A_REF_PRESET_VALUES = Object.freeze(["392","415","430","432","438","440","441","442","443","444","466","470"]);
@@ -2045,7 +2418,102 @@
     }
   }
 
+  function clampChannel(n, fallback) {
+    const num = Number(n);
+    if (Number.isFinite(num) && num >= 0 && num <= 255) return Math.round(num);
+    return fallback;
+  }
+
+  function normalizePalette(pal) {
+    const sharp = pal?.sharp || DEFAULT_PALETTE.sharp;
+    const center = pal?.center || DEFAULT_PALETTE.center;
+    const flat = pal?.flat || DEFAULT_PALETTE.flat;
+    return {
+      sharp: {
+        r: clampChannel(sharp.r, DEFAULT_PALETTE.sharp.r),
+        g: clampChannel(sharp.g, DEFAULT_PALETTE.sharp.g),
+        b: clampChannel(sharp.b, DEFAULT_PALETTE.sharp.b)
+      },
+      center: {
+        r: clampChannel(center.r, DEFAULT_PALETTE.center.r),
+        g: clampChannel(center.g, DEFAULT_PALETTE.center.g),
+        b: clampChannel(center.b, DEFAULT_PALETTE.center.b)
+      },
+      flat: {
+        r: clampChannel(flat.r, DEFAULT_PALETTE.flat.r),
+        g: clampChannel(flat.g, DEFAULT_PALETTE.flat.g),
+        b: clampChannel(flat.b, DEFAULT_PALETTE.flat.b)
+      }
+    };
+  }
+
+  function rgbToCss({ r, g, b }) {
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function componentToHex(c) {
+    const clamped = Math.max(0, Math.min(255, Math.round(c)));
+    const hex = clamped.toString(16).padStart(2, "0");
+    return hex;
+  }
+
+  function rgbToHex({ r, g, b }) {
+    return `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`;
+  }
+
+  function hexToRgb(hex, fallback) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+    if (!m) return fallback;
+    const val = m[1];
+    return {
+      r: parseInt(val.slice(0, 2), 16),
+      g: parseInt(val.slice(2, 4), 16),
+      b: parseInt(val.slice(4, 6), 16)
+    };
+  }
+
   let currentSettings = loadSettings();
+  let currentPalette = normalizePalette(currentSettings.colorPalette || DEFAULT_PALETTE);
+  let pendingPalette = normalizePalette(currentPalette);
+
+  function applyPaletteToDocument(pal) {
+    const root = document.documentElement;
+    root.style.setProperty("--pitch-color-sharp", rgbToCss(pal.sharp));
+    root.style.setProperty("--pitch-color-center", rgbToCss(pal.center));
+    root.style.setProperty("--pitch-color-flat", rgbToCss(pal.flat));
+  }
+
+  function syncPaletteUI(pal = currentPalette) {
+    if (paletteSharpChip) paletteSharpChip.style.backgroundColor = rgbToCss(pal.sharp);
+    if (paletteCenterChip) paletteCenterChip.style.backgroundColor = rgbToCss(pal.center);
+    if (paletteFlatChip) paletteFlatChip.style.backgroundColor = rgbToCss(pal.flat);
+    if (paletteSharpInput) paletteSharpInput.value = rgbToHex(pal.sharp);
+    if (paletteCenterInput) paletteCenterInput.value = rgbToHex(pal.center);
+    if (paletteFlatInput) paletteFlatInput.value = rgbToHex(pal.flat);
+  }
+
+  function paletteGradientString(pal) {
+    return `linear-gradient(180deg, ${rgbToCss(pal.sharp)} 0%, ${rgbToCss(pal.center)} 50%, ${rgbToCss(pal.flat)} 100%)`;
+  }
+
+  function updatePalettePreview(pal) {
+    if (!pal) return;
+    if (paletteGradientBox) {
+      paletteGradientBox.style.background = paletteGradientString(pal);
+    }
+    syncPaletteUI(pal);
+  }
+
+  function setPendingPalette(pal) {
+    pendingPalette = normalizePalette(pal);
+    updatePalettePreview(pendingPalette);
+  }
+
+  function handlePaletteInput(which, hexVal) {
+    const currentVal = pendingPalette[which] || currentPalette[which] || DEFAULT_PALETTE[which];
+    const parsed = hexToRgb(hexVal, currentVal);
+    setPendingPalette({ ...pendingPalette, [which]: parsed });
+  }
 
   function getNoteNamesForMode(mode = accidentalMode) {
     return mode === "flats" ? NOTE_NAMES_FLAT_DISPLAY : NOTE_NAMES_SHARP;
@@ -2275,6 +2743,17 @@
     if (originalNeedleDir !== needleDirVal) needsPersist = true;
     currentSettings.needleDirection = needleDirVal;
 
+    if (settings.colorPalette) {
+      currentPalette = normalizePalette(settings.colorPalette);
+    } else {
+      currentPalette = normalizePalette(DEFAULT_PALETTE);
+      needsPersist = true;
+    }
+    currentSettings.colorPalette = currentPalette;
+    applyPaletteToDocument(currentPalette);
+    syncPaletteUI(currentPalette);
+    pendingPalette = normalizePalette(currentPalette);
+
     const originalTransposition = settings.transposition;
     let transposeVal = originalTransposition;
     if (transposeVal == null) {
@@ -2296,6 +2775,7 @@
       persistSettings(currentSettings);
     }
     updateQuickState();
+    recomputeAllCellColorsAndRender();
   }
 
   function setAccidentalMode(mode, { skipPersist = false } = {}) {
@@ -2610,7 +3090,9 @@
       gridHighestMidiLastNote = lowMidiC + 11;
     }
 
-    const prevState = preserveStain ? cellState : null;
+    if (!preserveStain) {
+      resetMasterCellState();
+    }
 
     noteGrid.innerHTML = "";
     midiToCellEl = {};
@@ -2644,29 +3126,7 @@
         const key = String(midiVal);
         midiToCellEl[key] = cell;
 
-        nextCellState[key] = createEmptyCellState();
-      }
-    }
-
-    if (prevState) {
-      for (const midi in prevState) {
-        const dest = nextCellState[midi];
-        if (!dest) continue;
-        const src = prevState[midi];
-        dest.totalVoiceMs = src.totalVoiceMs;
-        const segments = Array.isArray(src.segments) ? src.segments : [];
-        dest.segments = segments.map(seg => ({ ...seg }));
-        const color = src.colorRGB || { r: 0, g: 0, b: 0 };
-        dest.colorRGB = { r: color.r ?? 0, g: color.g ?? 0, b: color.b ?? 0 };
-        const bias = src.biasRGB || color;
-        dest.biasRGB = { r: bias.r ?? 0, g: bias.g ?? 0, b: bias.b ?? 0 };
-        dest.visited = !!src.visited;
-        dest.baseIntensity = src.baseIntensity ?? 0;
-        dest.displayIntensity = src.displayIntensity ?? 0;
-        dest.lastStainAtMs = src.lastStainAtMs ?? 0;
-        dest.lastDisplayUpdateMs = src.lastDisplayUpdateMs ?? 0;
-        dest.fadeAnchorIntensity = src.fadeAnchorIntensity ?? null;
-        dest.justStained = false;
+        nextCellState[key] = getMasterCellState(midiVal);
       }
     }
 
@@ -2764,9 +3224,9 @@
   function lerp(a,b,t){return a+(b-a)*t;}
 
   function biasRelaxed(avgErrRatio) {
-    const base = {r:34,g:197,b:94};
-    const sharpCol = {r:249,g:115,b:22};
-    const flatCol  = {r:147,g:51,b:234};
+    const base = currentPalette.center;
+    const sharpCol = currentPalette.sharp;
+    const flatCol  = currentPalette.flat;
 
     const dz = RELAXED_DEADZONE_RATIO;
     const scaledErr = avgErrRatio * RELAXED_ERR_SCALE;
@@ -2797,9 +3257,9 @@
   }
 
   function biasMedium(avgErrRatio) {
-    const base = {r:34,g:197,b:94};
-    const sharpCol = {r:249,g:115,b:22};
-    const flatCol  = {r:147,g:51,b:234};
+    const base = currentPalette.center;
+    const sharpCol = currentPalette.sharp;
+    const flatCol  = currentPalette.flat;
 
     const dz = MEDIUM_DEADZONE_RATIO;
     const scaledErr = avgErrRatio * MEDIUM_ERR_SCALE;
@@ -2830,9 +3290,9 @@
   }
 
   function biasHard(avgErrRatio) {
-    const base = {r:34,g:197,b:94};
-    const sharpCol = {r:249,g:115,b:22};
-    const flatCol  = {r:147,g:51,b:234};
+    const base = currentPalette.center;
+    const sharpCol = currentPalette.sharp;
+    const flatCol  = currentPalette.flat;
 
     const dz = HARD_DEADZONE_RATIO;
     const scaledErr = avgErrRatio * HARD_ERR_SCALE;
@@ -3122,33 +3582,15 @@
   function shiftCellStateBySemitones(deltaSemis) {
     if (!deltaSemis) return;
     const shifted = {};
-    for (const midi in midiToCellEl) {
-      shifted[midi] = createEmptyCellState();
+    for (const midiStr in masterCellState) {
+      const midi = Number(midiStr);
+      if (!Number.isFinite(midi)) continue;
+      const targetMidi = midi + deltaSemis;
+      if (targetMidi < MASTER_MIDI_MIN || targetMidi > MASTER_MIDI_MAX) continue;
+      shifted[String(targetMidi)] = masterCellState[midiStr];
     }
-    for (const midi in cellState) {
-      const st = cellState[midi];
-      const targetMidi = Number(midi) + deltaSemis;
-      if (!Number.isFinite(targetMidi)) continue;
-      const targetKey = String(targetMidi);
-      if (!shifted[targetKey]) continue;
-      const dest = shifted[targetKey];
-      dest.totalVoiceMs += st.totalVoiceMs;
-      dest.segments.push(...st.segments);
-      dest.visited = dest.visited || st.visited;
-      dest.biasRGB = {
-        r: st.biasRGB?.r ?? dest.biasRGB.r,
-        g: st.biasRGB?.g ?? dest.biasRGB.g,
-        b: st.biasRGB?.b ?? dest.biasRGB.b
-      };
-      dest.baseIntensity = Math.max(dest.baseIntensity, st.baseIntensity ?? 0);
-      dest.displayIntensity = Math.max(dest.displayIntensity, st.displayIntensity ?? 0);
-      dest.lastStainAtMs = Math.max(dest.lastStainAtMs ?? 0, st.lastStainAtMs ?? 0);
-      dest.lastDisplayUpdateMs = Math.max(dest.lastDisplayUpdateMs ?? 0, st.lastDisplayUpdateMs ?? 0);
-      dest.fadeAnchorIntensity = null;
-      dest.justStained = dest.justStained || st.justStained;
-      dest.colorRGB = { r: st.colorRGB?.r ?? 0, g: st.colorRGB?.g ?? 0, b: st.colorRGB?.b ?? 0 };
-    }
-    cellState = shifted;
+    masterCellState = shifted;
+    buildGrid({ preserveStain: true });
     recomputeAllCellColorsAndRender();
   }
 
@@ -3515,18 +3957,20 @@
     finalizeActiveSegment();
     clearActiveNote();
 
+    for (const midi in masterCellState) {
+      masterCellState[midi].totalVoiceMs = 0;
+      masterCellState[midi].segments = [];
+      masterCellState[midi].colorRGB = {r:0,g:0,b:0};
+      masterCellState[midi].biasRGB = {r:0,g:0,b:0};
+      masterCellState[midi].visited = false;
+      masterCellState[midi].baseIntensity = 0;
+      masterCellState[midi].displayIntensity = 0;
+      masterCellState[midi].lastStainAtMs = 0;
+      masterCellState[midi].lastDisplayUpdateMs = 0;
+      masterCellState[midi].fadeAnchorIntensity = null;
+      masterCellState[midi].justStained = false;
+    }
     for (const midi in cellState) {
-      cellState[midi].totalVoiceMs = 0;
-      cellState[midi].segments = [];
-      cellState[midi].colorRGB = {r:0,g:0,b:0};
-      cellState[midi].biasRGB = {r:0,g:0,b:0};
-      cellState[midi].visited = false;
-      cellState[midi].baseIntensity = 0;
-      cellState[midi].displayIntensity = 0;
-      cellState[midi].lastStainAtMs = 0;
-      cellState[midi].lastDisplayUpdateMs = 0;
-      cellState[midi].fadeAnchorIntensity = null;
-      cellState[midi].justStained = false;
       const cell = midiToCellEl[midi];
       if (cell) {
         cell.classList.remove("visited");
@@ -3551,6 +3995,7 @@
   }
 
   window.addEventListener("resize", updateGridAppearanceForViewport);
+  window.addEventListener("resize", updateEdgeKeyVisibility);
   window.addEventListener("orientationchange", updateGridAppearanceForViewport);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -3604,6 +4049,92 @@
     lowNoteDownBtn.addEventListener("click", () => {
       shiftLowNote(-1);
     });
+  }
+
+  function openPaletteColor(which) {
+    const map = {
+      sharp: paletteSharpInput,
+      center: paletteCenterInput,
+      flat: paletteFlatInput
+    };
+    const el = map[which];
+    if (el) {
+      el.focus();
+      el.click();
+    }
+  }
+
+  if (edgeKey) {
+    edgeKey.addEventListener("click", () => {
+      openPaletteOverlay();
+    });
+    edgeKey.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openPaletteOverlay();
+      }
+    });
+  }
+
+  if (paletteOverlay) {
+    paletteOverlay.addEventListener("click", event => {
+      if (event.target === paletteOverlay) {
+        closePaletteOverlay({ apply: false });
+      }
+    });
+  }
+
+  updateEdgeKeyVisibility();
+
+  if (optionsPaletteBtn) {
+    optionsPaletteBtn.addEventListener("click", () => {
+      closeOptionsOverlay();
+      openPaletteOverlay();
+    });
+  }
+
+  if (paletteToOptionsBtn) {
+    paletteToOptionsBtn.addEventListener("click", () => {
+      closePaletteOverlay({ apply: true });
+      openOptionsOverlay();
+    });
+  }
+
+  if (paletteCloseBtn) {
+    paletteCloseBtn.addEventListener("click", () => {
+      closePaletteOverlay({ apply: true });
+    });
+  }
+
+  if (paletteResetBtn) {
+    paletteResetBtn.addEventListener("click", () => {
+      currentPalette = normalizePalette(DEFAULT_PALETTE);
+      applyPaletteToDocument(currentPalette);
+      currentSettings.colorPalette = currentPalette;
+      persistSettings(currentSettings);
+      recomputeAllCellColorsAndRender();
+      setPendingPalette(currentPalette);
+    });
+  }
+
+  if (paletteSharpBtn) {
+    paletteSharpBtn.addEventListener("click", () => openPaletteColor("sharp"));
+  }
+  if (paletteCenterBtn) {
+    paletteCenterBtn.addEventListener("click", () => openPaletteColor("center"));
+  }
+  if (paletteFlatBtn) {
+    paletteFlatBtn.addEventListener("click", () => openPaletteColor("flat"));
+  }
+
+  if (paletteSharpInput) {
+    paletteSharpInput.addEventListener("input", e => handlePaletteInput("sharp", e.target.value));
+  }
+  if (paletteCenterInput) {
+    paletteCenterInput.addEventListener("input", e => handlePaletteInput("center", e.target.value));
+  }
+  if (paletteFlatInput) {
+    paletteFlatInput.addEventListener("input", e => handlePaletteInput("flat", e.target.value));
   }
 
   if (optionsToggleBtn && optionsOverlay) {
@@ -3696,6 +4227,7 @@
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
+    updateEdgeKeyVisibility();
   }
 
   lowNoteSelect.addEventListener("change", () => {
@@ -3711,6 +4243,7 @@
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
+    updateEdgeKeyVisibility();
   });
 
   // Mode change = full reset (new session/clears stain)
@@ -3757,6 +4290,10 @@
       currentSettings = { ...DEFAULT_SETTINGS };
       persistSettings(currentSettings);
       applySettingsToUI(currentSettings);
+      currentPalette = normalizePalette(DEFAULT_PALETTE);
+      pendingPalette = normalizePalette(currentPalette);
+      applyPaletteToDocument(currentPalette);
+      recomputeAllCellColorsAndRender();
       A4 = currentSettings.a4;
       dbgARef.textContent = `${A4}`;
       volumeThreshold = sliderToThreshold(currentSettings.minVol);
