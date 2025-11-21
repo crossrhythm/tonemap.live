@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.23 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.24 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -70,6 +70,22 @@
     :root {
       --edge-btn-size: 30px;
       --edge-col-width: calc(var(--edge-btn-size) + 4px);
+    }
+
+    .palette-preview {
+      gap: 0.75rem;
+    }
+
+    .palette-gradient {
+      width: clamp(110px, 32vw, 140px);
+      height: clamp(100px, 42vh, 200px);
+      max-height: 100%;
+    }
+
+    .palette-stops {
+      min-width: clamp(110px, 36vw, 140px);
+      height: clamp(100px, 42vh, 200px);
+      max-height: 100%;
     }
   }
 
@@ -741,6 +757,11 @@
     font-weight: 600;
     cursor: pointer;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .options-close-btn {
+    border-color: #fff;
   }
 
   .options-btn:hover,
@@ -827,7 +848,7 @@
   .options-overlay-title,
   .status-overlay-title {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.75rem;
     font-size: 1.1rem;
     font-weight: 600;
@@ -838,6 +859,7 @@
     display: flex;
     gap: 0.5rem;
     align-items: center;
+    flex-wrap: nowrap;
   }
 
   .status-overlay-version {
@@ -863,6 +885,7 @@
   flex: 1 1 auto;
   overflow-y: auto;
   padding: 0 1.5rem 1.5rem;
+  min-height: 0;
 }
 
   .options-overlay-footer {
@@ -935,6 +958,7 @@
     font-weight: 600;
     cursor: pointer;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    white-space: nowrap;
   }
 
   .reset-btn-secondary:hover,
@@ -1044,21 +1068,29 @@
     display: flex;
     justify-content: center;
     width: 100%;
+    overflow-x: auto;
+    padding: 0.25rem 0;
+    height: auto;
+    max-height: none;
   }
 
   .palette-preview {
     display: flex;
-    gap: 1.25rem;
+    gap: 1rem;
     align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
   }
 
   .palette-gradient {
     position: relative;
-    width: 160px;
-    height: 260px;
+    width: clamp(120px, 26vw, 160px);
+    height: clamp(100px, 40vh, 240px);
+    max-height: 100%;
     border-radius: 0.6rem;
     border: 1px solid var(--grid-line);
     background: linear-gradient(180deg, var(--pitch-color-sharp) 0%, var(--pitch-color-center) 50%, var(--pitch-color-flat) 100%);
@@ -1114,8 +1146,9 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-width: 150px;
-    height: 260px;
+    min-width: clamp(120px, 32vw, 150px);
+    height: clamp(100px, 40vh, 240px);
+    max-height: 100%;
   }
 
   .palette-stop {
@@ -1131,6 +1164,7 @@
     gap: 0.75rem;
     cursor: pointer;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    min-height: 0;
   }
   .palette-stop:hover,
   .palette-stop:focus-visible {
@@ -1146,8 +1180,8 @@
     font-weight: 600;
   }
   .palette-chip {
-    width: 34px;
-    height: 24px;
+    width: 32px;
+    height: 22px;
     border-radius: 0.35rem;
     border: 1px solid rgba(255,255,255,0.3);
     box-shadow: inset 0 0 0 1px rgba(0,0,0,0.35);
@@ -1432,7 +1466,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.23";
+  window.APP_VERSION = "1.24";
 </script>
 
 <div class="page">
@@ -1544,8 +1578,12 @@
 <div id="optionsOverlay" class="options-overlay" aria-hidden="true">
       <div class="options-overlay-card" role="dialog" aria-modal="true" aria-labelledby="optionsOverlayTitle">
         <div class="options-overlay-header">
-          <div class="options-overlay-title" id="optionsOverlayTitle">Options</div>
+          <div class="options-overlay-title" id="optionsOverlayTitle">
+            Options
+          </div>
           <div class="options-header-actions">
+            <button id="optionsPaletteBtn" class="options-btn" type="button">Grid Cell Colors</button>
+            <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset</button>
             <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close options overlay">Apply ✕</button>
           </div>
         </div>
@@ -1700,8 +1738,6 @@
       <div class="options-overlay-footer">
         <div class="overlay-button-stack">
           <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
-          <button id="optionsPaletteBtn" class="options-btn" type="button">Grid Cell Colors</button>
-          <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset</button>
         </div>
       </div>
     </div>
@@ -1815,6 +1851,7 @@
       <div class="options-overlay-title" id="paletteOverlayTitle">Grid Cell Colors</div>
       <div class="options-header-actions">
         <button id="paletteToOptionsBtn" class="status-btn" type="button">Options</button>
+        <button id="paletteResetBtn" class="reset-btn-secondary" type="button">Reset</button>
         <button id="paletteCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close color picker overlay">Apply ✕</button>
       </div>
     </div>
@@ -1847,18 +1884,13 @@
       <input id="paletteCenterInput" class="palette-color-input" type="color" aria-label="Pick center color">
       <input id="paletteFlatInput" class="palette-color-input" type="color" aria-label="Pick flat color">
     </div>
-    <div class="options-overlay-footer">
-      <div class="overlay-button-stack">
-        <button id="paletteResetBtn" class="reset-btn-secondary" type="button">Reset</button>
-      </div>
-    </div>
   </div>
 </div>
 
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.23";
+  const APP_VERSION = window.APP_VERSION || "1.24";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -2263,6 +2295,7 @@
   let masterCellState = {};
   const MASTER_MIDI_MIN = 0;
   const MASTER_MIDI_MAX = 127;
+  let micRestartInFlight = false;
 
   function createEmptyCellState() {
     return {
@@ -2776,6 +2809,43 @@
     }
     updateQuickState();
     recomputeAllCellColorsAndRender();
+  }
+
+  function isMicStreamLive(stream) {
+    if (!stream) return false;
+    if (!stream.active) return false;
+    const tracks = stream.getTracks ? stream.getTracks() : [];
+    return tracks.some(t => t.readyState === "live");
+  }
+
+  function showMicWarning(message) {
+    if (dbgGuidance) dbgGuidance.textContent = message;
+    if (dbgListening) dbgListening.textContent = "Mic issue";
+  }
+
+  async function handleMicLost(reason = "") {
+    if (micRestartInFlight) return;
+    if (!running) return;
+    micRestartInFlight = true;
+    showMicWarning("Mic lost – retrying…");
+    try {
+      stopMic();
+      await startMic();
+    } catch (err) {
+      console.warn("Mic restart failed:", err, reason);
+      showMicWarning("Mic blocked – re-enable in browser/site settings");
+    } finally {
+      micRestartInFlight = false;
+    }
+  }
+
+  function attachMicStreamWatchers(stream) {
+    if (!stream) return;
+    stream.oninactive = () => handleMicLost("stream inactive");
+    const tracks = stream.getTracks ? stream.getTracks() : [];
+    tracks.forEach(track => {
+      track.onended = () => handleMicLost("track ended");
+    });
   }
 
   function setAccidentalMode(mode, { skipPersist = false } = {}) {
@@ -3739,6 +3809,11 @@
   function tick() {
     if (!running) return;
 
+    if (!isMicStreamLive(micStream)) {
+      handleMicLost("inactive stream");
+      return;
+    }
+
     analyserNode.getFloatTimeDomainData(dataBuffer);
 
     const rms = computeRMS(dataBuffer);
@@ -3886,6 +3961,7 @@
           autoGainControl: false
         }
       });
+      attachMicStreamWatchers(micStream);
 
       const source = audioContext.createMediaStreamSource(micStream);
 
@@ -4003,6 +4079,9 @@
         requestScreenWakeLock().catch(err => {
           console.warn("Wake lock restore failed:", err);
         });
+        if (!isMicStreamLive(micStream)) {
+          handleMicLost("visibility resume");
+        }
       }
     } else {
       releaseScreenWakeLock();

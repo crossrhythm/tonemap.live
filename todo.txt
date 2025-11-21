@@ -6,7 +6,6 @@
 	•	For each control in the Options screen (range, transposition, sensitivity, history length, etc.), add a short tooltip that appears on hover, explaining what the control does and when a user might change it.
 	12.	Add a link to a walkthrough video or studio site
 	13. Fix Apply/Reset buttons
-	14. reduce fade further
 
 	•	Add an “Info / Walkthrough” link in the Options menu that opens a new tab to either a YouTube video demonstrating Tonemap usage or a specific page on eastendviolinstudio.com that explains practice strategies with Tonemap.
 
