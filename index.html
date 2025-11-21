@@ -1670,7 +1670,8 @@
         <div class="opt-control">
           <select id="stretchSelect">
             <option value="none">None (Equal Temperament)</option>
-            <option value="minimal" selected>Minimal (¼ Railsback from A4)</option>
+            <option value="minimal" selected>Minimal (¼ Railsback above A4)</option>
+            <option value="medium">Medium (½ Railsback above A4)</option>
             <option value="full">Full (Railsback)</option>
           </select>
         </div>
@@ -2650,6 +2651,8 @@
       const mode = stretchSelect.value;
       if (mode === "minimal") {
         stretchText = "Min. Stretch";
+      } else if (mode === "medium") {
+        stretchText = "Med. Stretch";
       } else if (mode === "full") {
         stretchText = "Full Stretch";
       } else {
@@ -2752,7 +2755,7 @@
     currentSettings.sensitivity = sensitivityVal;
 
     const originalStretch = settings.stretch;
-    const stretchVal = (originalStretch === "minimal" || originalStretch === "full") ? originalStretch : "none";
+    const stretchVal = (originalStretch === "minimal" || originalStretch === "medium" || originalStretch === "full") ? originalStretch : "none";
     if (stretchSelect) stretchSelect.value = stretchVal;
     if (originalStretch !== stretchVal) needsPersist = true;
     currentSettings.stretch = stretchVal;
@@ -2929,6 +2932,11 @@
       const cents = interpolateRailsbackCents(midi);
       // scale to 25% intensity and only apply above A4
       return midi >= 69 ? 0.25 * cents : 0;
+    }
+    if (mode === "medium") {
+      const cents = interpolateRailsbackCents(midi);
+      // scale to 50% intensity and only apply above A4
+      return midi >= 69 ? 0.5 * cents : 0;
     }
     return 0;
   }
@@ -3784,9 +3792,6 @@
     rangeLabel.classList.remove("alert");
     lowNoteSelect.classList.remove("alert");
     rangeSelect.classList.remove("alert");
-    if (optionsToggleBtn) {
-      optionsToggleBtn.classList.remove("alert");
-    }
 
     let listeningStr;
     let guidanceStr = "--";
@@ -3794,17 +3799,11 @@
     if (highRecent) {
       rangeLabel.classList.add("alert");
       rangeSelect.classList.add("alert");
-      if (optionsToggleBtn) {
-        optionsToggleBtn.classList.add("alert");
-      }
       guidanceStr = "Pitch above range";
       listeningStr = runningNow ? "Listening…" : "Paused";
     } else if (lowRecent) {
       lowNoteLabel.classList.add("alert");
       lowNoteSelect.classList.add("alert");
-      if (optionsToggleBtn) {
-        optionsToggleBtn.classList.add("alert");
-      }
       guidanceStr = "Pitch below range";
       listeningStr = runningNow ? "Listening…" : "Paused";
     } else {
