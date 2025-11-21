@@ -742,11 +742,11 @@
   /********************
    * STATUS OVERLAY
    ********************/
-  .options-btn,
-  .status-btn,
-  .options-close-btn,
-  .status-close-btn,
-  .toggle-btn {
+.options-btn,
+.status-btn,
+.options-close-btn,
+.status-close-btn,
+.toggle-btn {
     appearance: none;
     background: transparent;
     color: var(--text-lite);
@@ -760,7 +760,19 @@
     white-space: nowrap;
   }
 
+  .overlay-nav-btn {
+    order: 2;
+    flex: 0 0 auto;
+    min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: left;
+    color: var(--text-lite);
+  }
+
   .options-close-btn {
+    order: 0;
     border-color: #fff;
   }
 
@@ -835,7 +847,7 @@
   .status-overlay-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 1rem;
     padding: 1.25rem 1.5rem;
     position: sticky;
@@ -857,9 +869,13 @@
 
   .options-header-actions {
     display: flex;
+    flex-direction: row-reverse;
     gap: 0.5rem;
     align-items: center;
-    flex-wrap: nowrap;
+    justify-content: flex-start; /* row-reverse keeps group aligned right */
+    flex-wrap: wrap;
+    row-gap: 0.35rem;
+    align-content: flex-start;
   }
 
   .status-overlay-version {
@@ -959,6 +975,7 @@
     cursor: pointer;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
     white-space: nowrap;
+    order: 1;
   }
 
   .reset-btn-secondary:hover,
@@ -1324,6 +1341,17 @@
     }
   }
 
+  @media (max-width: 640px) {
+    .overlay-nav-btn {
+      order: 3;
+      flex: 0 0 auto;
+      justify-content: center;
+      text-align: center;
+      width: auto;
+      align-self: auto;
+    }
+  }
+
   /********************
    * LEFT COLUMN GRID
    ********************/
@@ -1582,7 +1610,7 @@
             Options
           </div>
           <div class="options-header-actions">
-            <button id="optionsPaletteBtn" class="options-btn" type="button">Grid Cell Colors</button>
+            <button id="optionsPaletteBtn" class="options-btn overlay-nav-btn" type="button">Colors</button>
             <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset</button>
             <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close options overlay">Apply ✕</button>
           </div>
@@ -1850,7 +1878,7 @@
     <div class="options-overlay-header">
       <div class="options-overlay-title" id="paletteOverlayTitle">Grid Cell Colors</div>
       <div class="options-header-actions">
-        <button id="paletteToOptionsBtn" class="status-btn" type="button">Options</button>
+        <button id="paletteToOptionsBtn" class="status-btn overlay-nav-btn" type="button">Options</button>
         <button id="paletteResetBtn" class="reset-btn-secondary" type="button">Reset</button>
         <button id="paletteCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close color picker overlay">Apply ✕</button>
       </div>
