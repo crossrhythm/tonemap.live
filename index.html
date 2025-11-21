@@ -177,7 +177,7 @@
 
   .edge-gradient {
     position: relative;
-    width: calc(var(--edge-btn-size) + 6px);
+    width: calc(var(--edge-btn-size) + 1px);
     height: 130px;
     border: 1px solid var(--grid-line);
     border-radius: 0.35rem;
@@ -2045,7 +2045,7 @@
     if (!edgeKeyBlock || !edgeKey) return;
     const gridH = gridWrapper?.clientHeight || window.innerHeight;
     const windowH = window.innerHeight;
-    const visible = Math.min(gridH, windowH) >= 400;
+    const visible = Math.min(gridH, windowH) >= 320;
     edgeKey.classList.toggle("hidden", !visible);
   }
 
