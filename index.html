@@ -1795,6 +1795,18 @@
           <span class="status-key">Guidance</span>
           <span class="status-val" id="dbgGuidance">--</span>
         </div>
+        <div class="status-row">
+          <span class="status-key">Launches on this browser</span>
+          <span class="status-val" id="dbgLaunches">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Consecutive days</span>
+          <span class="status-val" id="dbgStreak">--</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Cumulative time</span>
+          <span class="status-val" id="dbgCumulativeTime">--</span>
+        </div>
       </section>
 
       <section class="status-section">
@@ -2051,6 +2063,9 @@
   const dbgSR         = document.getElementById("dbgSR");
   const dbgRange      = document.getElementById("dbgRange");
   const dbgFft        = document.getElementById("dbgFft");
+  const dbgLaunches   = document.getElementById("dbgLaunches");
+  const dbgStreak     = document.getElementById("dbgStreak");
+  const dbgCumulativeTime = document.getElementById("dbgCumulativeTime");
 
   function openOptionsOverlay() {
     if (!optionsOverlay) return;
@@ -2236,6 +2251,16 @@
         applyLEDVisual();
       }
     }
+  }
+
+  function addTouchBlur(el) {
+    if (!el) return;
+    const handler = (ev) => {
+      const touchLike = ev.pointerType === "touch" || ev.type === "touchend";
+      if (touchLike) el.blur();
+    };
+    el.addEventListener("pointerup", handler);
+    el.addEventListener("touchend", handler, { passive: true });
   }
 
   if (appVersionEl) {
@@ -2457,6 +2482,26 @@
   const A_REF_MAX = 1000;
   const A_REF_ERROR_MESSAGE = "Please enter a value between 100 and 1000 (e.g., 440).";
 
+  const USAGE_STORAGE_KEY = "tonemap.live.usage";
+  const USAGE_LOCK_KEY = "tonemap.live.usage.lock";
+  const NOTE_IDLE_TIMEOUT_MS = 30000;
+  const USAGE_LOCK_HEARTBEAT_MS = 5000;
+  const USAGE_LOCK_TTL_MS = 15000;
+  const usageTabId = `tab-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  let usageStats = {
+    launches: 0,
+    streak: 0,
+    lastUsedDay: null,
+    cumulativeMs: 0
+  };
+  let usageAccumulatedMs = 0;
+  let usageTimerStartMs = null;
+  let lastNoteHeardMs = null;
+  let hasUsageLock = false;
+  let usageLockHeartbeat = null;
+  let lastUsageUiUpdateMs = 0;
+
   function loadSettings() {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -2477,6 +2522,228 @@
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
     } catch (err) {
       console.warn("Failed to persist settings", err);
+    }
+  }
+
+  function loadUsageStats() {
+    try {
+      const raw = window.localStorage.getItem(USAGE_STORAGE_KEY);
+      if (!raw) return { ...usageStats };
+      const parsed = JSON.parse(raw);
+      return {
+        ...usageStats,
+        ...parsed,
+        launches: Number(parsed?.launches) || 0,
+        streak: Number(parsed?.streak) || 0,
+        cumulativeMs: Math.max(0, Number(parsed?.cumulativeMs) || 0),
+        lastUsedDay: parsed?.lastUsedDay || null
+      };
+    } catch (err) {
+      console.warn("Failed to load usage stats, using defaults", err);
+      return { ...usageStats };
+    }
+  }
+
+  function persistUsageStats(stats) {
+    try {
+      window.localStorage.setItem(USAGE_STORAGE_KEY, JSON.stringify(stats));
+    } catch (err) {
+      console.warn("Failed to persist usage stats", err);
+    }
+  }
+
+  function getLocalDayKey(date = new Date()) {
+    const localMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    return localMidnight.toISOString().slice(0, 10);
+  }
+
+  function diffLocalDays(dayA, dayB) {
+    const a = Date.parse(dayA);
+    const b = Date.parse(dayB);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return 0;
+    return Math.round((a - b) / (24 * 60 * 60 * 1000));
+  }
+
+  function formatDurationHms(ms) {
+    const safeMs = Math.max(0, Math.floor(ms || 0));
+    const totalSeconds = Math.floor(safeMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  function getCurrentUsageMs(nowT = nowMs()) {
+    const runDelta = usageTimerStartMs != null ? Math.max(0, nowT - usageTimerStartMs) : 0;
+    return usageAccumulatedMs + runDelta;
+  }
+
+  function updateUsageDisplay(nowT = nowMs(), { force = false } = {}) {
+    if (!force && nowT - lastUsageUiUpdateMs < 500) return;
+    lastUsageUiUpdateMs = nowT;
+    if (dbgLaunches) dbgLaunches.textContent = `${usageStats.launches || 0}`;
+    if (dbgStreak) dbgStreak.textContent = `${usageStats.streak || 0}`;
+    if (dbgCumulativeTime) dbgCumulativeTime.textContent = formatDurationHms(getCurrentUsageMs(nowT));
+  }
+
+  function persistUsageProgress(nowT = nowMs()) {
+    usageStats.cumulativeMs = getCurrentUsageMs(nowT);
+    usageStats.lastUsedDay = getLocalDayKey();
+    persistUsageStats(usageStats);
+  }
+
+  function initUsageTracking() {
+    usageStats = loadUsageStats();
+    const todayKey = getLocalDayKey();
+    const lastDay = usageStats.lastUsedDay;
+    let streak = usageStats.streak || 0;
+    if (!lastDay) {
+      streak = 1;
+    } else {
+      const dayDelta = diffLocalDays(todayKey, lastDay);
+      if (dayDelta === 0) {
+        streak = Math.max(1, streak);
+      } else if (dayDelta === 1) {
+        streak = Math.max(1, streak + 1);
+      } else {
+        streak = 1;
+      }
+    }
+    usageStats.launches = (usageStats.launches || 0) + 1;
+    usageStats.streak = streak;
+    usageStats.lastUsedDay = todayKey;
+    usageAccumulatedMs = Math.max(0, usageStats.cumulativeMs || 0);
+    persistUsageStats(usageStats);
+    updateUsageDisplay(nowMs(), { force: true });
+    startUsageLockHeartbeat();
+  }
+
+  function readUsageLock() {
+    try {
+      const raw = window.localStorage.getItem(USAGE_LOCK_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (err) {
+      console.warn("Failed to read usage lock", err);
+      return null;
+    }
+  }
+
+  function writeUsageLock(payload) {
+    try {
+      window.localStorage.setItem(USAGE_LOCK_KEY, JSON.stringify(payload));
+    } catch (err) {
+      console.warn("Failed to write usage lock", err);
+    }
+  }
+
+  function syncUsageLock() {
+    const nowTs = Date.now();
+    const lock = readUsageLock();
+    const lockOwner = lock?.id;
+    const lockAgeMs = lock?.ts ? (nowTs - lock.ts) : Infinity;
+    const lockExpired = !lockOwner || lockAgeMs > USAGE_LOCK_TTL_MS;
+
+    if (document.visibilityState === "hidden" || !running) {
+      if (hasUsageLock) {
+        releaseUsageLock();
+      }
+      hasUsageLock = false;
+      return;
+    }
+
+    if (lockExpired || lockOwner === usageTabId) {
+      hasUsageLock = true;
+      writeUsageLock({ id: usageTabId, ts: nowTs });
+    } else {
+      hasUsageLock = false;
+    }
+
+    if (hasUsageLock) {
+      persistUsageProgress(nowMs());
+    }
+  }
+
+  function startUsageLockHeartbeat() {
+    if (usageLockHeartbeat != null) return;
+    syncUsageLock();
+    usageLockHeartbeat = window.setInterval(syncUsageLock, USAGE_LOCK_HEARTBEAT_MS);
+  }
+
+  function releaseUsageLock() {
+    try {
+      const lock = readUsageLock();
+      if (lock?.id === usageTabId) {
+        window.localStorage.removeItem(USAGE_LOCK_KEY);
+      }
+    } catch (err) {
+      console.warn("Failed to release usage lock", err);
+    } finally {
+      hasUsageLock = false;
+    }
+  }
+
+  function handleUsageTick({ noteDetected = false, nowT = nowMs() } = {}) {
+    if (noteDetected) {
+      lastNoteHeardMs = nowT;
+    }
+    const noteRecent = lastNoteHeardMs != null && (nowT - lastNoteHeardMs) <= NOTE_IDLE_TIMEOUT_MS;
+    const shouldRun = hasUsageLock && document.visibilityState === "visible" && running && noteRecent;
+
+    if (shouldRun && usageTimerStartMs == null) {
+      usageTimerStartMs = nowT;
+    } else if (!shouldRun && usageTimerStartMs != null) {
+      usageAccumulatedMs += Math.max(0, nowT - usageTimerStartMs);
+      usageTimerStartMs = null;
+      persistUsageProgress(nowT);
+    }
+    updateUsageDisplay(nowT);
+  }
+
+  function forceStopUsageTimer(nowT = nowMs()) {
+    if (usageTimerStartMs != null) {
+      usageAccumulatedMs += Math.max(0, nowT - usageTimerStartMs);
+      usageTimerStartMs = null;
+    }
+    persistUsageProgress(nowT);
+    updateUsageDisplay(nowT, { force: true });
+  }
+
+  function handleUsageVisibilityPause() {
+    forceStopUsageTimer(nowMs());
+    releaseUsageLock();
+  }
+
+  function handleUsageStorageEvent(event) {
+    if (!event) return;
+    if (event.key === USAGE_LOCK_KEY) {
+      try {
+        const payload = event.newValue ? JSON.parse(event.newValue) : null;
+        if (payload?.id && payload.id !== usageTabId) {
+          hasUsageLock = false;
+          forceStopUsageTimer(nowMs());
+        }
+      } catch (err) {
+        console.warn("Failed to parse usage lock event", err);
+      }
+    }
+    if (event.key === USAGE_STORAGE_KEY && event.newValue) {
+      try {
+        const incoming = JSON.parse(event.newValue);
+        const incomingMs = Math.max(0, Number(incoming?.cumulativeMs) || 0);
+        const incomingLaunches = Number(incoming?.launches);
+        const incomingStreak = Number(incoming?.streak);
+        usageStats.launches = Number.isFinite(incomingLaunches) ? incomingLaunches : usageStats.launches;
+        usageStats.streak = Number.isFinite(incomingStreak) ? incomingStreak : usageStats.streak;
+        usageStats.lastUsedDay = incoming?.lastUsedDay ?? usageStats.lastUsedDay;
+        usageStats.cumulativeMs = incomingMs;
+        if (!hasUsageLock) {
+          usageAccumulatedMs = incomingMs;
+          usageTimerStartMs = null;
+          updateUsageDisplay(nowMs(), { force: true });
+        }
+      } catch (err) {
+        console.warn("Failed to parse shared usage stats", err);
+      }
     }
   }
 
@@ -3864,6 +4131,7 @@
     let activeMidiForUI = null;
     let centsForUI = 0;
     let inDeadZoneNow = false;
+    let noteDetectedThisFrame = false;
 
     if (pitchValid && loudEnough) {
       const transposeOffset = getTransposeOffset();
@@ -3871,6 +4139,7 @@
     const adjustedPitch = pitch * transposeFactor;
       const nd = freqToNoteData(adjustedPitch, A4);
       const { cents, midi, errRatio, stretchCents } = nd;
+      noteDetectedThisFrame = true;
 
       let displayCents = cents;
       if (mode === "relaxed") {
@@ -3971,6 +4240,8 @@
       minHold
     );
 
+    handleUsageTick({ noteDetected: noteDetectedThisFrame, nowT: nowT });
+
     renderHeatmap();
     requestAnimationFrame(tick);
   }
@@ -4003,6 +4274,7 @@
       detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
 
       running = true;
+      syncUsageLock();
       await requestScreenWakeLock();
       micBtn.classList.add("on");
       micBtnIcon.classList.remove("paused");
@@ -4031,6 +4303,8 @@
   function stopMic() {
     running = false;
     releaseScreenWakeLock();
+    forceStopUsageTimer(nowMs());
+    releaseUsageLock();
 
     finalizeActiveSegment();
     clearActiveNote();
@@ -4102,6 +4376,7 @@
   window.addEventListener("orientationchange", updateGridAppearanceForViewport);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
+      syncUsageLock();
       if (running) {
         requestScreenWakeLock().catch(err => {
           console.warn("Wake lock restore failed:", err);
@@ -4112,8 +4387,12 @@
       }
     } else {
       releaseScreenWakeLock();
+      handleUsageVisibilityPause();
     }
   });
+  window.addEventListener("pagehide", handleUsageVisibilityPause);
+  window.addEventListener("beforeunload", handleUsageVisibilityPause);
+  window.addEventListener("storage", handleUsageStorageEvent);
 
   /**********************
    * EVENT LISTENERS
@@ -4137,24 +4416,28 @@
     rangeGrowBtn.addEventListener("click", () => {
       setRangeByStep(1);
     });
+    addTouchBlur(rangeGrowBtn);
   }
 
   if (rangeShrinkBtn) {
     rangeShrinkBtn.addEventListener("click", () => {
       setRangeByStep(-1);
     });
+    addTouchBlur(rangeShrinkBtn);
   }
 
   if (lowNoteUpBtn) {
     lowNoteUpBtn.addEventListener("click", () => {
       shiftLowNote(1);
     });
+    addTouchBlur(lowNoteUpBtn);
   }
 
   if (lowNoteDownBtn) {
     lowNoteDownBtn.addEventListener("click", () => {
       shiftLowNote(-1);
     });
+    addTouchBlur(lowNoteDownBtn);
   }
 
   function openPaletteColor(which) {
@@ -4326,6 +4609,7 @@
   volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
   if (volThreshEl) volThreshEl.value = String(currentSettings.minVol ?? 0.1);
   dbgThresh.textContent = volumeThreshold.toExponential(2);
+  initUsageTracking();
 
   function rebuildAll({forceDefaultRange=false, preserveStain=true} = {}) {
     rebuildRangeOptions({forceDefault: forceDefaultRange, desiredRange: currentSettings.range});
