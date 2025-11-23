@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.24 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.25 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -34,6 +34,8 @@
     --panel-text-dim: #94a3b8;
     --panel-text-lite: #f8fafc;
     --panel-highlight: rgb(34,197,94);
+
+    --note-font-size: 2.4rem;
 
     --edge-btn-size: 32px;
     --edge-col-width: calc(var(--edge-btn-size) + 4px);
@@ -284,10 +286,16 @@
     transition: transform 0.1s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
-  .edge-btn:hover,
   .edge-btn:focus-visible {
     border-color: var(--accent-green);
     outline: none;
+  }
+
+  @media (hover: hover) {
+    .edge-btn:hover {
+      border-color: var(--accent-green);
+      outline: none;
+    }
   }
 
   .edge-btn:active {
@@ -520,11 +528,38 @@
   }
 
   #note {
-    font-size: 2.4rem;
+    font-size: var(--note-font-size);
     font-weight: 600;
     line-height: 1;
     color: #fff;
     min-height: 1em;
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.08em;
+    min-width: 3ch;
+  }
+
+  .note-letter {
+    display: inline-block;
+    min-width: 1ch;
+    text-align: center;
+  }
+
+  .note-accidental {
+    display: inline-block;
+    min-width: 0.85ch;
+    text-align: left;
+  }
+
+  .note-accidental.empty {
+    visibility: hidden;
+  }
+
+  .note-octave {
+    display: inline-block;
+    min-width: 1.1ch;
+    text-align: left;
   }
 
   #pitchBlockFixedSlot {
@@ -1323,12 +1358,32 @@
 
   /* Landscape: shrink logo once viewport gets narrow */
   @media (min-aspect-ratio: 1/1) and (max-width: 850px) {
+    body {
+      padding-left: calc(0.5rem + env(safe-area-inset-left));
+      padding-right: calc(0.5rem + env(safe-area-inset-right));
+    }
     .right-col {
       flex: 0 0 160px;
       max-width: 160px;
     }
     .app-title {
       max-width: 160px;
+    }
+    :root {
+      --note-font-size: 1.68rem; /* 70% of base size for compact landscape header */
+    }
+    .mic-btn,
+    .reset-btn {
+      padding: 0.4rem 0.75rem;
+      min-width: 4.6rem;
+      min-height: 2.7rem;
+      font-size: 1.85rem;
+      border-width: 2px;
+    }
+    .icon-micstate.playing,
+    .icon-micstate.paused,
+    .icon-reset {
+      font-size: 1.85rem;
     }
   }
 
@@ -1494,7 +1549,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.24";
+  window.APP_VERSION = "1.25";
 </script>
 
 <div class="page">
@@ -1559,7 +1614,11 @@
         <div class="control-row">
           <div class="note-view" id="pitchBlockFixedSlot">
             <div class="pitch-block" id="pitchBlock">
-              <div id="note">--</div>
+              <div id="note">
+                <span class="note-letter"></span>
+                <span class="note-accidental empty" aria-hidden="true"></span>
+                <span class="note-octave"></span>
+              </div>
             </div>
           </div>
           <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
@@ -1931,7 +1990,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.24";
+  const APP_VERSION = window.APP_VERSION || "1.25";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -2011,6 +2070,9 @@
   const pitchBlockFixedSlot   = document.getElementById("pitchBlockFixedSlot");
 
   const noteEl        = document.getElementById("note");
+  const noteLetterEl  = noteEl ? noteEl.querySelector(".note-letter") : null;
+  const noteAccidentalEl = noteEl ? noteEl.querySelector(".note-accidental") : null;
+  const noteOctaveEl  = noteEl ? noteEl.querySelector(".note-octave") : null;
   const freqEl        = document.getElementById("freq");
   const centsEl       = document.getElementById("cents");
   const appVersionEl  = document.getElementById("appVersion");
@@ -2902,9 +2964,24 @@
     if (lastDisplayedMidi != null) {
       const noteName = getNoteNameForMidi(lastDisplayedMidi);
       const octave = Math.floor(lastDisplayedMidi / 12) - 1;
-      noteEl.textContent = `${noteName}${octave}`;
+      const letter = noteName.charAt(0) || "";
+      const accidental = noteName.slice(1) || "";
+
+      if (noteLetterEl) noteLetterEl.textContent = letter || "";
+      if (noteAccidentalEl) {
+        noteAccidentalEl.textContent = accidental;
+        noteAccidentalEl.classList.toggle("empty", accidental === "");
+        noteAccidentalEl.setAttribute("aria-hidden", accidental ? "false" : "true");
+      }
+      if (noteOctaveEl) noteOctaveEl.textContent = `${octave}`;
     } else {
-      noteEl.textContent = "--";
+      if (noteLetterEl) noteLetterEl.textContent = "";
+      if (noteAccidentalEl) {
+        noteAccidentalEl.textContent = "";
+        noteAccidentalEl.classList.add("empty");
+        noteAccidentalEl.setAttribute("aria-hidden", "true");
+      }
+      if (noteOctaveEl) noteOctaveEl.textContent = "";
     }
     if (freqEl) freqEl.textContent = lastDisplayedHzText;
     if (centsEl) centsEl.textContent = lastDisplayedCentsText;
