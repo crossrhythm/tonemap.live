@@ -2467,6 +2467,25 @@
   let easterEggSavedStyles = null;
   const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
 
+  function generateCellColors(count) {
+    const colors = [];
+    const seedHue = Math.random() * 360;
+    const golden = 137.5; // golden angle to space hues
+    for (let i = 0; i < count; i++) {
+      const hue = (seedHue + golden * i + Math.random() * 12) % 360;
+      const sat = 78 + Math.random() * 14;
+      const light = 52 + Math.random() * 12;
+      colors.push(`hsl(${hue}, ${sat}%, ${light}%)`);
+    }
+    // ensure at least some primaries mixed in
+    for (let i = 0; i < colors.length && i < CONFETTI_PRIMARY_COLORS.length; i++) {
+      if (Math.random() < 0.25) {
+        colors[i] = CONFETTI_PRIMARY_COLORS[i];
+      }
+    }
+    return colors;
+  }
+
   function createEmptyCellState() {
     return {
       totalVoiceMs: 0,
@@ -4175,7 +4194,8 @@
     stainedThisTick.clear();
   }
 
-  function buildConfettiPiecesForCells() {
+  function buildConfettiPiecesForCells(colors = null) {
+    const palette = (colors && colors.length) ? colors : generateCellColors(Object.keys(midiToCellEl || {}).length || 60);
     if (!noteGrid) return { overlay: null, pieces: [] };
     const gridRect = noteGrid.getBoundingClientRect();
     const overlay = document.createElement("div");
@@ -4185,9 +4205,11 @@
     const cells = Object.values(midiToCellEl || {});
     cells.forEach((cell, idx) => {
       const rect = cell.getBoundingClientRect();
-      const startX = rect.left - gridRect.left + rect.width / 2;
-      const startY = rect.top - gridRect.top + rect.height / 2;
-      const color = CONFETTI_PRIMARY_COLORS[idx % CONFETTI_PRIMARY_COLORS.length];
+      const cellX = rect.left - gridRect.left;
+      const cellY = rect.top - gridRect.top;
+      const startX = cellX + Math.random() * rect.width;
+      const startY = cellY + Math.random() * rect.height;
+      const color = palette[idx % palette.length];
 
       for (let i = 0; i < 6; i++) {
         const pieceEl = document.createElement("div");
@@ -4199,18 +4221,15 @@
         pieceEl.style.backgroundColor = color;
         pieceEl.style.borderRadius = `${1 + Math.random() * 2}px`;
 
-        const targetX = gridRect.width / 2;
-        const targetY = -80 - Math.random() * 80;
-        const dirX = targetX - startX;
-        const dirY = targetY - startY;
-        const len = Math.hypot(dirX, dirY) || 1;
-        const normX = dirX / len;
-        const normY = dirY / len;
-        const speed = 650 + Math.random() * 450;
-        const lateral = (Math.random() * 2 - 1) * 260;
+        const gridCenterX = gridRect.width / 2;
+        const biasX = (gridCenterX - startX) * 0.08;
+        const lateral = (Math.random() * 2 - 1) * 45; /* very tight spread */
+        const vx = biasX + lateral;
 
-        const vx = normX * speed + lateral;
-        const vy = normY * speed - Math.random() * 120;
+        const baseUp = 820 + Math.random() * 320;
+        const startRatio = Math.min(1, Math.max(0, gridRect.height ? (startY / gridRect.height) : 0));
+        const boost = 1 + startRatio * 0.6; // cells lower on screen get stronger initial lift
+        const vy = -(baseUp * boost * 0.75); /* reduce overall launch by 25% */
         const rot = Math.random() * 360;
         const rotVel = (Math.random() * 720 - 360); // deg per second
 
@@ -4232,15 +4251,33 @@
     return { overlay, pieces };
   }
 
-  function restoreEasterEggCells() {
-    if (easterEggSavedStyles) {
-      easterEggSavedStyles.forEach(({ cell, backgroundColor, boxShadow, transition }) => {
-        cell.style.backgroundColor = backgroundColor;
-        cell.style.boxShadow = boxShadow;
+  function restoreEasterEggCells({ fadeIn = true } = {}) {
+    if (!easterEggSavedStyles) return;
+
+    const saved = easterEggSavedStyles;
+    const fadeMs = 200;
+
+    saved.forEach(({ cell, backgroundColor, boxShadow, transition, opacity }) => {
+      cell.style.backgroundColor = backgroundColor;
+      cell.style.boxShadow = boxShadow;
+      if (fadeIn) {
+        cell.style.transition = `opacity ${fadeMs}ms ease`;
+        cell.style.opacity = "0";
+      } else {
         cell.style.transition = transition;
-        cell.style.opacity = "";
+        cell.style.opacity = opacity || "";
+      }
+    });
+
+    if (fadeIn) {
+      requestAnimationFrame(() => {
+        saved.forEach(({ cell, transition, opacity }) => {
+          cell.style.opacity = opacity || "";
+          cell.style.transition = transition;
+        });
       });
     }
+
     easterEggSavedStyles = null;
   }
 
@@ -4251,6 +4288,7 @@
     if (!cells.length) return;
 
     easterEggRunning = true;
+    const colors = generateCellColors(cells.length);
 
     easterEggSavedStyles = cells.map(cell => ({
       cell,
@@ -4262,18 +4300,18 @@
 
     suppressHeatmapRender = true;
     cells.forEach((cell, idx) => {
-      const color = CONFETTI_PRIMARY_COLORS[idx % CONFETTI_PRIMARY_COLORS.length];
+      const color = colors[idx % colors.length];
       cell.style.transition = "background-color 0.25s ease, opacity 0.25s ease";
       cell.style.backgroundColor = color;
       cell.style.opacity = "0";
     });
 
-    const { overlay, pieces } = buildConfettiPiecesForCells();
+    const { overlay, pieces } = buildConfettiPiecesForCells(colors);
     if (overlay) noteGrid.appendChild(overlay);
 
-    const gravity = 2200; // px/s^2
-    const duration = 2200;
-    const fadeStart = duration * 0.6;
+    const gravity = 1200; // px/s^2 (slower fall)
+    const duration = 2800;
+    const fadeStart = duration * 0.55;
     let lastT = null;
     const startT = performance.now();
 
@@ -4296,7 +4334,7 @@
         requestAnimationFrame(step);
       } else {
         if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        restoreEasterEggCells();
+        restoreEasterEggCells({ fadeIn: true });
         suppressHeatmapRender = false;
         renderHeatmap();
         easterEggRunning = false;
