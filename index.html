@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.25 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.26 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -1586,58 +1586,6 @@
     outline: none;
   }
 
-  /* Debug overlay for streak/launch calculations */
-  .streak-debug-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(15,23,42,0.65);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1300;
-  }
-  .streak-debug-card {
-    background: rgba(15,23,42,0.94);
-    border: 1px solid rgba(148,163,184,0.45);
-    box-shadow: 0 18px 32px rgba(0,0,0,0.55);
-    border-radius: 1rem;
-    padding: 1rem 1.25rem;
-    max-width: min(520px, 92vw);
-    color: var(--text-lite);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-  }
-  .streak-debug-card h3 {
-    margin: 0;
-    font-size: 1.05rem;
-  }
-  .streak-debug-list {
-    margin: 0;
-    padding-left: 1.2rem;
-    color: var(--panel-text-lite);
-    line-height: 1.45;
-  }
-  .streak-debug-list li strong {
-    color: var(--text-lite);
-  }
-  .streak-debug-close {
-    align-self: flex-end;
-    appearance: none;
-    border: 1px solid var(--accent-green);
-    background: rgba(34,197,94,0.14);
-    color: var(--text-lite);
-    border-radius: 999px;
-    padding: 0.35rem 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .streak-debug-close:hover,
-  .streak-debug-close:focus-visible {
-    border-color: #fff;
-    outline: none;
-  }
 
   /********************
    * OVERLAY FIRST RUN (mic permission)
@@ -1713,7 +1661,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.25";
+  window.APP_VERSION = "1.26";
 </script>
 
 <div class="page">
@@ -2161,7 +2109,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.25";
+  const APP_VERSION = window.APP_VERSION || "1.26";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -2828,13 +2776,6 @@
   const USAGE_LOCK_TTL_MS = 15000;
   const MILESTONE_LAUNCH_KEY = "tonemap.live.lastLaunchMilestoneAck";
   const MILESTONE_STREAK_KEY = "tonemap.live.lastStreakMilestoneAck";
-  const USAGE_DEBUG_FREEZE = (() => {
-    try {
-      return localStorage.getItem("tonemap.live.debugFreezeUsage") === "1";
-    } catch {
-      return false;
-    }
-  })();
   const usageTabId = `tab-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   let usageStats = {
@@ -2983,62 +2924,7 @@
     updateUsageDisplay(nowMs(), { force: true });
   }
 
-  function showStreakDebugModal({
-    prevLaunches,
-    prevStreak,
-    prevLastDay,
-    todayKey,
-    dayDelta,
-    newLaunches,
-    newStreak
-  } = {}) {
-    const existing = document.querySelector(".streak-debug-modal");
-    if (existing) existing.remove();
-
-    const modal = document.createElement("div");
-    modal.className = "streak-debug-modal";
-
-    const card = document.createElement("div");
-    card.className = "streak-debug-card";
-
-    const h = document.createElement("h3");
-    h.textContent = "Streak Calculation";
-    card.appendChild(h);
-
-    const list = document.createElement("ul");
-    list.className = "streak-debug-list";
-    const rows = [
-      ["Prev launches", prevLaunches],
-      ["Prev streak", prevStreak],
-      ["Prev lastUsedDay", prevLastDay || "(none)"],
-      ["Today", todayKey],
-      ["Day delta", dayDelta],
-      ["New launches", newLaunches],
-      ["New streak", newStreak]
-    ];
-    rows.forEach(([label, val]) => {
-      const li = document.createElement("li");
-      const strong = document.createElement("strong");
-      strong.textContent = `${label}: `;
-      li.appendChild(strong);
-      li.appendChild(document.createTextNode(String(val)));
-      list.appendChild(li);
-    });
-    card.appendChild(list);
-
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "streak-debug-close";
-    btn.textContent = "Close";
-    btn.addEventListener("click", () => modal.remove());
-    card.appendChild(btn);
-
-    modal.appendChild(card);
-    document.body.appendChild(modal);
-  }
-
   function persistUsageProgress(nowT = nowMs()) {
-    if (USAGE_DEBUG_FREEZE) return;
     usageStats.cumulativeMs = getCurrentUsageMs(nowT);
     usageStats.lastUsedDay = getLocalDayKey();
     persistUsageStats(usageStats);
@@ -3046,9 +2932,6 @@
 
   function initUsageTracking() {
     usageStats = loadUsageStats();
-    const prevLaunches = usageStats.launches || 0;
-    const prevStreak = usageStats.streak || 0;
-    const prevLastDay = usageStats.lastUsedDay;
     const todayKey = getLocalDayKey();
     const lastDay = usageStats.lastUsedDay;
     let streak = usageStats.streak || 0;
@@ -3082,16 +2965,6 @@
       writeMilestoneAck(MILESTONE_STREAK_KEY, usageStats.streak);
     }
     pendingMilestone = launchMilestone || streakMilestone;
-    const dayDelta = diffLocalDays(todayKey, prevLastDay);
-    showStreakDebugModal({
-      prevLaunches,
-      prevStreak,
-      prevLastDay,
-      todayKey,
-      dayDelta,
-      newLaunches: usageStats.launches,
-      newStreak: usageStats.streak
-    });
     startUsageLockHeartbeat();
   }
 
