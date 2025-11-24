@@ -1074,6 +1074,12 @@
     color: var(--panel-text-dim);
   }
 
+  .status-row .status-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+  }
+
   .status-val {
     color: var(--panel-text-lite);
     text-align: right;
@@ -1518,6 +1524,121 @@
     will-change: transform, opacity;
   }
 
+  .confetti-stats-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+  }
+
+  .confetti-stats-modal.over-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+  }
+
+  .confetti-stats-card {
+    background: rgba(15,23,42,0.92);
+    border: 1px solid rgba(148,163,184,0.45);
+    box-shadow: 0 18px 32px rgba(0,0,0,0.55);
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    max-width: min(480px, 94vw);
+    color: var(--text-lite);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .confetti-stats-card h3 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+
+  .confetti-stats-card p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--panel-text-lite);
+  }
+
+  .confetti-stats-btn {
+    appearance: none;
+    border: 1px solid var(--accent-green);
+    background: rgba(34,197,94,0.12);
+    color: var(--text-lite);
+    border-radius: 999px;
+    padding: 0.5rem 1.4rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    align-self: center;
+  }
+
+  .confetti-stats-btn:hover,
+  .confetti-stats-btn:focus-visible {
+    border-color: #fff;
+    background: rgba(34,197,94,0.22);
+    outline: none;
+  }
+
+  /* Debug overlay for streak/launch calculations */
+  .streak-debug-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1300;
+  }
+  .streak-debug-card {
+    background: rgba(15,23,42,0.94);
+    border: 1px solid rgba(148,163,184,0.45);
+    box-shadow: 0 18px 32px rgba(0,0,0,0.55);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    max-width: min(520px, 92vw);
+    color: var(--text-lite);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+  }
+  .streak-debug-card h3 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+  .streak-debug-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: var(--panel-text-lite);
+    line-height: 1.45;
+  }
+  .streak-debug-list li strong {
+    color: var(--text-lite);
+  }
+  .streak-debug-close {
+    align-self: flex-end;
+    appearance: none;
+    border: 1px solid var(--accent-green);
+    background: rgba(34,197,94,0.14);
+    color: var(--text-lite);
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .streak-debug-close:hover,
+  .streak-debug-close:focus-visible {
+    border-color: #fff;
+    outline: none;
+  }
+
   /********************
    * OVERLAY FIRST RUN (mic permission)
    ********************/
@@ -1913,6 +2034,9 @@
           <span class="status-key">Cumulative time</span>
           <span class="status-val" id="dbgCumulativeTime">--</span>
         </div>
+        <div class="status-row">
+          <button id="resetUsageBtn" class="status-btn" type="button">Reset Usage Stats</button>
+        </div>
       </section>
 
       <section class="status-section">
@@ -2177,6 +2301,7 @@
   const dbgLaunches   = document.getElementById("dbgLaunches");
   const dbgStreak     = document.getElementById("dbgStreak");
   const dbgCumulativeTime = document.getElementById("dbgCumulativeTime");
+  const resetUsageBtn = document.getElementById("resetUsageBtn");
 
   function openOptionsOverlay() {
     if (!optionsOverlay) return;
@@ -2701,6 +2826,15 @@
   const NOTE_IDLE_TIMEOUT_MS = 30000;
   const USAGE_LOCK_HEARTBEAT_MS = 5000;
   const USAGE_LOCK_TTL_MS = 15000;
+  const MILESTONE_LAUNCH_KEY = "tonemap.live.lastLaunchMilestoneAck";
+  const MILESTONE_STREAK_KEY = "tonemap.live.lastStreakMilestoneAck";
+  const USAGE_DEBUG_FREEZE = (() => {
+    try {
+      return localStorage.getItem("tonemap.live.debugFreezeUsage") === "1";
+    } catch {
+      return false;
+    }
+  })();
   const usageTabId = `tab-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   let usageStats = {
@@ -2715,6 +2849,7 @@
   let hasUsageLock = false;
   let usageLockHeartbeat = null;
   let lastUsageUiUpdateMs = 0;
+  let pendingMilestone = false;
 
   function loadSettings() {
     try {
@@ -2744,13 +2879,17 @@
       const raw = window.localStorage.getItem(USAGE_STORAGE_KEY);
       if (!raw) return { ...usageStats };
       const parsed = JSON.parse(raw);
+      const normalizeDayKey = (val) => {
+        if (!val || typeof val !== "string") return null;
+        return /^\d{4}-\d{2}-\d{2}$/.test(val) ? val : null;
+      };
       return {
         ...usageStats,
         ...parsed,
         launches: Number(parsed?.launches) || 0,
         streak: Number(parsed?.streak) || 0,
         cumulativeMs: Math.max(0, Number(parsed?.cumulativeMs) || 0),
-        lastUsedDay: parsed?.lastUsedDay || null
+        lastUsedDay: normalizeDayKey(parsed?.lastUsedDay)
       };
     } catch (err) {
       console.warn("Failed to load usage stats, using defaults", err);
@@ -2772,10 +2911,21 @@
   }
 
   function diffLocalDays(dayA, dayB) {
-    const a = Date.parse(dayA);
-    const b = Date.parse(dayB);
+    const parseKey = (key) => {
+      if (!key || typeof key !== "string") return NaN;
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(key);
+      if (!m) return NaN;
+      const y = parseInt(m[1], 10);
+      const mo = parseInt(m[2], 10) - 1;
+      const d = parseInt(m[3], 10);
+      if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return NaN;
+      return Date.UTC(y, mo, d);
+    };
+    const a = parseKey(dayA);
+    const b = parseKey(dayB);
     if (!Number.isFinite(a) || !Number.isFinite(b)) return 0;
-    return Math.round((a - b) / (24 * 60 * 60 * 1000));
+    const diffMs = a - b;
+    return Math.round(diffMs / 86400000);
   }
 
   function formatDurationHms(ms) {
@@ -2785,6 +2935,23 @@
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
     return `${hours}h ${minutes}m ${seconds}s`;
+  }
+
+  function readMilestoneAck(key) {
+    try {
+      const val = parseInt(localStorage.getItem(key) ?? "0", 10);
+      return Number.isFinite(val) ? val : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function writeMilestoneAck(key, val) {
+    try {
+      localStorage.setItem(key, String(val));
+    } catch {
+      /* ignore */
+    }
   }
 
   function getCurrentUsageMs(nowT = nowMs()) {
@@ -2800,7 +2967,78 @@
     if (dbgCumulativeTime) dbgCumulativeTime.textContent = formatDurationHms(getCurrentUsageMs(nowT));
   }
 
+  function resetUsageStats() {
+    usageStats = {
+      launches: 0,
+      streak: 0,
+      lastUsedDay: getLocalDayKey(),
+      cumulativeMs: 0
+    };
+    usageAccumulatedMs = 0;
+    usageTimerStartMs = nowMs();
+    writeMilestoneAck(MILESTONE_LAUNCH_KEY, 0);
+    writeMilestoneAck(MILESTONE_STREAK_KEY, 0);
+    pendingMilestone = false;
+    persistUsageStats(usageStats);
+    updateUsageDisplay(nowMs(), { force: true });
+  }
+
+  function showStreakDebugModal({
+    prevLaunches,
+    prevStreak,
+    prevLastDay,
+    todayKey,
+    dayDelta,
+    newLaunches,
+    newStreak
+  } = {}) {
+    const existing = document.querySelector(".streak-debug-modal");
+    if (existing) existing.remove();
+
+    const modal = document.createElement("div");
+    modal.className = "streak-debug-modal";
+
+    const card = document.createElement("div");
+    card.className = "streak-debug-card";
+
+    const h = document.createElement("h3");
+    h.textContent = "Streak Calculation";
+    card.appendChild(h);
+
+    const list = document.createElement("ul");
+    list.className = "streak-debug-list";
+    const rows = [
+      ["Prev launches", prevLaunches],
+      ["Prev streak", prevStreak],
+      ["Prev lastUsedDay", prevLastDay || "(none)"],
+      ["Today", todayKey],
+      ["Day delta", dayDelta],
+      ["New launches", newLaunches],
+      ["New streak", newStreak]
+    ];
+    rows.forEach(([label, val]) => {
+      const li = document.createElement("li");
+      const strong = document.createElement("strong");
+      strong.textContent = `${label}: `;
+      li.appendChild(strong);
+      li.appendChild(document.createTextNode(String(val)));
+      list.appendChild(li);
+    });
+    card.appendChild(list);
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "streak-debug-close";
+    btn.textContent = "Close";
+    btn.addEventListener("click", () => modal.remove());
+    card.appendChild(btn);
+
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+  }
+
   function persistUsageProgress(nowT = nowMs()) {
+    if (USAGE_DEBUG_FREEZE) return;
     usageStats.cumulativeMs = getCurrentUsageMs(nowT);
     usageStats.lastUsedDay = getLocalDayKey();
     persistUsageStats(usageStats);
@@ -2808,6 +3046,9 @@
 
   function initUsageTracking() {
     usageStats = loadUsageStats();
+    const prevLaunches = usageStats.launches || 0;
+    const prevStreak = usageStats.streak || 0;
+    const prevLastDay = usageStats.lastUsedDay;
     const todayKey = getLocalDayKey();
     const lastDay = usageStats.lastUsedDay;
     let streak = usageStats.streak || 0;
@@ -2829,6 +3070,28 @@
     usageAccumulatedMs = Math.max(0, usageStats.cumulativeMs || 0);
     persistUsageStats(usageStats);
     updateUsageDisplay(nowMs(), { force: true });
+    // milestone gate (100 launches, 7-day streaks)
+    const lastLaunchAck = readMilestoneAck(MILESTONE_LAUNCH_KEY);
+    const lastStreakAck = readMilestoneAck(MILESTONE_STREAK_KEY);
+    const launchMilestone = usageStats.launches % 100 === 0 && usageStats.launches > lastLaunchAck;
+    const streakMilestone = usageStats.streak % 7 === 0 && usageStats.streak > lastStreakAck;
+    if (launchMilestone) {
+      writeMilestoneAck(MILESTONE_LAUNCH_KEY, usageStats.launches);
+    }
+    if (streakMilestone) {
+      writeMilestoneAck(MILESTONE_STREAK_KEY, usageStats.streak);
+    }
+    pendingMilestone = launchMilestone || streakMilestone;
+    const dayDelta = diffLocalDays(todayKey, prevLastDay);
+    showStreakDebugModal({
+      prevLaunches,
+      prevStreak,
+      prevLastDay,
+      todayKey,
+      dayDelta,
+      newLaunches: usageStats.launches,
+      newStreak: usageStats.streak
+    });
     startUsageLockHeartbeat();
   }
 
@@ -4281,6 +4544,58 @@
     easterEggSavedStyles = null;
   }
 
+  function showUsageStatsModal({ onClose, parent = document.body } = {}) {
+    const modal = document.createElement("div");
+    const overGrid = parent !== document.body;
+    modal.className = `confetti-stats-modal${overGrid ? " over-grid" : ""}`;
+
+    const card = document.createElement("div");
+    card.className = "confetti-stats-card";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "Congratulations!";
+    card.appendChild(heading);
+
+    const launches = usageStats.launches || 0;
+    const streak = usageStats.streak || 0;
+    const streakLabel = streak === 1 ? "day" : "days";
+    const launchLabel = launches === 1 ? "time" : "times";
+    const body = document.createElement("p");
+    body.textContent = `You've used Tonemap.live ${streak} ${streakLabel} in a row and ${launches} ${launchLabel} total on this device. Way to go!`;
+    card.appendChild(body);
+
+    const stars = Math.floor(streak / 7);
+    const trophies = Math.floor(launches / 100);
+
+    if (trophies > 0) {
+      const line = document.createElement("div");
+      line.className = "confetti-message-icons";
+      line.textContent = `${launches} Launch${launches === 1 ? "" : "es"}: ${"🏆".repeat(trophies)}`;
+      card.appendChild(line);
+    }
+
+    if (stars > 0) {
+      const weeks = Math.floor(streak / 7);
+      const line = document.createElement("div");
+      line.className = "confetti-message-icons";
+      line.textContent = `${weeks} Week Streak: ${"⭐".repeat(stars)}`;
+      card.appendChild(line);
+    }
+
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "confetti-stats-btn";
+    btn.textContent = "OK";
+    btn.addEventListener("click", () => {
+      modal.remove();
+      if (typeof onClose === "function") onClose();
+    });
+    card.appendChild(btn);
+
+    modal.appendChild(card);
+    (parent || document.body).appendChild(modal);
+  }
+
   function triggerC4EasterEgg() {
     if (easterEggRunning) return;
     if (!noteGrid) return;
@@ -4306,6 +4621,26 @@
       cell.style.opacity = "0";
     });
 
+    // show stats modal first, centered over grid
+    let statsModalClosed = false;
+    let animationDone = false;
+    const finishIfReady = () => {
+      if (statsModalClosed && animationDone) {
+        restoreEasterEggCells({ fadeIn: true });
+        suppressHeatmapRender = false;
+        renderHeatmap();
+        easterEggRunning = false;
+      }
+    };
+
+    showUsageStatsModal({
+      parent: noteGrid,
+      onClose: () => {
+        statsModalClosed = true;
+        finishIfReady();
+      }
+    });
+
     const { overlay, pieces } = buildConfettiPiecesForCells(colors);
     if (overlay) noteGrid.appendChild(overlay);
 
@@ -4321,27 +4656,33 @@
       lastT = ts;
       const elapsed = ts - startT;
       pieces.forEach(p => {
+        if (p.startDelay == null) {
+          p.startDelay = Math.random() * 500; // stagger start within 0.5s
+        }
+        if (elapsed < p.startDelay) {
+          p.el.style.opacity = 0;
+          return;
+        }
+        const localElapsed = elapsed - p.startDelay;
         p.vy += gravity * dt;
         p.x += p.vx * dt;
         p.y += p.vy * dt;
         p.rot += p.rotVel * dt;
-        const opacity = elapsed > fadeStart ? Math.max(0, 1 - (elapsed - fadeStart) / (duration - fadeStart)) : 1;
+        const opacity = localElapsed > fadeStart ? Math.max(0, 1 - (localElapsed - fadeStart) / (duration - fadeStart)) : 1;
         p.el.style.opacity = opacity;
         p.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${p.rot}deg)`;
       });
 
-      if (elapsed < duration) {
+    if (elapsed < duration + 500) {
         requestAnimationFrame(step);
       } else {
         if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-        restoreEasterEggCells({ fadeIn: true });
-        suppressHeatmapRender = false;
-        renderHeatmap();
-        easterEggRunning = false;
+        animationDone = true;
+        finishIfReady();
       }
     }
-    requestAnimationFrame(step);
-  }
+      requestAnimationFrame(step);
+    }
 
   function handleGridCellClick(event) {
     const cell = event.target.closest(".grid-cell");
@@ -4699,6 +5040,10 @@
       micBtnIcon.textContent = "⏸︎";
 
       overlayVeil.style.display = "none";
+      if (pendingMilestone) {
+        pendingMilestone = false;
+        triggerC4EasterEgg();
+      }
 
       lastFrameTime = nowMs();
 
@@ -4828,6 +5173,12 @@
   resetBtn.addEventListener("click", () => {
     resetHeatmapOnly();
   });
+
+  if (resetUsageBtn) {
+    resetUsageBtn.addEventListener("click", () => {
+      resetUsageStats();
+    });
+  }
 
   if (noteGrid) {
     noteGrid.addEventListener("click", handleGridCellClick);
