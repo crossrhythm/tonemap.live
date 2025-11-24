@@ -8,6 +8,8 @@
 <title>Tonemap.Live</title>
 <link rel="icon" href="tonemapicon.png" type="image/png" />
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+
   :root {
     --bg-main: #0f172a;
     --bg-panel: #1e293b;
@@ -1531,6 +1533,25 @@
     text-align: center;
   }
 
+  .overlay-quote {
+    font-family: 'Playfair Display', 'Georgia', serif;
+    text-align: center;
+    color: var(--text-lite);
+    margin: 0 auto 1rem;
+    line-height: 1.4;
+    max-width: 80vw;
+  }
+
+  .overlay-quote-line {
+    font-style: italic;
+    font-size: 1.05rem;
+  }
+
+  .overlay-quote-author {
+    font-size: 1rem;
+    margin-top: 0.35rem;
+  }
+
   #overlayMsg {
     font-size: 0.9rem;
     color: var(--text-dim);
@@ -1556,6 +1577,10 @@
   <!-- FULLSCREEN OVERLAY ON FIRST LOAD (mic permission) -->
   <div id="overlayVeil">
     <div id="overlayInner">
+      <div class="overlay-quote" aria-live="polite">
+        <div id="overlayQuoteText" class="overlay-quote-line"></div>
+        <div id="overlayQuoteAuthor" class="overlay-quote-author"></div>
+      </div>
       <button id="overlayPlayBtn">▶︎</button>
       <div id="overlayMsg">
         Click Play and<br>
@@ -2036,6 +2061,8 @@
    *************/
   const overlayVeil    = document.getElementById("overlayVeil");
   const overlayPlayBtn = document.getElementById("overlayPlayBtn");
+  const overlayQuoteText   = document.getElementById("overlayQuoteText");
+  const overlayQuoteAuthor = document.getElementById("overlayQuoteAuthor");
 
   const micBtn        = document.getElementById("micBtn");
   const micBtnIcon    = micBtn.querySelector(".icon-micstate");
@@ -2497,9 +2524,88 @@
     flats: buildNoteLookup([NOTE_NAMES_FLAT_ASCII, NOTE_NAMES_FLAT_DISPLAY])
   };
 
+  const OVERLAY_QUOTES = [
+    { quote: "If I don't practice one day, I know it; two days, the critics know it; three days, the public knows it.", author: "Jascha Heifetz" },
+    { quote: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+    { quote: "What we hope to do with ease, we must first learn to do with diligence.", author: "Samuel Johnson" },
+    { quote: "Amateurs practice until they get it right. Professionals practice until they can't get it wrong.", author: "Harold Craxton" },
+    { quote: "The more I practice, the luckier I get.", author: "Gary Player" },
+    { quote: "Motivation gets you going, but discipline keeps you growing.", author: "John C. Maxwell" },
+    { quote: "Fall in love with the process, and the results will come.", author: "Eric Thomas" },
+    { quote: "It's not that I'm so smart, it's just that I stay with problems longer.", author: "Albert Einstein" },
+    { quote: "Long-term consistency beats short-term intensity.", author: "Bruce Lee" },
+    { quote: "Practice isn't the thing you do once you're good. It's the thing you do that makes you good.", author: "Malcolm Gladwell" },
+    { quote: "Repetition is the mother of learning.", author: "Latin proverb" },
+    { quote: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+    { quote: "The only way to learn it is to do it.", author: "Archimedes" },
+    { quote: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+    { quote: "Consistency is what transforms average into excellence.", author: "Anonymous" },
+    { quote: "It's not that we have little time, but more that we waste a good deal of it.", author: "Seneca" },
+    { quote: "Great things are done by a series of small things brought together.", author: "Vincent van Gogh" },
+    { quote: "Small disciplines repeated with consistency every day lead to great achievements.", author: "John C. Maxwell" },
+    { quote: "Success depends upon previous preparation.", author: "Confucius" },
+    { quote: "An ounce of practice is worth more than tons of preaching.", author: "Mahatma Gandhi" },
+    { quote: "To learn and not to do is really not to learn. To know and not to do is really not to know.", author: "Stephen R. Covey" },
+    { quote: "Work hard in silence; let success make the noise.", author: "Frank Ocean" },
+    { quote: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
+    { quote: "There are no shortcuts to any place worth going.", author: "Beverly Sills" },
+    { quote: "Champions keep playing until they get it right.", author: "Billie Jean King" },
+    { quote: "It's what you practice in private that you will be rewarded for in public.", author: "Anthony Robbins" },
+    { quote: "Dreams don't work unless you do.", author: "John C. Maxwell" },
+    { quote: "The expert in anything was once a beginner.", author: "Anonymous" },
+    { quote: "Vision without execution is hallucination.", author: "Thomas Edison" },
+    { quote: "Success is never owned; it is rented, and the rent is due every day.", author: "Rory Vaden" },
+    { quote: "Slow is smooth, and smooth is fast.", author: "U.S. Navy SEALs" },
+    { quote: "Ordinary people think merely of spending time; great people think of using it.", author: "Arthur Schopenhauer" },
+    { quote: "Repetition makes reputation.", author: "Elizabeth Arden" },
+    { quote: "Practice means to perform, over and over again, in the face of all obstacles.", author: "Martha Graham" },
+    { quote: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+    { quote: "Habits are the invisible architecture of everyday life.", author: "Gretchen Rubin" },
+    { quote: "Action is the foundational key to all success.", author: "Pablo Picasso" },
+    { quote: "Success is a journey, not a destination.", author: "Arthur Ashe" },
+    { quote: "Sweat more in practice, bleed less in battle.", author: "Spartan proverb" },
+    { quote: "The man who moves a mountain begins by carrying away small stones.", author: "Confucius" },
+    { quote: "Discipline equals freedom.", author: "Jocko Willink" },
+    { quote: "Get comfortable being uncomfortable.", author: "U.S. Navy SEALs" },
+    { quote: "The beginning is the most important part of the work.", author: "Plato" },
+    { quote: "In preparing for battle I have always found that plans are useless, but planning is indispensable.", author: "Dwight D. Eisenhower" },
+    { quote: "Success is peace of mind, which is a direct result of self-satisfaction in knowing you made the effort to become the best of which you are capable.", author: "John Wooden" },
+    { quote: "It's the little details that are vital. Little things make big things happen.", author: "John Wooden" },
+    { quote: "Be quick, but don't hurry.", author: "John Wooden" },
+    { quote: "The fight is won or lost far away from witnesses—behind the lines, in the gym, and out there on the road, long before I dance under those lights.", author: "Muhammad Ali" },
+    { quote: "I hated every minute of training, but I said, 'Don't quit. Suffer now and live the rest of your life as a champion.'", author: "Muhammad Ali" },
+    { quote: "If you are not willing to learn, no one can help you. If you are determined to learn, no one can stop you.", author: "Zig Ziglar" },
+    { quote: "What is not started today is never finished tomorrow.", author: "Johann Wolfgang von Goethe" },
+    { quote: "Well done is better than well said.", author: "Benjamin Franklin" },
+    { quote: "Energy and persistence conquer all things.", author: "Benjamin Franklin" },
+    { quote: "A champion is someone who gets up when they can't.", author: "Jack Dempsey" },
+    { quote: "Don't let what you cannot do interfere with what you can do.", author: "John Wooden" },
+    { quote: "Hard work beats talent when talent fails to work hard.", author: "Kevin Durant" },
+    { quote: "Excellence is never an accident. It is always the result of high intention, sincere effort, and intelligent execution.", author: "Aristotle" },
+    { quote: "He who is not courageous enough to take risks will accomplish nothing in life.", author: "Muhammad Ali" },
+    { quote: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
+    { quote: "You can't build a reputation on what you are going to do.", author: "Henry Ford" },
+    { quote: "First forget inspiration. Habit is more dependable.", author: "Octavia Butler" },
+    { quote: "When we strive to become better than we are, everything around us becomes better too.", author: "Paulo Coelho" },
+    { quote: "Nothing will work unless you do.", author: "Maya Angelou" },
+    { quote: "Do the best you can until you know better. Then when you know better, do better.", author: "Maya Angelou" },
+    { quote: "Courage is not having the strength to go on; it is going on when you don't have the strength.", author: "Theodore Roosevelt" },
+    { quote: "The only way of discovering the limits of the possible is to venture a little way past them into the impossible.", author: "Arthur C. Clarke" },
+    { quote: "There is no substitute for hard work.", author: "Thomas Edison" },
+    { quote: "Great works are performed not by strength but by perseverance.", author: "Samuel Johnson" },
+    { quote: "The real secret of success is enthusiasm.", author: "Walter Chrysler" },
+    { quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant" },
+    { quote: "Lost time is never found again.", author: "Benjamin Franklin" },
+    { quote: "Doubt kills more dreams than failure ever will.", author: "Suzy Kassem" },
+    { quote: "If you spend too much time thinking about a thing, you'll never get it done.", author: "Bruce Lee" },
+    { quote: "Well-arranged time is the surest mark of a well-arranged mind.", author: "Sir Isaac Pitman" },
+    { quote: "Step by step. I can't think of any other way of accomplishing anything.", author: "Michael Jordan" }
+  ];
+
   let accidentalMode = "sharps";
 
   const STORAGE_KEY = "tonemap.live.settings";
+  const QUOTE_INDEX_KEY = "tonemap.live.quoteIndex";
 
   const HISTORY_DEFAULT = "short";
   const HISTORY_WINDOWS = Object.freeze({
@@ -2985,6 +3091,34 @@
     }
     if (freqEl) freqEl.textContent = lastDisplayedHzText;
     if (centsEl) centsEl.textContent = lastDisplayedCentsText;
+  }
+
+  function getNextOverlayQuote() {
+    if (!OVERLAY_QUOTES.length) return null;
+    let idx = 0;
+    try {
+      const stored = parseInt(localStorage.getItem(QUOTE_INDEX_KEY) ?? "0", 10);
+      if (!Number.isNaN(stored) && stored >= 0) {
+        idx = stored % OVERLAY_QUOTES.length;
+      }
+    } catch (err) {
+      // ignore storage errors (e.g., private mode)
+    }
+    const nextIdx = (idx + 1) % OVERLAY_QUOTES.length;
+    try {
+      localStorage.setItem(QUOTE_INDEX_KEY, String(nextIdx));
+    } catch (err) {
+      // ignore write failures
+    }
+    return OVERLAY_QUOTES[idx];
+  }
+
+  function setOverlayQuote() {
+    if (!overlayQuoteText || !overlayQuoteAuthor) return;
+    const q = getNextOverlayQuote();
+    if (!q) return;
+    overlayQuoteText.textContent = q.quote;
+    overlayQuoteAuthor.textContent = `— ${q.author}`;
   }
 
   function updateQuickState() {
@@ -4817,9 +4951,10 @@
     });
   }
 
-  /**********************
-   * INITIALIZATION
-   **********************/
+ /**********************
+  * INITIALIZATION
+  **********************/
+  setOverlayQuote();
   updateGridAppearanceForViewport();
   rebuildAll({forceDefaultRange:true});
 
