@@ -130,6 +130,7 @@
     height: 100%;
     display: grid;
     background: var(--grid-bg);
+    position: relative;
   }
 
   .grid-shell {
@@ -1496,6 +1497,27 @@
     transform: translate(-50%, -50%);
   }
 
+  .confetti-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 25;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 8px;
+    height: 10px;
+    border-radius: 2px;
+    opacity: 0;
+    transform: translate(0, 0);
+    box-shadow: 0 0 6px rgba(255,255,255,0.3);
+    will-change: transform, opacity;
+  }
+
   /********************
    * OVERLAY FIRST RUN (mic permission)
    ********************/
@@ -2439,6 +2461,11 @@
   const MASTER_MIDI_MIN = 0;
   const MASTER_MIDI_MAX = 127;
   let micRestartInFlight = false;
+  let suppressHeatmapRender = false;
+  let easterEggRunning = false;
+  let easterEggRestoreTimer = null;
+  let easterEggSavedStyles = null;
+  const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
 
   function createEmptyCellState() {
     return {
@@ -4130,6 +4157,7 @@
   }
 
   function renderHeatmap() {
+    if (suppressHeatmapRender) return;
     const holdSeconds = getStainHoldSeconds();
     const nowTime = nowMs();
     for (const midi in midiToCellEl) {
@@ -4145,6 +4173,146 @@
       }
     }
     stainedThisTick.clear();
+  }
+
+  function buildConfettiPiecesForCells() {
+    if (!noteGrid) return { overlay: null, pieces: [] };
+    const gridRect = noteGrid.getBoundingClientRect();
+    const overlay = document.createElement("div");
+    overlay.className = "confetti-overlay";
+    const pieces = [];
+
+    const cells = Object.values(midiToCellEl || {});
+    cells.forEach((cell, idx) => {
+      const rect = cell.getBoundingClientRect();
+      const startX = rect.left - gridRect.left + rect.width / 2;
+      const startY = rect.top - gridRect.top + rect.height / 2;
+      const color = CONFETTI_PRIMARY_COLORS[idx % CONFETTI_PRIMARY_COLORS.length];
+
+      for (let i = 0; i < 6; i++) {
+        const pieceEl = document.createElement("div");
+        pieceEl.className = "confetti-piece";
+        const w = 4 + Math.random() * 6;
+        const h = 6 + Math.random() * 8;
+        pieceEl.style.width = `${w}px`;
+        pieceEl.style.height = `${h}px`;
+        pieceEl.style.backgroundColor = color;
+        pieceEl.style.borderRadius = `${1 + Math.random() * 2}px`;
+
+        const targetX = gridRect.width / 2;
+        const targetY = -80 - Math.random() * 80;
+        const dirX = targetX - startX;
+        const dirY = targetY - startY;
+        const len = Math.hypot(dirX, dirY) || 1;
+        const normX = dirX / len;
+        const normY = dirY / len;
+        const speed = 650 + Math.random() * 450;
+        const lateral = (Math.random() * 2 - 1) * 260;
+
+        const vx = normX * speed + lateral;
+        const vy = normY * speed - Math.random() * 120;
+        const rot = Math.random() * 360;
+        const rotVel = (Math.random() * 720 - 360); // deg per second
+
+        const piece = {
+          el: pieceEl,
+          x: startX,
+          y: startY,
+          vx,
+          vy,
+          rot,
+          rotVel
+        };
+        pieceEl.style.transform = `translate(${piece.x}px, ${piece.y}px) rotate(${piece.rot}deg)`;
+        overlay.appendChild(pieceEl);
+        pieces.push(piece);
+      }
+    });
+
+    return { overlay, pieces };
+  }
+
+  function restoreEasterEggCells() {
+    if (easterEggSavedStyles) {
+      easterEggSavedStyles.forEach(({ cell, backgroundColor, boxShadow, transition }) => {
+        cell.style.backgroundColor = backgroundColor;
+        cell.style.boxShadow = boxShadow;
+        cell.style.transition = transition;
+        cell.style.opacity = "";
+      });
+    }
+    easterEggSavedStyles = null;
+  }
+
+  function triggerC4EasterEgg() {
+    if (easterEggRunning) return;
+    if (!noteGrid) return;
+    const cells = Object.values(midiToCellEl || {});
+    if (!cells.length) return;
+
+    easterEggRunning = true;
+
+    easterEggSavedStyles = cells.map(cell => ({
+      cell,
+      backgroundColor: cell.style.backgroundColor,
+      boxShadow: cell.style.boxShadow,
+      transition: cell.style.transition,
+      opacity: cell.style.opacity
+    }));
+
+    suppressHeatmapRender = true;
+    cells.forEach((cell, idx) => {
+      const color = CONFETTI_PRIMARY_COLORS[idx % CONFETTI_PRIMARY_COLORS.length];
+      cell.style.transition = "background-color 0.25s ease, opacity 0.25s ease";
+      cell.style.backgroundColor = color;
+      cell.style.opacity = "0";
+    });
+
+    const { overlay, pieces } = buildConfettiPiecesForCells();
+    if (overlay) noteGrid.appendChild(overlay);
+
+    const gravity = 2200; // px/s^2
+    const duration = 2200;
+    const fadeStart = duration * 0.6;
+    let lastT = null;
+    const startT = performance.now();
+
+    function step(ts) {
+      if (lastT == null) lastT = ts;
+      const dt = (ts - lastT) / 1000;
+      lastT = ts;
+      const elapsed = ts - startT;
+      pieces.forEach(p => {
+        p.vy += gravity * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rot += p.rotVel * dt;
+        const opacity = elapsed > fadeStart ? Math.max(0, 1 - (elapsed - fadeStart) / (duration - fadeStart)) : 1;
+        p.el.style.opacity = opacity;
+        p.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${p.rot}deg)`;
+      });
+
+      if (elapsed < duration) {
+        requestAnimationFrame(step);
+      } else {
+        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        restoreEasterEggCells();
+        suppressHeatmapRender = false;
+        renderHeatmap();
+        easterEggRunning = false;
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function handleGridCellClick(event) {
+    const cell = event.target.closest(".grid-cell");
+    if (!cell) return;
+    const midiVal = parseInt(cell.dataset.midi, 10);
+    const midiC4 = noteNameToMidiC("C4");
+    if (Number.isInteger(midiVal) && midiVal === midiC4) {
+      triggerC4EasterEgg();
+    }
   }
 
   // History change reinterprets stain (doesn't clear)
@@ -4622,6 +4790,11 @@
   resetBtn.addEventListener("click", () => {
     resetHeatmapOnly();
   });
+
+  if (noteGrid) {
+    noteGrid.addEventListener("click", handleGridCellClick);
+    noteGrid.addEventListener("touchend", handleGridCellClick, { passive: true });
+  }
 
   if (rangeGrowBtn) {
     rangeGrowBtn.addEventListener("click", () => {
