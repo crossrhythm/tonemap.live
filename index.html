@@ -1933,7 +1933,7 @@
         <div class="opt-control opt-control-slider">
           <div class="volume-wrap">
             <div class="slider-col">
-              <input id="volThresh" type="range" min="0" max="1" step="0.01" />
+              <input id="volThresh" type="range" min="0" max="0.75" step="0.01" />
             </div>
             <div id="led" class="led gray"></div>
           </div>
@@ -5246,9 +5246,10 @@
   volThreshEl.addEventListener("input", () => {
     const val = parseFloat(volThreshEl.value);
     if (!isNaN(val)) {
-      volumeThreshold = sliderToThreshold(val);
+      const clamped = Math.max(0, Math.min(0.75, val));
+      volumeThreshold = sliderToThreshold(clamped);
       dbgThresh.textContent = volumeThreshold.toExponential(2);
-      currentSettings.minVol = val;
+      currentSettings.minVol = clamped;
       persistSettings(currentSettings);
     }
   });
@@ -5257,7 +5258,7 @@
   A4 = currentSettings.a4;
   dbgARef.textContent = `${A4}`;
   volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
-  if (volThreshEl) volThreshEl.value = String(currentSettings.minVol ?? 0.1);
+  if (volThreshEl) volThreshEl.value = String(Math.min(0.75, currentSettings.minVol ?? 0.1));
   dbgThresh.textContent = volumeThreshold.toExponential(2);
   initUsageTracking();
 
@@ -5337,7 +5338,7 @@
       A4 = currentSettings.a4;
       dbgARef.textContent = `${A4}`;
       volumeThreshold = sliderToThreshold(currentSettings.minVol);
-      if (volThreshEl) volThreshEl.value = String(currentSettings.minVol);
+      if (volThreshEl) volThreshEl.value = String(Math.min(0.75, currentSettings.minVol));
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       finalizeActiveSegment();
       clearActiveNote();
