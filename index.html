@@ -1912,24 +1912,30 @@
           </select>
         </div>
       </div>
-      <div class="option-field">
-        <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
-        <div class="opt-control">
-          <select id="stainHoldSelect">
-            <option value="5">5 seconds</option>
-            <option value="15">15 seconds</option>
-            <option value="30" selected>30 seconds</option>
-            <option value="120">2 minutes</option>
-            <option value="300">5 minutes</option>
-            <option value="unlimited">No fade</option>
-          </select>
-        </div>
-      </div>
+  <div class="option-field">
+    <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
+    <div class="opt-control">
+      <select id="stainHoldSelect">
+        <option value="5">5 seconds</option>
+        <option value="15">15 seconds</option>
+        <option value="30" selected>30 seconds</option>
+        <option value="120">2 minutes</option>
+        <option value="300">5 minutes</option>
+        <option value="unlimited">No fade</option>
+      </select>
+    </div>
+  </div>
+  <div class="option-field">
+    <label class="opt-label" for="rowStartSelect">Rows start with note</label>
+    <div class="opt-control">
+      <select id="rowStartSelect"></select>
+    </div>
+  </div>
 
 
 
-      <div class="option-field">
-        <label class="opt-label" for="volThresh">Volume Sensitivity</label>
+  <div class="option-field">
+    <label class="opt-label" for="volThresh">Volume Sensitivity</label>
         <div class="opt-control opt-control-slider">
           <div class="volume-wrap">
             <div class="slider-col">
@@ -2228,6 +2234,7 @@
   const optionsPaletteBtn = document.getElementById("optionsPaletteBtn");
   const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
+  const rowStartSelect = document.getElementById("rowStartSelect");
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -2752,6 +2759,7 @@
     stretch: "none",
     accidentalMode: "sharps",
     transposition: "0",
+    rowStart: "0",
     lowNote: "C3",
     history: HISTORY_DEFAULT,
     stainHold: STAIN_HOLD_DEFAULT,
@@ -3436,14 +3444,19 @@
     if (originalStainHold !== stainHoldVal) needsPersist = true;
     currentSettings.stainHold = stainHoldVal;
 
-    const originalLowNote = settings.lowNote;
-    let lowNoteVal = originalLowNote;
-    if (!lowNoteSelect || !lowNoteSelect.querySelector(`option[value="${lowNoteVal}"]`)) {
-      lowNoteVal = DEFAULT_SETTINGS.lowNote;
+    const originalRowStart = settings.rowStart;
+    let rowStartVal = parseInt(originalRowStart, 10);
+    if (!Number.isFinite(rowStartVal) || rowStartVal < 0 || rowStartVal > 11) {
+      rowStartVal = parseInt(DEFAULT_SETTINGS.rowStart, 10) || 0;
     }
-    if (lowNoteSelect) lowNoteSelect.value = lowNoteVal;
-    if (originalLowNote !== lowNoteVal) needsPersist = true;
-    currentSettings.lowNote = lowNoteVal;
+    rebuildRowStartSelectOptions(rowStartVal);
+    if (rowStartSelect) rowStartSelect.value = String(rowStartVal);
+    if (String(originalRowStart) !== String(rowStartVal)) needsPersist = true;
+    currentSettings.rowStart = String(rowStartVal);
+
+    const originalLowNote = settings.lowNote;
+    const chosenLowNote = rebuildLowNoteSelectOptions(rowStartVal, originalLowNote);
+    if (originalLowNote !== chosenLowNote) needsPersist = true;
 
     const originalMinVol = settings.minVol;
     let minVolVal = originalMinVol;
@@ -3451,7 +3464,7 @@
       const parsed = parseFloat(minVolVal);
       minVolVal = Number.isFinite(parsed) ? parsed : DEFAULT_SETTINGS.minVol;
     }
-    minVolVal = Math.min(Math.max(minVolVal, 0), 1);
+    minVolVal = Math.min(Math.max(minVolVal, 0), 0.75);
     if (minVolVal !== originalMinVol) needsPersist = true;
     currentSettings.minVol = minVolVal;
     if (volThreshEl) {
@@ -3548,6 +3561,8 @@
     accidentalMode = nextMode;
     currentSettings.accidentalMode = nextMode;
     if (!skipPersist) persistSettings(currentSettings);
+    rebuildRowStartSelectOptions();
+    rebuildLowNoteSelectOptions();
     updateAccidentalToggleUI();
     updateGridLabelsForAccidentals();
     updateNoteReadoutText();
@@ -3666,7 +3681,7 @@
     if (mode === "relaxed") {
         dbgSens.textContent     = "Relaxed";
         dbgDeadZone.textContent = "~0.30%";
-        dbgHold.textContent     = "0.15 s";
+        dbgHold.textContent     = "0.10 s";
     } else if (mode === "medium") {
         dbgSens.textContent     = "Medium";
         dbgDeadZone.textContent = "~0.23%";
@@ -3793,6 +3808,54 @@
     const baseForOct = 12 + octave * 12;
     if (idx === -1) return baseForOct;
     return baseForOct + idx;
+  }
+
+  function getCurrentRowStartIdx() {
+    const idx = parseInt(currentSettings.rowStart ?? "0", 10);
+    if (!Number.isFinite(idx)) return 0;
+    return ((idx % 12) + 12) % 12;
+  }
+
+  function rebuildRowStartSelectOptions(selectedIdx = getCurrentRowStartIdx()) {
+    if (!rowStartSelect) return;
+    const names = getNoteNamesForMode(accidentalMode);
+    const prevVal = rowStartSelect.value ?? String(selectedIdx);
+    rowStartSelect.innerHTML = "";
+    [...names].reverse().forEach((name, revIdx) => {
+      const idx = names.length - 1 - revIdx;
+      const opt = document.createElement("option");
+      opt.value = String(idx);
+      opt.textContent = name;
+      rowStartSelect.appendChild(opt);
+    });
+    const chosen = rowStartSelect.querySelector(`option[value="${prevVal}"]`) ? prevVal : String(selectedIdx);
+    rowStartSelect.value = chosen;
+    currentSettings.rowStart = chosen;
+  }
+
+  function rebuildLowNoteSelectOptions(rowStartIdx = getCurrentRowStartIdx(), desiredVal = null) {
+    if (!lowNoteSelect) return null;
+    const displayNames = getNoteNamesForMode(accidentalMode);
+    const displayBase = displayNames[rowStartIdx] ?? NOTE_NAMES_SHARP[rowStartIdx];
+    const valueBase = NOTE_NAMES_SHARP[rowStartIdx];
+    const maxTopMidi = noteNameToMidiC("C8");
+    const prevVal = desiredVal || lowNoteSelect.value;
+    lowNoteSelect.innerHTML = "";
+    for (let oct = 0; oct <= 8; oct++) {
+      const midiVal = noteNameToMidiC(`${valueBase}${oct}`);
+      if (midiVal > maxTopMidi) break;
+      const opt = document.createElement("option");
+      opt.value = `${valueBase}${oct}`;
+      opt.textContent = `${displayBase}${oct}`;
+      lowNoteSelect.appendChild(opt);
+    }
+    let chosen = prevVal;
+    if (!lowNoteSelect.querySelector(`option[value="${chosen}"]`)) {
+      chosen = lowNoteSelect.options[0]?.value || `${valueBase}0`;
+    }
+    lowNoteSelect.value = chosen;
+    currentSettings.lowNote = chosen;
+    return chosen;
   }
 
   function rebuildRangeOptions({forceDefault=false, desiredRange=null} = {}) {
@@ -5060,6 +5123,19 @@
   if (noteGrid) {
     noteGrid.addEventListener("click", handleGridCellClick);
     noteGrid.addEventListener("touchend", handleGridCellClick, { passive: true });
+  }
+
+  if (rowStartSelect) {
+    rowStartSelect.addEventListener("change", () => {
+      const val = parseInt(rowStartSelect.value, 10);
+      const idx = Number.isFinite(val) ? ((val % 12) + 12) % 12 : 0;
+      currentSettings.rowStart = String(idx);
+      const chosenLow = rebuildLowNoteSelectOptions(idx);
+      currentSettings.lowNote = chosenLow || currentSettings.lowNote;
+      persistSettings(currentSettings);
+      rebuildRangeOptions({ forceDefault: false });
+      buildGrid({ preserveStain: true });
+    });
   }
 
   if (rangeGrowBtn) {
