@@ -1790,163 +1790,163 @@
             <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close options overlay">Apply ✕</button>
           </div>
         </div>
-        <div class="options-overlay-body">
-          <div class="options-grid">
-      <div class="option-field">
-        <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
-        <div class="opt-control a-ref-control">
-          <input
-            id="aRefInput"
-            class="a-ref-input"
-            type="number"
-            min="100"
-            max="1000"
-            step="1"
-            inputmode="decimal"
-            aria-label="Custom performance pitch in Hz"
-            placeholder="Custom Hz"
-            value="440"
-          />
-          <div class="a-ref-preset">
-            <span class="preset-label" id="presetLabel">Presets:</span>
-            <select id="aRefSelect" aria-labelledby="presetLabel">
-              <option value="392">392</option>
-              <option value="415">415</option>
-              <option value="430">430</option>
-              <option value="432">432</option>
-              <option value="438">438</option>
-              <option value="440" selected>440</option>
-              <option value="441">441</option>
-              <option value="442">442</option>
-              <option value="443">443</option>
-              <option value="444">444</option>
-              <option value="466">466</option>
-              <option value="470">470</option>
-              <option value="custom">Custom</option>
+    <div class="options-overlay-body">
+      <div class="options-grid">
+        <div class="option-field">
+          <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
+          <div class="opt-control a-ref-control">
+            <input
+              id="aRefInput"
+              class="a-ref-input"
+              type="number"
+              min="100"
+              max="1000"
+              step="1"
+              inputmode="decimal"
+              aria-label="Custom performance pitch in Hz"
+              placeholder="Custom Hz"
+              value="440"
+            />
+            <div class="a-ref-preset">
+              <span class="preset-label" id="presetLabel">Presets:</span>
+              <select id="aRefSelect" aria-labelledby="presetLabel">
+                <option value="392">392</option>
+                <option value="415">415</option>
+                <option value="430">430</option>
+                <option value="432">432</option>
+                <option value="438">438</option>
+                <option value="440" selected>440</option>
+                <option value="441">441</option>
+                <option value="442">442</option>
+                <option value="443">443</option>
+                <option value="444">444</option>
+                <option value="466">466</option>
+                <option value="470">470</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+          </div>
+          <p class="opt-error" id="aRefError" role="alert" aria-live="polite"></p>
+        </div>
+
+        <div class="option-field">
+          <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
+          <div class="opt-control">
+            <select id="sensitivitySelect">
+              <option value="relaxed">Relaxed (Vocal - forgiving)</option>
+              <option value="medium" selected>Medium (no damping, medium response)</option>
+              <option value="hard">Hard (no dead zone, fast response)</option>
             </select>
           </div>
         </div>
-        <p class="opt-error" id="aRefError" role="alert" aria-live="polite"></p>
-      </div>
 
-      <div class="option-field">
-        <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
-        <div class="opt-control">
-          <select id="sensitivitySelect">
-            <option value="relaxed">Relaxed (Vocal - forgiving)</option>
-            <option value="medium" selected>Medium (no damping, medium response)</option>
-            <option value="hard">Hard (no dead zone, fast response)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="option-field">
-        <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
-        <div class="opt-control">
-          <select id="stretchSelect">
-            <option value="none">None (Equal Temperament)</option>
-            <option value="minimal" selected>Minimal (¼ Railsback above A4)</option>
-            <option value="medium">Medium (½ Railsback above A4)</option>
-            <option value="full">Full (Railsback)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="option-field">
-        <label class="opt-label" for="accidentalToggle">Accidentals</label>
-        <div class="opt-control">
-          <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
-        </div>
-      </div>
-      <div class="option-field">
-        <label class="opt-label" for="needleDirSelect">Needle Direction</label>
-        <div class="opt-control">
-          <select id="needleDirSelect">
-            <option value="horizontal">Horizontal</option>
-            <option value="vertical" selected>Vertical</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="option-field">
-        <label class="opt-label" for="transpositionSelect">Transposition</label>
-        <div class="opt-control">
-          <select id="transpositionSelect">
-            <option value="11">B (+11)</option>
-            <option value="10">B♭ (+10)</option>
-            <option value="9">A (+9)</option>
-            <option value="8">A♭ (+8)</option>
-            <option value="7">G (+7)</option>
-            <option value="6">G♭ (+6)</option>
-            <option value="5">F (+5) English Horn, Horn in F</option>
-            <option value="4">E (+4)</option>
-            <option value="3">E♭ (+3) Alto Sax, Baritone Sax, Eb Clarinet</option>
-            <option value="2">D (+2)</option>
-            <option value="1">D♭ (+1)</option>
-            <option value="0" selected>C (+0) Concert (Flute, Oboe, Violin, Voice, etc.)</option>
-            <option value="-1">B (−1)</option>
-            <option value="-2">B♭ (−2) Bb Trumpet & Clarinet, Sop. & Tenor Sax, Bass Clarinet</option>
-            <option value="-3">A (−3) Clarinet in A</option>
-            <option value="-4">A♭ (−4)</option>
-            <option value="-5">G (−5) Alto Flute</option>
-            <option value="-6">G♭ (−6)</option>
-            <option value="-7">F (−7)</option>
-            <option value="-8">E (−8)</option>
-            <option value="-9">E♭ (−9)</option>
-            <option value="-10">D (−10)</option>
-            <option value="-11">D♭ (−11)</option>
-          </select>
-        </div>
-      </div>
-
-
-
-      <div class="option-field">
-        <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
-        <div class="opt-control">
-          <select id="historySelect">
-            <option value="short" selected>Short (1 second)</option>
-            <option value="medium">Medium (3 seconds)</option>
-            <option value="long">Long (30 seconds)</option>
-            <option value="unlimited">Unlimited</option>
-          </select>
-        </div>
-      </div>
-  <div class="option-field">
-    <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
-    <div class="opt-control">
-      <select id="stainHoldSelect">
-        <option value="5">5 seconds</option>
-        <option value="15">15 seconds</option>
-        <option value="30" selected>30 seconds</option>
-        <option value="120">2 minutes</option>
-        <option value="300">5 minutes</option>
-        <option value="unlimited">No fade</option>
-      </select>
-    </div>
-  </div>
-  <div class="option-field">
-    <label class="opt-label" for="rowStartSelect">Rows start with note</label>
-    <div class="opt-control">
-      <select id="rowStartSelect"></select>
-    </div>
-  </div>
-
-
-
-  <div class="option-field">
-    <label class="opt-label" for="volThresh">Volume Sensitivity</label>
-        <div class="opt-control opt-control-slider">
-          <div class="volume-wrap">
-            <div class="slider-col">
-              <input id="volThresh" type="range" min="0" max="0.75" step="0.01" />
-            </div>
-            <div id="led" class="led gray"></div>
+        <div class="option-field">
+          <label class="opt-label" for="accidentalToggle">Accidentals</label>
+          <div class="opt-control">
+            <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
           </div>
         </div>
-      </div>
+
+        <div class="option-field">
+          <label class="opt-label" for="rowStartSelect">Rows start with note</label>
+          <div class="opt-control">
+            <select id="rowStartSelect"></select>
+          </div>
+        </div>
+
+        <div class="option-field">
+          <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
+          <div class="opt-control">
+            <select id="stretchSelect">
+              <option value="none">None (Equal Temperament)</option>
+              <option value="minimal" selected>Minimal (¼ Railsback above A4)</option>
+              <option value="medium">Medium (½ Railsback above A4)</option>
+              <option value="full">Full (Railsback)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="option-field">
+          <label class="opt-label" for="needleDirSelect">Needle Direction</label>
+          <div class="opt-control">
+            <select id="needleDirSelect">
+              <option value="horizontal">Horizontal</option>
+              <option value="vertical" selected>Vertical</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="option-field">
+          <label class="opt-label" for="transpositionSelect">Transposition</label>
+          <div class="opt-control">
+            <select id="transpositionSelect">
+              <option value="11">B (+11)</option>
+              <option value="10">B♭ (+10)</option>
+              <option value="9">A (+9)</option>
+              <option value="8">A♭ (+8)</option>
+              <option value="7">G (+7)</option>
+              <option value="6">G♭ (+6)</option>
+              <option value="5">F (+5) English Horn, Horn in F</option>
+              <option value="4">E (+4)</option>
+              <option value="3">E♭ (+3) Alto Sax, Baritone Sax, Eb Clarinet</option>
+              <option value="2">D (+2)</option>
+              <option value="1">D♭ (+1)</option>
+              <option value="0" selected>C (+0) Concert (Flute, Oboe, Violin, Voice, etc.)</option>
+              <option value="-1">B (−1)</option>
+              <option value="-2">B♭ (−2) Bb Trumpet & Clarinet, Sop. & Tenor Sax, Bass Clarinet</option>
+              <option value="-3">A (−3) Clarinet in A</option>
+              <option value="-4">A♭ (−4)</option>
+              <option value="-5">G (−5) Alto Flute</option>
+              <option value="-6">G♭ (−6)</option>
+              <option value="-7">F (−7)</option>
+              <option value="-8">E (−8)</option>
+              <option value="-9">E♭ (−9) Alto Sax, Baritone Sax, Eb Clarinet</option>
+              <option value="-10">D (−10)</option>
+              <option value="-11">D♭ (−11)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="option-field">
+          <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
+          <div class="opt-control">
+            <select id="historySelect">
+              <option value="short" selected>Short (1 second)</option>
+              <option value="medium">Medium (3 seconds)</option>
+              <option value="long">Long (30 seconds)</option>
+              <option value="unlimited">Unlimited</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="option-field">
+          <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
+          <div class="opt-control">
+            <select id="stainHoldSelect">
+              <option value="5">5 seconds</option>
+              <option value="15">15 seconds</option>
+              <option value="30" selected>30 seconds</option>
+              <option value="120">2 minutes</option>
+              <option value="300">5 minutes</option>
+              <option value="unlimited">No fade</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="option-field">
+          <label class="opt-label" for="volThresh">Volume Sensitivity</label>
+          <div class="opt-control opt-control-slider">
+            <div class="volume-wrap">
+              <div class="slider-col">
+                <input id="volThresh" type="range" min="0" max="0.75" step="0.01" />
+              </div>
+              <div id="led" class="led gray"></div>
+            </div>
+          </div>
+        </div>
 
       </div>
+    </div>
       <div class="options-overlay-footer">
         <div class="overlay-button-stack">
           <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
@@ -2382,18 +2382,20 @@
 
   // Modes
   const RELAXED_DEADZONE_RATIO = 0.003;  // 0.3%
-  const RELAXED_MIN_HOLD_MS = 150;
-  const RELAXED_ERR_SCALE = 0.5; // 50% less sensitive stain/color
-  const RELAXED_NEEDLE_TAU_MS = 400; // EMA time constant for needle damping (vocal-friendly)
+  const RELAXED_MIN_HOLD_MS = 80;
+  const RELAXED_ERR_SCALE = 0.7; // 50% less sensitive stain/color
+  const RELAXED_NEEDLE_TAU_MS = 350; // EMA time constant for needle damping (vocal-friendly)
 
   const MEDIUM_DEADZONE_RATIO = 0.0023; // ~0.23%
-  const MEDIUM_MIN_HOLD_MS = 100;
+  const MEDIUM_MIN_HOLD_MS = 80;
   const MEDIUM_ERR_SCALE = 0.7;
+  const MEDIUM_NEEDLE_TAU_MS = 80;
 
   // Hard mode softened but still tighter than Medium
   const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 2; // ~0.12%
-  const HARD_MIN_HOLD_MS = 50;
+  const HARD_MIN_HOLD_MS = 40;
   const HARD_ERR_SCALE = 0.9;
+  const HARD_NEEDLE_TAU_MS = 30;
 
   // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
   const RAILSBACK_ANCHORS = [
@@ -3681,15 +3683,15 @@
     if (mode === "relaxed") {
         dbgSens.textContent     = "Relaxed";
         dbgDeadZone.textContent = "~0.30%";
-        dbgHold.textContent     = "0.10 s";
+        dbgHold.textContent     = "0.08 s";
     } else if (mode === "medium") {
         dbgSens.textContent     = "Medium";
         dbgDeadZone.textContent = "~0.23%";
-        dbgHold.textContent     = "0.10 s";
+        dbgHold.textContent     = "0.08 s";
     } else {
         dbgSens.textContent     = "Hard";
         dbgDeadZone.textContent = "~0.12%";
-        dbgHold.textContent     = "0.05 s";
+        dbgHold.textContent     = "0.04 s";
     }
 
     if (dbgStretch) {
@@ -4840,20 +4842,27 @@
       noteDetectedThisFrame = true;
 
       let displayCents = cents;
-      if (mode === "relaxed") {
+      const tauMs = mode === "relaxed"
+        ? RELAXED_NEEDLE_TAU_MS
+        : mode === "medium"
+          ? MEDIUM_NEEDLE_TAU_MS
+          : HARD_NEEDLE_TAU_MS;
+      if (tauMs > 0) {
         if (!relaxedSmoothingActive) {
           relaxedNeedleCents = cents;
           relaxedNeedleLastMs = nowT;
+          relaxedSmoothingActive = true;
         } else {
           if (!Number.isFinite(relaxedNeedleCents)) {
             relaxedNeedleCents = cents;
           }
-          const alpha = 1 - Math.exp(-dtMs / RELAXED_NEEDLE_TAU_MS);
+          const alpha = 1 - Math.exp(-dtMs / tauMs);
           relaxedNeedleCents = relaxedNeedleCents + (cents - relaxedNeedleCents) * alpha;
         }
         displayCents = relaxedNeedleCents;
       } else {
         relaxedNeedleCents = cents;
+        relaxedSmoothingActive = false;
       }
     const absErr = Math.abs(errRatio);
     inDeadZoneNow = (absErr <= deadZoneRatio);
