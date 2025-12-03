@@ -7,6 +7,8 @@ Tonemap analyzes incoming audio, identifies pitch in real time, and visualizes i
 
 The goal is to provide clear, actionable feedback during practice: where notes tend to sit, how articulations affect intonation, and how consistency improves over time.
 
+Created by Jeremy Black (who hasn't really used his minor in computer science from CWRU since receiving it in 2000).  99% coded with Codex and VSCode.  https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy
+
 ## Features
 - Real-time pitch detection in the browser (Web Audio API + custom smoothing).  
 - Dynamic cell-based visual map showing sharp/flat tendencies over time.  
@@ -14,7 +16,7 @@ The goal is to provide clear, actionable feedback during practice: where notes t
 - Optional transposition for common orchestral instruments.  
 - Lightweight, mobile-friendly UI (iOS, iPadOS, Android, desktop).  
 - Runs entirely in the browser; no data is sent to any server.
-- Options for stretch tuning, transposition, A440 reference, and more.
+- Options for stretch tuning, custom grid colors, adjustable A4 reference pitch, and more.
 
 ## Tech Stack
 - **HTML / CSS / JavaScript**  
