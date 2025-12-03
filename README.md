@@ -3,7 +3,7 @@ A browser-based visual tuner that maps pitch tendencies in real time.
 Live demo: https://tonemap.live
 
 ## Overview
-Tonemap analyzes incoming audio, identifies pitch in real time, and visualizes intonation tendencies on a dynamic grid of "cells." Each cell represents a specific note, allowing musicians to see sharp/flat tendencies across phrases, shifts, and articulations - not just instantaneous pitch.
+Tonemap analyzes incoming audio, identifies pitch in real time, and visualizes intonation tendencies on a dynamic grid of "cells." Each cell represents a specific note, allowing musicians to see sharp/flat tendencies over time - not just instantaneous pitch.
 
 The goal is to provide clear, actionable feedback during practice: where notes tend to sit, how articulations affect intonation, and how consistency improves over time.
 
@@ -14,6 +14,7 @@ The goal is to provide clear, actionable feedback during practice: where notes t
 - Optional transposition for common orchestral instruments.  
 - Lightweight, mobile-friendly UI (iOS, iPadOS, Android, desktop).  
 - Runs entirely in the browser; no data is sent to any server.
+- Options for stretch tuning, transposition, A440 reference, and more.
 
 ## Tech Stack
 - **HTML / CSS / JavaScript**  
