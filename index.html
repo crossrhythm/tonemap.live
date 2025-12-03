@@ -3883,6 +3883,8 @@
     const valueBase = NOTE_NAMES_SHARP[rowStartIdx];
     const maxTopMidi = noteNameToMidiC("C8");
     const prevVal = desiredVal || lowNoteSelect.value;
+    const prevOctaveMatch = /(\d+)$/.exec(prevVal || "");
+    const sameOctaveVal = prevOctaveMatch ? `${valueBase}${prevOctaveMatch[1]}` : null;
     lowNoteSelect.innerHTML = "";
     for (let oct = 0; oct <= 8; oct++) {
       const midiVal = noteNameToMidiC(`${valueBase}${oct}`);
@@ -3894,7 +3896,11 @@
     }
     let chosen = prevVal;
     if (!lowNoteSelect.querySelector(`option[value="${chosen}"]`)) {
-      chosen = lowNoteSelect.options[0]?.value || `${valueBase}0`;
+      if (sameOctaveVal && lowNoteSelect.querySelector(`option[value="${sameOctaveVal}"]`)) {
+        chosen = sameOctaveVal;
+      } else {
+        chosen = lowNoteSelect.options[0]?.value || `${valueBase}0`;
+      }
     }
     lowNoteSelect.value = chosen;
     currentSettings.lowNote = chosen;
