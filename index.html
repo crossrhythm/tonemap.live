@@ -1842,6 +1842,14 @@
         </div>
 
         <div class="option-field">
+          <label class="opt-label">Hold Gate</label>
+          <div class="opt-control">
+            <button id="holdGateToggle" class="toggle-btn" type="button">Hold: On</button>
+          </div>
+          <p class="opt-hint">Requires pitch to settle before adding color to grid.</p>
+        </div>
+
+        <div class="option-field">
           <label class="opt-label" for="accidentalToggle">Accidentals</label>
           <div class="opt-control">
             <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
@@ -2190,6 +2198,7 @@
   const stainHoldSelect   = document.getElementById("stainHoldSelect");
   const stretchSelect     = document.getElementById("stretchSelect");
   const accidentalToggle  = document.getElementById("accidentalToggle");
+  const holdGateToggle    = document.getElementById("holdGateToggle");
   const needleDirSelect   = document.getElementById("needleDirSelect");
   const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
 
@@ -2756,6 +2765,8 @@
     "unlimited": Infinity
   });
 
+  const HOLD_GATE_DEFAULT = false;
+
   const DEFAULT_SETTINGS = {
     a4: 440,
     sensitivity: "medium",
@@ -2769,7 +2780,8 @@
     needleDirection: "horizontal",
     range: null, // computed default
     minVol: 0.1,
-    colorPalette: null
+    colorPalette: null,
+    holdGate: HOLD_GATE_DEFAULT
   };
 
   const DEFAULT_PALETTE = {
@@ -2807,18 +2819,32 @@
   let lastUsageUiUpdateMs = 0;
   let pendingMilestone = false;
 
+  function normalizeHoldGateSetting(raw) {
+    return raw === false ? false : true;
+  }
+
+  function defaultSettingsWithHoldGate() {
+    return {
+      ...DEFAULT_SETTINGS,
+      holdGate: normalizeHoldGateSetting(DEFAULT_SETTINGS.holdGate)
+    };
+  }
+
   function loadSettings() {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { ...DEFAULT_SETTINGS };
+      const defaults = defaultSettingsWithHoldGate();
+      if (!raw) return defaults;
       const parsed = JSON.parse(raw);
       if (parsed && parsed.range != null) {
         parsed.range = String(parsed.range);
       }
-      return { ...DEFAULT_SETTINGS, ...parsed };
+      const merged = { ...defaults, ...parsed };
+      merged.holdGate = normalizeHoldGateSetting(parsed?.holdGate ?? merged.holdGate);
+      return merged;
     } catch (err) {
       console.warn("Failed to load settings, using defaults", err);
-      return { ...DEFAULT_SETTINGS };
+      return defaultSettingsWithHoldGate();
     }
   }
 
@@ -3250,6 +3276,14 @@
     accidentalToggle.setAttribute("aria-pressed", accidentalMode === "flats" ? "true" : "false");
   }
 
+  function updateHoldGateToggleUI() {
+    if (!holdGateToggle) return;
+    const enabled = isHoldGateEnabled();
+    holdGateToggle.classList.toggle("active", enabled);
+    holdGateToggle.setAttribute("aria-pressed", enabled ? "true" : "false");
+    holdGateToggle.textContent = `Hold: ${enabled ? "On" : "Off"}`;
+  }
+
   function updateGridLabelsForAccidentals() {
     for (const midi in midiToCellEl) {
       const cell = midiToCellEl[midi];
@@ -3429,6 +3463,11 @@
     if (originalSensitivity !== sensitivityVal) needsPersist = true;
     currentSettings.sensitivity = sensitivityVal;
 
+    const originalHoldGate = settings.holdGate;
+    const normalizedHoldGate = normalizeHoldGateSetting(originalHoldGate);
+    if (originalHoldGate !== normalizedHoldGate) needsPersist = true;
+    currentSettings.holdGate = normalizedHoldGate;
+
     const originalStretch = settings.stretch;
     const stretchVal = (originalStretch === "minimal" || originalStretch === "medium" || originalStretch === "full") ? originalStretch : "none";
     if (stretchSelect) stretchSelect.value = stretchVal;
@@ -3515,6 +3554,8 @@
     }
     currentSettings.transposition = transposeVal;
 
+    updateHoldGateToggleUI();
+
     if (needsPersist) {
       persistSettings(currentSettings);
     }
@@ -3570,6 +3611,14 @@
     updateGridLabelsForAccidentals();
     updateNoteReadoutText();
     highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
+  }
+
+  function toggleHoldGate() {
+    const enabled = !isHoldGateEnabled();
+    currentSettings.holdGate = enabled;
+    persistSettings(currentSettings);
+    updateHoldGateToggleUI();
+    updateDebugPanel({});
   }
 
   /**********************
@@ -3721,20 +3770,18 @@
     dbgFft.textContent     = "2048";
     updateQuickState();
 
-    const mode = sensitivitySelect.value;
+    const mode = resolveMode(sensitivitySelect ? sensitivitySelect.value : "medium");
     if (mode === "relaxed") {
         dbgSens.textContent     = "Relaxed";
         dbgDeadZone.textContent = "~0.30%";
-        dbgHold.textContent     = "0.08 s";
     } else if (mode === "medium") {
         dbgSens.textContent     = "Medium";
         dbgDeadZone.textContent = "~0.23%";
-        dbgHold.textContent     = "0.08 s";
     } else {
         dbgSens.textContent     = "Hard";
         dbgDeadZone.textContent = "~0.12%";
-        dbgHold.textContent     = "0.04 s";
     }
+    dbgHold.textContent = formatHoldGateText(mode);
 
     if (dbgStretch) {
       let stretchLabel = "None (Equal Temperament)";
@@ -4321,15 +4368,41 @@
     activeNoteInfo.stretchCents = stretchCents ?? activeNoteInfo.stretchCents ?? 0;
   }
 
+  function resolveMode(modeRaw) {
+    if (modeRaw === "relaxed") return "relaxed";
+    if (modeRaw === "hard") return "hard";
+    return "medium";
+  }
+
+  function isHoldGateEnabled() {
+    const enabled = normalizeHoldGateSetting(currentSettings?.holdGate);
+    currentSettings.holdGate = enabled;
+    return enabled;
+  }
+
+  function getMinHoldMsForMode(mode = sensitivitySelect?.value ?? currentSettings?.sensitivity ?? "medium") {
+    const resolved = resolveMode(mode);
+    const base = resolved === "relaxed"
+      ? RELAXED_MIN_HOLD_MS
+      : resolved === "medium"
+        ? MEDIUM_MIN_HOLD_MS
+        : HARD_MIN_HOLD_MS;
+    return isHoldGateEnabled() ? base : 0;
+  }
+
   function getCurrentMinHoldMs() {
-    const mode = sensitivitySelect.value;
-    if (mode === "relaxed") return RELAXED_MIN_HOLD_MS;
-    if (mode === "medium") return MEDIUM_MIN_HOLD_MS;
-    return HARD_MIN_HOLD_MS;
+    const mode = sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium";
+    return getMinHoldMsForMode(mode);
+  }
+
+  function formatHoldGateText(mode = sensitivitySelect?.value ?? currentSettings?.sensitivity ?? "medium") {
+    const holdMs = getMinHoldMsForMode(mode);
+    if (holdMs <= 0) return "Off";
+    return `${(holdMs / 1000).toFixed(2)} s`;
   }
 
   function getCurrentDeadzoneRatio() {
-    const mode = sensitivitySelect.value;
+    const mode = resolveMode(sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium");
     if (mode === "relaxed") return RELAXED_DEADZONE_RATIO;
     if (mode === "medium") return MEDIUM_DEADZONE_RATIO;
     return HARD_DEADZONE_RATIO;
@@ -5444,6 +5517,10 @@
     });
   }
 
+  if (holdGateToggle) {
+    holdGateToggle.addEventListener("click", () => toggleHoldGate());
+  }
+
   if (accidentalToggle) {
     accidentalToggle.addEventListener("click", () => {
       const nextMode = accidentalMode === "sharps" ? "flats" : "sharps";
@@ -5461,7 +5538,7 @@
 
   if (resetSettingsBtn) {
     resetSettingsBtn.addEventListener("click", () => {
-      currentSettings = { ...DEFAULT_SETTINGS };
+      currentSettings = defaultSettingsWithHoldGate();
       persistSettings(currentSettings);
       applySettingsToUI(currentSettings);
       currentPalette = normalizePalette(DEFAULT_PALETTE);
