@@ -4830,6 +4830,88 @@
     return { overlay, pieces };
   }
 
+  function launchMiniConfettiBurst({ pieces = 14, duration = 2400, gravity = 1100, onFinish } = {}) {
+    if (!noteGrid) return null;
+    const cells = Object.values(midiToCellEl || {});
+    if (!cells.length) return null;
+    const cell = cells[Math.floor(Math.random() * cells.length)];
+    const gridRect = noteGrid.getBoundingClientRect();
+    const rect = cell.getBoundingClientRect();
+    if (!gridRect.width || !gridRect.height) return null;
+
+    const overlay = document.createElement("div");
+    overlay.className = "confetti-overlay";
+    const palette = generateCellColors(8);
+    const burstPieces = [];
+
+    for (let i = 0; i < pieces; i++) {
+      const startX = (rect.left - gridRect.left) + Math.random() * rect.width;
+      const startY = (rect.top - gridRect.top) + Math.random() * rect.height;
+      const pieceEl = document.createElement("div");
+      pieceEl.className = "confetti-piece";
+      const w = 6 + Math.random() * 6;
+      const h = 8 + Math.random() * 8;
+      pieceEl.style.width = `${w}px`;
+      pieceEl.style.height = `${h}px`;
+      pieceEl.style.backgroundColor = palette[i % palette.length];
+      pieceEl.style.borderRadius = `${1 + Math.random() * 2}px`;
+
+      const angle = (-Math.PI / 2) + (Math.random() * 0.9 - 0.45);
+      const speed = 360 + Math.random() * 300;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const rot = Math.random() * 360;
+      const rotVel = (Math.random() * 540 - 270);
+
+      const piece = { el: pieceEl, x: startX, y: startY, vx, vy, rot, rotVel };
+      pieceEl.style.transform = `translate(${piece.x}px, ${piece.y}px) rotate(${piece.rot}deg)`;
+      overlay.appendChild(pieceEl);
+      burstPieces.push(piece);
+    }
+
+    noteGrid.appendChild(overlay);
+
+    const fadeStart = duration * 0.4;
+    let lastT = null;
+    const startT = performance.now();
+    let rafId = null;
+    let finished = false;
+
+    function cleanup(callFinish = true) {
+      if (finished) return;
+      finished = true;
+      if (rafId != null) cancelAnimationFrame(rafId);
+      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      if (callFinish && typeof onFinish === "function") onFinish();
+    }
+
+    function step(ts) {
+      if (lastT == null) lastT = ts;
+      const dt = (ts - lastT) / 1000;
+      lastT = ts;
+      const elapsed = ts - startT;
+
+      burstPieces.forEach(p => {
+        p.vy += gravity * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.rot += p.rotVel * dt;
+        const opacity = elapsed > fadeStart ? Math.max(0, 1 - (elapsed - fadeStart) / (duration - fadeStart)) : 1;
+        p.el.style.opacity = opacity;
+        p.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${p.rot}deg)`;
+      });
+
+      if (elapsed < duration) {
+        rafId = requestAnimationFrame(step);
+      } else {
+        cleanup(true);
+      }
+    }
+
+    rafId = requestAnimationFrame(step);
+    return () => cleanup(false);
+  }
+
   function restoreEasterEggCells({ fadeIn = true } = {}) {
     if (!easterEggSavedStyles) return;
 
@@ -4940,8 +5022,46 @@
     // show stats modal first, centered over grid
     let statsModalClosed = false;
     let animationDone = false;
+    const activeMiniBursts = new Set();
+    let trailingConfettiTimer = null;
+    let trailingConfettiStop = false;
+
+    const stopTrailingConfetti = () => {
+      trailingConfettiStop = true;
+      if (trailingConfettiTimer != null) {
+        clearTimeout(trailingConfettiTimer);
+        trailingConfettiTimer = null;
+      }
+      activeMiniBursts.forEach(cleanup => {
+        try { cleanup(); } catch { /* ignore */ }
+      });
+      activeMiniBursts.clear();
+    };
+
+    const scheduleTrailingConfetti = () => {
+      if (trailingConfettiStop) return;
+      const delay = 250 + Math.random() * 750;
+      trailingConfettiTimer = window.setTimeout(() => {
+        if (trailingConfettiStop) return;
+        if (document.hidden) {
+          scheduleTrailingConfetti();
+          return;
+        }
+        const cleanup = launchMiniConfettiBurst({
+          pieces: 14,
+          duration: 2400,
+          onFinish: () => activeMiniBursts.delete(cleanup)
+        });
+        if (typeof cleanup === "function") {
+          activeMiniBursts.add(cleanup);
+        }
+        scheduleTrailingConfetti();
+      }, delay);
+    };
+
     const finishIfReady = () => {
       if (statsModalClosed && animationDone) {
+        stopTrailingConfetti();
         restoreEasterEggCells({ fadeIn: true });
         suppressHeatmapRender = false;
         renderHeatmap();
@@ -4953,12 +5073,14 @@
       parent: noteGrid,
       onClose: () => {
         statsModalClosed = true;
+        stopTrailingConfetti();
         finishIfReady();
       }
     });
 
     const { overlay, pieces } = buildConfettiPiecesForCells(colors);
     if (overlay) noteGrid.appendChild(overlay);
+    scheduleTrailingConfetti();
 
     const gravity = 1200; // px/s^2 (slower fall)
     const duration = 2800;
