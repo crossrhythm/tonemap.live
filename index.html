@@ -9,16 +9,16 @@
 <title>Tonemap.Live</title>
 <link rel="icon" href="tonemapicon.png" type="image/png" />
 <meta property="og:title" content="Tonemap.Live" />
-<meta property="og:description" content="Interactive tuner heatmap for practice and precision intonation." />
+<meta property="og:description" content="Live visualization of your pitch and intonation tendancies." />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://tonemap.live/tonemapsquare.jpg" />
+<meta property="og:image" content="https://tonemap.live/tonemaplogo-fb.jpg" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Tonemap.Live" />
-<meta name="twitter:description" content="Interactive tuner heatmap for practice and precision intonation." />
-<meta name="twitter:image" content="https://tonemap.live/tonemapsquare.jpg" />
+<meta name="twitter:description" content="Live visualization of your pitch and intonation tendancies." />
+<meta name="twitter:image" content="https://tonemap.live/tonemaplogo-fb.jpg" />
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
 
@@ -1962,8 +1962,8 @@
           <div class="opt-control">
             <select id="sensitivitySelect">
               <option value="relaxed">Relaxed (Vocal - forgiving)</option>
-              <option value="medium" selected>Medium (no damping, medium response)</option>
-              <option value="hard">Hard (no dead zone, fast response)</option>
+              <option value="medium" selected>Medium (medium response)</option>
+              <option value="hard">Hard (small dead zone, fast response)</option>
             </select>
           </div>
         </div>
@@ -2126,7 +2126,7 @@
     </div>
     <div class="option-info-body">
       <p id="optionInfoSummary" class="option-info-summary"></p>
-      <p id="optionInfoDetail" class="option-info-detail"></p>
+      <div id="optionInfoDetail" class="option-info-detail"></div>
     </div>
   </div>
 </div>
@@ -2476,8 +2476,31 @@
     const info = OPTION_INFO_CONTENT[key];
     if (!info) return;
     if (optionInfoTitle) optionInfoTitle.textContent = info.title;
-    if (optionInfoSummary) optionInfoSummary.textContent = info.summary;
-    if (optionInfoDetail) optionInfoDetail.textContent = info.detail;
+    if (optionInfoSummary) {
+      optionInfoSummary.innerHTML = info.summary ?? "";
+    }
+    if (optionInfoDetail) {
+      optionInfoDetail.innerHTML = "";
+      if (Array.isArray(info.detail)) {
+        info.detail.forEach(item => {
+          const p = document.createElement("p");
+          p.style.margin = "0 0 0.2rem 0";
+          p.style.padding = "0";
+          if (item && typeof item === "object" && typeof item.html === "string") {
+            p.innerHTML = item.html;
+          } else {
+            p.textContent = typeof item === "string" ? item : "";
+          }
+          optionInfoDetail.appendChild(p);
+        });
+      } else {
+        if (info.detail && typeof info.detail === "object" && typeof info.detail.html === "string") {
+          optionInfoDetail.innerHTML = info.detail.html;
+        } else {
+          optionInfoDetail.textContent = info.detail ?? "";
+        }
+      }
+    }
     optionInfoOverlay.classList.add("open");
     optionInfoOverlay.setAttribute("aria-hidden", "false");
     document.addEventListener("keydown", onOptionInfoKeyDown);
@@ -3010,28 +3033,37 @@
     },
     mode: {
       title: "Mode",
-      summary: "Chooses how forgiving the tuner is before it paints the grid.",
-      detail: "Relaxed adds damping and a larger dead zone for singers and first-time Tonemap.live users, Medium is balanced, and Hard removes the cushion for fast, unforgiving intonation feedback."
+      summary: "Chooses how forgiving the tuner is before it paints the grid.  Dead zones are a margin of error that paints the cell as 'in-tune.'",
+      detail: [
+        "• Relaxed: ~10 cents dead zone, 350ms needle smoothing. If on, Hold Gate = 80ms.",
+        "• Medium: ~8 cents dead zone, 120ms smoothing. If on, Hold Gate = 80ms.",
+        "• Hard: ~4 cents dead zone, 30ms smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily. If on, Hold Gate = 40ms."
+      ]
     },
     holdGate: {
       title: "Hold Gate",
       summary: "Waits for the pitch to settle briefly before coloring a cell.",
-      detail: "Prevents quick scoops or vibrato attacks from streaking the map; useful for smoothing vocal or string work. Turn it off to log every tiny movement instantly."
+      detail: "When on, stain waits a short mode-based hold before logging: ~80ms (relaxed/medium), ~40ms (hard)."
     },
     accidentals: {
       title: "Accidentals",
       summary: "Switches note labels between sharps and flats.",
-      detail: "Match the display to the key signature or your instrument's fingering language so the grid reads the same way your part does."
+      detail: "Match the display to your key signature."
     },
     rowStart: {
       title: "Rows start with note",
       summary: "Changes the note that starts each row.",
-      detail: "Align rows with open strings, valve patterns, or scale degrees you are drilling to make the heatmap mirror your instrument layout."
+      detail: "Align rows with open strings, valve patterns, or scale degrees to match your preferences."
     },
     stretch: {
       title: "Stretch Tuning",
-      summary: "Applies a Railsback-style stretch to the target pitches.",
-      detail: "Raised highs and lowered lows mimic piano voicing and some ensemble habits; choose None for strict equal temperament or some amount of stretch for most real-world use."
+      summary: 'Applies a <a href="https://en.wikipedia.org/wiki/Piano_acoustics" target="_blank" rel="noreferrer">Railsback-style stretch</a> to the target pitches. Notes above A4 are pushed increasingly sharp as they ascend. Low notes are also pushed increasingly flat when Full Railsback is selected.',
+      detail: [
+        "• None: Equal temperament; no stretch applied.",
+        "• Minimal: ≈ ¼ Railsback above A4 (lows untouched, highs gently raised).",
+        "• Medium: ≈ ½ Railsback above A4 (lows untouched, moderate raise of highs).",
+        "• Full: Typical piano-style Railsback across the range (lows lower, highs higher)."
+      ]
     },
     needleDirection: {
       title: "Needle Direction",
@@ -3045,18 +3077,24 @@
     },
     history: {
       title: "History (per-pitch memory)",
-      summary: "Controls how long each pitch keeps recent hits before fading from memory.",
-      detail: "Short windows favor rapid drills; medium or long windows reveal tendencies across phrases; Unlimited builds a running heatmap until you reset."
+      summary: "Controls the per-pitch memory of each cell - how much time, on that pitch, affects the color of the cell before it is no longer tracked.",
+      detail: "Short (1s) for rapid drills; Medium (3s) for phrases; Long (30s) for passages; Unlimited builds a running heatmap until you reset."
     },
     stainHold: {
       title: "Color Hold Before Fade",
       summary: "Delays how soon a colored cell starts fading after a hit.",
-      detail: "Longer holds let slow passages linger; shorter holds keep feedback snappy for quick lines; No fade keeps colors locked until you reset."
+      detail: "No fade keeps colors locked until you reset. Fade begins after the hold, then decays based on your history window."
     },
     volume: {
       title: "Volume Sensitivity",
       summary: "Sets the input level required before the tuner reacts.",
-      detail: "Raise it to block out room noise or bleed; lower it for soft dynamics. The LED turns green when the signal is clearing the threshold."
+      detail: [
+        "Move slider to the right to decrease sensitivity and block out room noise or extraneous sounds; move left to increase sensitivity.",
+        "LED states:",
+        "• Green: actively updating the grid (signal above threshold).",
+        "• Red: hearing a signal but it's softer than the threshold.",
+        "• Gray: quiet/idle."
+      ]
     }
   };
 
