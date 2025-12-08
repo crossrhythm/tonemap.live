@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.26 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.3 (update window.APP_VERSION below when bumping release) -->
 <!-- Licensed under the MIT License; see LICENSE. -->
 <html lang="en">
 <head>
@@ -1042,6 +1042,111 @@
     width: 100%;
   }
 
+  .opt-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  .info-btn {
+    appearance: none;
+    background: rgba(148,163,184,0.15);
+    color: var(--text-lite);
+    border: 1px solid rgba(148,163,184,0.55);
+    border-radius: 999px;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .info-btn:hover,
+  .info-btn:focus-visible {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    outline: none;
+  }
+
+  .info-btn:active {
+    background-color: rgba(34,197,94,0.12);
+  }
+
+  .option-info-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background: rgba(15,23,42,0.65);
+    backdrop-filter: blur(6px);
+    z-index: 1400;
+  }
+
+  .option-info-overlay.open {
+    display: flex;
+  }
+
+  .option-info-card {
+    width: min(520px, 100%);
+    background: rgba(15,23,42,0.9);
+    border: 1px solid rgba(148,163,184,0.4);
+    border-radius: 1rem;
+    box-shadow: 0 22px 42px rgba(0,0,0,0.55);
+    padding: 1.25rem 1.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .option-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .option-info-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-lite);
+  }
+
+  .option-info-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .option-info-summary {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .option-info-detail {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--panel-text-lite);
+    line-height: 1.5;
+  }
+
+  .info-close-btn {
+    padding: 0.3rem 0.9rem;
+  }
+
   .status-section {
     border: 1px solid rgba(100,116,139,0.35);
     border-radius: 0.85rem;
@@ -1662,7 +1767,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.26";
+  window.APP_VERSION = "1.3";
 </script>
 
 <div class="page">
@@ -1794,7 +1899,10 @@
     <div class="options-overlay-body">
       <div class="options-grid">
         <div class="option-field">
-          <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
+          <div class="opt-label-row">
+            <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
+            <button class="info-btn" type="button" data-info-key="a4" aria-label="Learn about Performance Pitch (A4)">i</button>
+          </div>
           <div class="opt-control a-ref-control">
             <input
               id="aRefInput"
@@ -1831,7 +1939,10 @@
         </div>
 
         <div class="option-field">
-          <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
+          <div class="opt-label-row">
+            <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
+            <button class="info-btn" type="button" data-info-key="mode" aria-label="Learn about Mode options">i</button>
+          </div>
           <div class="opt-control">
             <select id="sensitivitySelect">
               <option value="relaxed">Relaxed (Vocal - forgiving)</option>
@@ -1842,7 +1953,10 @@
         </div>
 
         <div class="option-field">
-          <label class="opt-label">Hold Gate</label>
+          <div class="opt-label-row">
+            <label class="opt-label">Hold Gate</label>
+            <button class="info-btn" type="button" data-info-key="holdGate" aria-label="Learn about Hold Gate">i</button>
+          </div>
           <div class="opt-control">
             <button id="holdGateToggle" class="toggle-btn" type="button">Hold: On</button>
           </div>
@@ -1850,21 +1964,30 @@
         </div>
 
         <div class="option-field">
-          <label class="opt-label" for="accidentalToggle">Accidentals</label>
+          <div class="opt-label-row">
+            <label class="opt-label" for="accidentalToggle">Accidentals</label>
+            <button class="info-btn" type="button" data-info-key="accidentals" aria-label="Learn about Accidentals">i</button>
+          </div>
           <div class="opt-control">
             <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
           </div>
         </div>
 
         <div class="option-field">
-          <label class="opt-label" for="rowStartSelect">Rows start with note</label>
+          <div class="opt-label-row">
+            <label class="opt-label" for="rowStartSelect">Rows start with note</label>
+            <button class="info-btn" type="button" data-info-key="rowStart" aria-label="Learn about row start">i</button>
+          </div>
           <div class="opt-control">
             <select id="rowStartSelect"></select>
           </div>
         </div>
 
         <div class="option-field">
-          <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
+          <div class="opt-label-row">
+            <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
+            <button class="info-btn" type="button" data-info-key="stretch" aria-label="Learn about Stretch Tuning">i</button>
+          </div>
           <div class="opt-control">
             <select id="stretchSelect">
               <option value="none">None (Equal Temperament)</option>
@@ -1876,7 +1999,10 @@
         </div>
 
         <div class="option-field">
-          <label class="opt-label" for="needleDirSelect">Needle Direction</label>
+          <div class="opt-label-row">
+            <label class="opt-label" for="needleDirSelect">Needle Direction</label>
+            <button class="info-btn" type="button" data-info-key="needleDirection" aria-label="Learn about Needle Direction">i</button>
+          </div>
           <div class="opt-control">
             <select id="needleDirSelect">
               <option value="horizontal">Horizontal</option>
@@ -1886,7 +2012,10 @@
         </div>
 
         <div class="option-field">
-          <label class="opt-label" for="transpositionSelect">Transposition</label>
+          <div class="opt-label-row">
+            <label class="opt-label" for="transpositionSelect">Transposition</label>
+            <button class="info-btn" type="button" data-info-key="transposition" aria-label="Learn about Transposition">i</button>
+          </div>
           <div class="opt-control">
             <select id="transpositionSelect">
               <option value="11">B (+11)</option>
@@ -1917,7 +2046,10 @@
         </div>
 
         <div class="option-field">
-          <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
+          <div class="opt-label-row">
+            <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
+            <button class="info-btn" type="button" data-info-key="history" aria-label="Learn about History memory">i</button>
+          </div>
           <div class="opt-control">
             <select id="historySelect">
               <option value="short" selected>Short (1 second)</option>
@@ -1929,7 +2061,10 @@
         </div>
 
         <div class="option-field">
-          <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
+          <div class="opt-label-row">
+            <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
+            <button class="info-btn" type="button" data-info-key="stainHold" aria-label="Learn about Color Hold Before Fade">i</button>
+          </div>
           <div class="opt-control">
             <select id="stainHoldSelect">
               <option value="5">5 seconds</option>
@@ -1943,7 +2078,10 @@
         </div>
 
         <div class="option-field">
-          <label class="opt-label" for="volThresh">Volume Sensitivity</label>
+          <div class="opt-label-row">
+            <label class="opt-label" for="volThresh">Volume Sensitivity</label>
+            <button class="info-btn" type="button" data-info-key="volume" aria-label="Learn about Volume Sensitivity">i</button>
+          </div>
           <div class="opt-control opt-control-slider">
             <div class="volume-wrap">
               <div class="slider-col">
@@ -1961,6 +2099,19 @@
           <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="optionInfoOverlay" class="option-info-overlay" aria-hidden="true">
+  <div class="option-info-card" role="dialog" aria-modal="true" aria-labelledby="optionInfoTitle">
+    <div class="option-info-header">
+      <div class="option-info-title" id="optionInfoTitle"></div>
+      <button id="optionInfoCloseBtn" class="options-close-btn info-close-btn" type="button" aria-label="Close option info">Close ✕</button>
+    </div>
+    <div class="option-info-body">
+      <p id="optionInfoSummary" class="option-info-summary"></p>
+      <p id="optionInfoDetail" class="option-info-detail"></p>
     </div>
   </div>
 </div>
@@ -2126,7 +2277,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.26";
+  const APP_VERSION = window.APP_VERSION || "1.3";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -2218,6 +2369,12 @@
   const optionsToggleBtn = document.getElementById("optionsToggleBtn");
   const optionsOverlay   = document.getElementById("optionsOverlay");
   const optionsCloseBtn  = document.getElementById("optionsCloseBtn");
+  const optionInfoOverlay = document.getElementById("optionInfoOverlay");
+  const optionInfoTitle = document.getElementById("optionInfoTitle");
+  const optionInfoSummary = document.getElementById("optionInfoSummary");
+  const optionInfoDetail = document.getElementById("optionInfoDetail");
+  const optionInfoCloseBtn = document.getElementById("optionInfoCloseBtn");
+  const optionInfoButtons = Array.from(document.querySelectorAll("[data-info-key]"));
   const statusToggleBtn = document.getElementById("statusToggleBtn");
   const statusOverlay   = document.getElementById("statusOverlay");
   const statusCloseBtn  = document.getElementById("statusCloseBtn");
@@ -2284,6 +2441,7 @@
   function closeOptionsOverlay() {
     if (!optionsOverlay) return;
     if (!optionsOverlay.classList.contains("open")) return;
+    closeOptionInfo();
     optionsOverlay.classList.remove("open");
     optionsOverlay.setAttribute("aria-hidden", "true");
     document.removeEventListener("keydown", onOptionsOverlayKeyDown);
@@ -2295,6 +2453,35 @@
   function onOptionsOverlayKeyDown(event) {
     if (event.key === "Escape") {
       closeOptionsOverlay();
+    }
+  }
+
+  function openOptionInfo(key) {
+    if (!optionInfoOverlay) return;
+    const info = OPTION_INFO_CONTENT[key];
+    if (!info) return;
+    if (optionInfoTitle) optionInfoTitle.textContent = info.title;
+    if (optionInfoSummary) optionInfoSummary.textContent = info.summary;
+    if (optionInfoDetail) optionInfoDetail.textContent = info.detail;
+    optionInfoOverlay.classList.add("open");
+    optionInfoOverlay.setAttribute("aria-hidden", "false");
+    document.addEventListener("keydown", onOptionInfoKeyDown);
+    if (optionInfoCloseBtn) {
+      optionInfoCloseBtn.focus();
+    }
+  }
+
+  function closeOptionInfo() {
+    if (!optionInfoOverlay) return;
+    if (!optionInfoOverlay.classList.contains("open")) return;
+    optionInfoOverlay.classList.remove("open");
+    optionInfoOverlay.setAttribute("aria-hidden", "true");
+    document.removeEventListener("keydown", onOptionInfoKeyDown);
+  }
+
+  function onOptionInfoKeyDown(event) {
+    if (event.key === "Escape") {
+      closeOptionInfo();
     }
   }
 
@@ -2795,6 +2982,64 @@
   const A_REF_MIN = 100;
   const A_REF_MAX = 1000;
   const A_REF_ERROR_MESSAGE = "Please enter a value between 100 and 1000 (e.g., 440).";
+
+  const OPTION_INFO_CONTENT = {
+    a4: {
+      title: "Performance Pitch (A4)",
+      summary: "Sets the reference frequency so all targets shift up or down from this A4 anchor.",
+      detail: "Use 440 for modern pitch; pick 415, 430, 442, etc. to match an ensemble, recording, or historical setup so the grid lines up with what you are hearing."
+    },
+    mode: {
+      title: "Mode",
+      summary: "Chooses how forgiving the tuner is before it paints the grid.",
+      detail: "Relaxed adds damping and a larger dead zone for singers and slow glides, Medium is balanced, and Hard removes the cushion for fast, surgical intonation checks."
+    },
+    holdGate: {
+      title: "Hold Gate",
+      summary: "Waits for the pitch to settle briefly before coloring a cell.",
+      detail: "Prevents quick scoops or vibrato attacks from streaking the map; useful for smoothing vocal or string work. Turn it off to log every tiny movement instantly."
+    },
+    accidentals: {
+      title: "Accidentals",
+      summary: "Switches note labels between sharps and flats.",
+      detail: "Match the display to the key signature or your instrument's fingering language so the grid reads the same way your part does."
+    },
+    rowStart: {
+      title: "Rows start with note",
+      summary: "Rotates the grid so each row begins on the note you choose.",
+      detail: "Align rows with open strings, valve patterns, or scale degrees you are drilling to make the heatmap mirror your instrument layout."
+    },
+    stretch: {
+      title: "Stretch Tuning",
+      summary: "Applies a Railsback-style stretch to the target pitches.",
+      detail: "Raised highs and lowered lows mimic piano voicing and some ensemble habits; choose None for strict equal temperament or stretch when matching real pianos and bright orchestras."
+    },
+    needleDirection: {
+      title: "Needle Direction",
+      summary: "Sets whether the pitch needle moves horizontally or vertically.",
+      detail: "Vertical suits portrait screens and quick up/down reading; horizontal mimics many handheld tuners—pick whichever is clearest on your device."
+    },
+    transposition: {
+      title: "Transposition",
+      summary: "Offsets concert pitch so the grid shows the written note for your instrument.",
+      detail: "Select your transposition to practice from written parts without mental shifting; leave at C for concert instruments, choose Bb/Eb/F, etc. for winds and brass."
+    },
+    history: {
+      title: "History (per-pitch memory)",
+      summary: "Controls how long each pitch keeps recent hits before fading from memory.",
+      detail: "Short windows favor rapid drills; medium or long windows reveal tendencies across phrases; Unlimited builds a running heatmap until you reset."
+    },
+    stainHold: {
+      title: "Color Hold Before Fade",
+      summary: "Delays how soon a colored cell starts fading after a hit.",
+      detail: "Longer holds let slow passages linger; shorter holds keep feedback snappy for quick lines; No fade keeps colors locked until you reset."
+    },
+    volume: {
+      title: "Volume Sensitivity",
+      summary: "Sets the input level required before the tuner reacts.",
+      detail: "Raise it to gate out room noise or bleed; lower it for soft dynamics. The LED turns green when the signal is clearing the threshold."
+    }
+  };
 
   const USAGE_STORAGE_KEY = "tonemap.live.usage";
   const USAGE_LOCK_KEY = "tonemap.live.usage.lock";
@@ -5402,6 +5647,30 @@
     optionsOverlay.addEventListener("click", event => {
       if (event.target === optionsOverlay) {
         closeOptionsOverlay();
+      }
+    });
+  }
+
+  if (optionInfoButtons.length) {
+    optionInfoButtons.forEach(btn => {
+      btn.addEventListener("click", event => {
+        event.stopPropagation();
+        const key = btn.dataset.infoKey;
+        openOptionInfo(key);
+      });
+    });
+  }
+
+  if (optionInfoCloseBtn) {
+    optionInfoCloseBtn.addEventListener("click", () => {
+      closeOptionInfo();
+    });
+  }
+
+  if (optionInfoOverlay) {
+    optionInfoOverlay.addEventListener("click", event => {
+      if (event.target === optionInfoOverlay) {
+        closeOptionInfo();
       }
     });
   }
