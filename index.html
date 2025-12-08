@@ -772,6 +772,11 @@
     box-shadow: 0 0 12px rgba(34,197,94,0.9);
     border-color: rgba(16,94,47,1);
   }
+  .led.red {
+    background-color: rgba(239,68,68,1);
+    box-shadow: 0 0 12px rgba(239,68,68,0.9);
+    border-color: rgba(127,29,29,1);
+  }
   .led.gray {
     background-color: rgba(107,114,128,1);
     box-shadow: 0 0 8px rgba(0,0,0,0.9);
@@ -1960,7 +1965,6 @@
           <div class="opt-control">
             <button id="holdGateToggle" class="toggle-btn" type="button">Hold: On</button>
           </div>
-          <p class="opt-hint">Requires pitch to settle before adding color to grid.</p>
         </div>
 
         <div class="option-field">
@@ -2614,34 +2618,38 @@
   const STAIN_FADE_IN_MS = 250;
 
   // LED smoothing
-  let ledTargetGreen = false;
+  const LED_STATE = Object.freeze({
+    GRAY: "gray",
+    GREEN: "green",
+    RED: "red"
+  });
+  let ledTargetState = LED_STATE.GRAY;
   let ledLastSwitchTime = performance.now();
   const LED_OFF_DELAY_MS = 500; // hold green ~0.5s before fading gray
+  const LED_QUIET_RATIO = 0.5; // fraction of threshold that still counts as "heard"
+  const LED_MIN_FLOOR = 1e-5;
 
-  function applyLEDVisual() {
-    if (ledTargetGreen) {
-      ledEl.classList.add("green");
-      ledEl.classList.remove("gray");
-    } else {
-      ledEl.classList.add("gray");
-      ledEl.classList.remove("green");
-    }
+  function applyLEDVisual(state = ledTargetState) {
+    if (!ledEl) return;
+    ledEl.classList.toggle("green", state === LED_STATE.GREEN);
+    ledEl.classList.toggle("red", state === LED_STATE.RED);
+    ledEl.classList.toggle("gray", state === LED_STATE.GRAY);
   }
 
-  function updateLEDSticky(wantsGreen) {
+  function updateLEDSticky(nextState) {
     const t = performance.now();
 
-    if (wantsGreen) {
-      // immediately show green, reset timer
-      ledTargetGreen = true;
+    if (nextState === LED_STATE.GREEN || nextState === LED_STATE.RED) {
+      ledTargetState = nextState;
       ledLastSwitchTime = t;
       applyLEDVisual();
-    } else {
-      // only fade to gray if quiet for long enough
-      if (t - ledLastSwitchTime > LED_OFF_DELAY_MS) {
-        ledTargetGreen = false;
-        applyLEDVisual();
-      }
+      return;
+    }
+
+    // only fade to gray if quiet for long enough
+    if (t - ledLastSwitchTime > LED_OFF_DELAY_MS) {
+      ledTargetState = LED_STATE.GRAY;
+      applyLEDVisual();
     }
   }
 
@@ -2987,12 +2995,12 @@
     a4: {
       title: "Performance Pitch (A4)",
       summary: "Sets the reference frequency so all targets shift up or down from this A4 anchor.",
-      detail: "Use 440 for modern pitch; pick 415, 430, 442, etc. to match an ensemble, recording, or historical setup so the grid lines up with what you are hearing."
+      detail: "Use 440 for modern pitch; pick 415, 430, 442, etc. to match an ensemble or recording."
     },
     mode: {
       title: "Mode",
       summary: "Chooses how forgiving the tuner is before it paints the grid.",
-      detail: "Relaxed adds damping and a larger dead zone for singers and slow glides, Medium is balanced, and Hard removes the cushion for fast, surgical intonation checks."
+      detail: "Relaxed adds damping and a larger dead zone for singers and first-time Tonemap.live users, Medium is balanced, and Hard removes the cushion for fast, unforgiving intonation feedback."
     },
     holdGate: {
       title: "Hold Gate",
@@ -3006,18 +3014,18 @@
     },
     rowStart: {
       title: "Rows start with note",
-      summary: "Rotates the grid so each row begins on the note you choose.",
+      summary: "Changes the note that starts each row.",
       detail: "Align rows with open strings, valve patterns, or scale degrees you are drilling to make the heatmap mirror your instrument layout."
     },
     stretch: {
       title: "Stretch Tuning",
       summary: "Applies a Railsback-style stretch to the target pitches.",
-      detail: "Raised highs and lowered lows mimic piano voicing and some ensemble habits; choose None for strict equal temperament or stretch when matching real pianos and bright orchestras."
+      detail: "Raised highs and lowered lows mimic piano voicing and some ensemble habits; choose None for strict equal temperament or some amount of stretch for most real-world use."
     },
     needleDirection: {
       title: "Needle Direction",
       summary: "Sets whether the pitch needle moves horizontally or vertically.",
-      detail: "Vertical suits portrait screens and quick up/down reading; horizontal mimics many handheld tuners—pick whichever is clearest on your device."
+      detail: "Horizontal may feel more natural to string players, vertical to wind players.  Vertical will show glisses as continual motion."
     },
     transposition: {
       title: "Transposition",
@@ -3037,7 +3045,7 @@
     volume: {
       title: "Volume Sensitivity",
       summary: "Sets the input level required before the tuner reacts.",
-      detail: "Raise it to gate out room noise or bleed; lower it for soft dynamics. The LED turns green when the signal is clearing the threshold."
+      detail: "Raise it to block out room noise or bleed; lower it for soft dynamics. The LED turns green when the signal is clearing the threshold."
     }
   };
 
@@ -5084,7 +5092,7 @@
   /**********************
    * RANGE / STATUS MESSAGING
    **********************/
-  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = MEDIUM_MIN_HOLD_MS) {
+  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = MEDIUM_MIN_HOLD_MS, quietSignalNow = false) {
     const t = nowMs();
     let belowNow = false;
     let aboveNow = false;
@@ -5154,7 +5162,12 @@
 
     updateEdgeControlStates({ rangeAlert: highRecent, lowAlert: lowRecent });
 
-    updateLEDSticky(capturingNow);
+    const ledState = capturingNow
+      ? LED_STATE.GREEN
+      : quietSignalNow
+        ? LED_STATE.RED
+        : LED_STATE.GRAY;
+    updateLEDSticky(ledState);
     setDeadZoneHighlight(inDeadZoneNow);
   }
 
@@ -5184,6 +5197,7 @@
     lastFrameTime = nowT;
 
     const loudEnough = rms >= volumeThreshold;
+    const quietSignal = !loudEnough && rms >= Math.max(volumeThreshold * LED_QUIET_RATIO, LED_MIN_FLOOR);
     const pitchValid =
       clarity > 0.8 &&
       pitch > MIN_FREQ &&
@@ -5310,7 +5324,8 @@
       loudEnough,
       capturingNow,
       inDeadZoneNow,
-      minHold
+      minHold,
+      quietSignal
     );
 
     handleUsageTick({ noteDetected: noteDetectedThisFrame, nowT: nowT });
@@ -5439,7 +5454,7 @@
     updateNoteReadoutText();
 
     // reset LED state
-    ledTargetGreen = false;
+    ledTargetState = LED_STATE.GRAY;
     ledLastSwitchTime = performance.now();
     applyLEDVisual();
   }
