@@ -4904,10 +4904,9 @@
     const ctx = scoreCanvas.getContext("2d");
     if (!ctx) return;
 
-    // Measure container and set height up front
+    // Measure container (CSS pixels)
     const containerWidth = scoreViewContainer.clientWidth || window.innerWidth;
     const containerHeight = scoreViewContainer.clientHeight || window.innerHeight;
-    scoreCanvas.height = containerHeight;
 
     const now = scoreWindowNowMs ?? nowMs();
     const windowMs = SCORE_VIEW_WINDOW_SECONDS * 1000;
@@ -5021,24 +5020,30 @@
     const numSegments = mergedSegments.length;
     const horizontalMargin = Math.max(SCORE_HORIZONTAL_MARGIN, SCORE_BALLOON_PADDING + balloonRadius);
     const desiredSpacing = balloonRadius * 3; // centers at 3x radius
-    const desiredWidth = Math.max(
+    const desiredWidthCss = Math.max(
       containerWidth,
       2 * horizontalMargin + Math.max(0, (numSegments - 1)) * desiredSpacing + balloonRadius * 2,
       2000
     );
-    scoreCanvas.width = desiredWidth;
+    const dpr = window.devicePixelRatio || 1;
+    scoreCanvas.style.width = `${desiredWidthCss}px`;
+    scoreCanvas.style.height = `${containerHeight}px`;
+    scoreCanvas.width = Math.max(1, Math.round(desiredWidthCss * dpr));
+    scoreCanvas.height = Math.max(1, Math.round(containerHeight * dpr));
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
 
     // Clear canvas with fallback color
     let bgColor = getComputedStyle(document.documentElement).getPropertyValue("--grid-bg").trim();
     if (!bgColor || bgColor === "") bgColor = "#000000";
     ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, scoreCanvas.width, scoreCanvas.height);
+    ctx.fillRect(0, 0, desiredWidthCss, containerHeight);
 
-    console.log(`Score canvas size: ${scoreCanvas.width}x${scoreCanvas.height}, container: ${containerWidth}x${containerHeight}`);
+    console.log(`Score canvas size (css): ${desiredWidthCss}x${containerHeight}, dpr=${dpr}, backing: ${scoreCanvas.width}x${scoreCanvas.height}`);
 
     const horizontalSpacing = desiredSpacing;
 
-    let xPos = scoreCanvas.width - horizontalMargin;  // start on the right (most recent)
+    let xPos = desiredWidthCss - horizontalMargin;  // start on the right (most recent)
 
     // Draw balloons
     for (let i = mergedSegments.length - 1; i >= 0; i--) {
@@ -5071,26 +5076,26 @@
       // Note name (larger)
       ctx.font = `bold ${Math.round(balloonRadius * 0.8)}px sans-serif`;
       const noteName = getNoteNameForMidi(midi);
-      ctx.fillText(noteName, xPos, yPos - balloonRadius * 0.25);
+      ctx.fillText(noteName, xPos, yPos - balloonRadius * 0.1);
 
       // Duration (smaller, above note name)
       ctx.font = `${Math.round(balloonRadius * 0.45)}px sans-serif`;
       const durSec = (durMs / 1000).toFixed(1);
-      ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.5);
+      ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.55);
 
       // Cents offset (smaller, below note name)
       ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
       const centsText = rebasedErr >= 0
         ? `+${(rebasedErr * 100).toFixed(0)}¢`
         : `${(rebasedErr * 100).toFixed(0)}¢`;
-      ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.5);
+      ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55);
 
       xPos -= horizontalSpacing;
     }
 
     // Snap scroll to the most recent balloons on the right
     if (scoreViewContainer) {
-      const targetScroll = Math.max(0, scoreCanvas.width - scoreViewContainer.clientWidth);
+      const targetScroll = Math.max(0, (parseFloat(scoreCanvas.style.width) || scoreCanvas.width) - scoreViewContainer.clientWidth);
       scoreViewContainer.scrollLeft = targetScroll;
     }
   }
