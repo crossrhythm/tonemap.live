@@ -583,6 +583,25 @@
     min-width: 3ch;
   }
 
+  .note-status {
+    font-size: 50%;
+  }
+
+  /* Center status text (Paused / Mic Disabled) */
+  .note-status-mode {
+    justify-content: center;
+    gap: 0;
+  }
+  .note-status-mode .note-letter {
+    min-width: 0;
+    width: 100%;
+    text-align: center;
+  }
+  .note-status-mode .note-accidental,
+  .note-status-mode .note-octave {
+    display: none;
+  }
+
   .note-letter {
     display: inline-block;
     min-width: 1ch;
@@ -2069,6 +2088,18 @@
 
         <div class="option-field">
           <div class="opt-label-row">
+            <label class="opt-label" for="noteViewStyleSelect">Note View Style</label>
+          </div>
+          <div class="opt-control">
+            <select id="noteViewStyleSelect">
+              <option value="balloons" selected>Balloons</option>
+              <option value="ribbons">Ribbons</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="option-field">
+          <div class="opt-label-row">
             <label class="opt-label" for="transpositionSelect">Transposition</label>
             <button class="info-btn" type="button" data-info-key="transposition" aria-label="Learn about Transposition">i</button>
           </div>
@@ -2429,6 +2460,7 @@
   const scoreViewToggleBtn = document.getElementById("scoreViewToggleBtn");
   const scoreViewContainer = document.getElementById("scoreViewContainer");
   const scoreCanvas = document.getElementById("scoreCanvas");
+  const noteViewStyleSelect = document.getElementById("noteViewStyleSelect");
   const optionInfoOverlay = document.getElementById("optionInfoOverlay");
   const optionInfoTitle = document.getElementById("optionInfoTitle");
   const optionInfoSummary = document.getElementById("optionInfoSummary");
@@ -2835,6 +2867,7 @@
   let easterEggSavedStyles = null;
   let scoreViewActive = false;
   let scoreWindowNowMs = nowMs(); // frozen when paused; advanced only while running
+  let micDisabled = false;
   const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
 
   function generateCellColors(count) {
@@ -3026,6 +3059,7 @@
   const QUOTE_INDEX_KEY = "tonemap.live.quoteIndex";
 
   const HISTORY_DEFAULT = "short";
+  const NOTE_VIEW_STYLE_DEFAULT = "balloons";
   const HISTORY_WINDOWS = Object.freeze({
     short: 1,
     medium: 3,
@@ -3061,6 +3095,7 @@
     sensitivity: "medium",
     stretch: "none",
     accidentalMode: "sharps",
+    noteViewStyle: NOTE_VIEW_STYLE_DEFAULT,
     transposition: "0",
     rowStart: "0",
     lowNote: "C3",
@@ -3660,6 +3695,46 @@
   }
 
   function updateNoteReadoutText() {
+    if (micDisabled) {
+      if (noteLetterEl) {
+        noteLetterEl.textContent = "Mic";
+        noteLetterEl.classList.add("note-status");
+      }
+      if (noteAccidentalEl) {
+        noteAccidentalEl.textContent = "";
+        noteAccidentalEl.classList.add("empty");
+        noteAccidentalEl.setAttribute("aria-hidden", "true");
+      }
+      if (noteOctaveEl) {
+        noteOctaveEl.textContent = "Disabled";
+        noteOctaveEl.classList.add("note-status");
+      }
+      noteEl?.classList.add("note-status-mode");
+      return;
+    }
+
+    if (!running) {
+      if (noteLetterEl) {
+        noteLetterEl.textContent = "Paused";
+        noteLetterEl.classList.add("note-status");
+      }
+      if (noteAccidentalEl) {
+        noteAccidentalEl.textContent = "";
+        noteAccidentalEl.classList.add("empty");
+        noteAccidentalEl.setAttribute("aria-hidden", "true");
+      }
+      if (noteOctaveEl) {
+        noteOctaveEl.textContent = "";
+        noteOctaveEl.classList.add("note-status");
+      }
+      noteEl?.classList.add("note-status-mode");
+      return;
+    }
+
+    noteEl?.classList.remove("note-status-mode");
+    noteLetterEl?.classList.remove("note-status");
+    noteOctaveEl?.classList.remove("note-status");
+
     if (lastDisplayedMidi != null) {
       const noteName = getNoteNameForMidi(lastDisplayedMidi);
       const octave = Math.floor(lastDisplayedMidi / 12) - 1;
@@ -3674,13 +3749,19 @@
       }
       if (noteOctaveEl) noteOctaveEl.textContent = `${octave}`;
     } else {
-      if (noteLetterEl) noteLetterEl.textContent = "";
+      if (noteLetterEl) {
+        noteLetterEl.textContent = "";
+        noteLetterEl.classList.remove("note-status");
+      }
       if (noteAccidentalEl) {
         noteAccidentalEl.textContent = "";
         noteAccidentalEl.classList.add("empty");
         noteAccidentalEl.setAttribute("aria-hidden", "true");
       }
-      if (noteOctaveEl) noteOctaveEl.textContent = "";
+      if (noteOctaveEl) {
+        noteOctaveEl.textContent = "";
+        noteOctaveEl.classList.remove("note-status");
+      }
     }
     if (freqEl) freqEl.textContent = lastDisplayedHzText;
     if (centsEl) centsEl.textContent = lastDisplayedCentsText;
@@ -3888,6 +3969,12 @@
     if (originalNeedleDir !== needleDirVal) needsPersist = true;
     currentSettings.needleDirection = needleDirVal;
 
+    const originalNoteViewStyle = settings.noteViewStyle;
+    const styleVal = (originalNoteViewStyle === "ribbons") ? "ribbons" : NOTE_VIEW_STYLE_DEFAULT;
+    if (noteViewStyleSelect) noteViewStyleSelect.value = styleVal;
+    if (originalNoteViewStyle !== styleVal) needsPersist = true;
+    currentSettings.noteViewStyle = styleVal;
+
     if (settings.colorPalette) {
       currentPalette = normalizePalette(settings.colorPalette);
     } else {
@@ -3941,16 +4028,11 @@
     if (micRestartInFlight) return;
     if (!running) return;
     micRestartInFlight = true;
-    showMicWarning("Mic lost – retrying…");
-    try {
-      stopMic();
-      await startMic();
-    } catch (err) {
-      console.warn("Mic restart failed:", err, reason);
-      showMicWarning("Mic blocked – re-enable in browser/site settings");
-    } finally {
-      micRestartInFlight = false;
-    }
+    micDisabled = true;
+    showMicWarning("Mic disabled");
+    stopMic({ markDisabled: true });
+    updateNoteReadoutText();
+    micRestartInFlight = false;
   }
 
   function attachMicStreamWatchers(stream) {
@@ -3973,6 +4055,9 @@
     updateGridLabelsForAccidentals();
     updateNoteReadoutText();
     highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
+    if (scoreViewActive) {
+      renderScore();
+    }
   }
 
   function toggleHoldGate() {
@@ -5045,52 +5130,155 @@
 
     let xPos = desiredWidthCss - horizontalMargin;  // start on the right (most recent)
 
-    // Draw balloons
-    for (let i = mergedSegments.length - 1; i >= 0; i--) {
-      const { midi, avgErrRatio, stretchCents, durMs } = mergedSegments[i];
-      const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
+    const noteViewStyle = currentSettings.noteViewStyle === "ribbons" ? "ribbons" : NOTE_VIEW_STYLE_DEFAULT;
 
-      if (i === mergedSegments.length - 1) {
-        console.log(`First balloon: MIDI=${midi}, yPos=${yPos}, xPos=${xPos}, balloonRadius=${balloonRadius}`);
+    if (noteViewStyle === "balloons") {
+      // Draw balloons
+      for (let i = mergedSegments.length - 1; i >= 0; i--) {
+        const { midi, avgErrRatio, stretchCents, durMs } = mergedSegments[i];
+        const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
+
+        if (i === mergedSegments.length - 1) {
+          console.log(`First balloon: MIDI=${midi}, yPos=${yPos}, xPos=${xPos}, balloonRadius=${balloonRadius}`);
+        }
+
+        // Rebase error ratio from segment stretch to current stretch
+        const targetStretch = getStretchCents(midi);
+        const rebasedErr = rebaseErrRatio(avgErrRatio, stretchCents ?? 0, targetStretch);
+        const biasColor = computeColorBiasFromErr(rebasedErr);
+
+        // Draw balloon (circle)
+        ctx.beginPath();
+        ctx.arc(xPos, yPos, balloonRadius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
+        ctx.fill();
+        ctx.strokeStyle = SCORE_TEXT_COLOR;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw text inside balloon
+        ctx.fillStyle = SCORE_TEXT_COLOR;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // Note name (larger)
+        ctx.font = `bold ${Math.round(balloonRadius * 0.8)}px sans-serif`;
+        const noteName = getNoteNameForMidi(midi, accidentalMode);
+        if (noteName.includes("♭")) {
+          const parts = noteName.split("♭");
+          const letter = parts[0] ?? "";
+          const accidental = "♭";
+          const accidentalSize = Math.round(balloonRadius * 0.72); // 10% smaller than letter
+          // Draw letter
+          ctx.fillText(letter, xPos - accidentalSize * 0.2, yPos - balloonRadius * 0.1 + 4);
+          // Draw flat symbol slightly smaller and closer
+          ctx.font = `bold ${accidentalSize}px sans-serif`;
+          ctx.fillText(accidental, xPos + accidentalSize * 0.35, yPos - balloonRadius * 0.1 + 4);
+        } else {
+          ctx.fillText(noteName, xPos, yPos - balloonRadius * 0.1 + 4);
+        }
+
+        // Duration (smaller, above note name)
+        ctx.font = `${Math.round(balloonRadius * 0.45)}px sans-serif`;
+        const durSec = (durMs / 1000).toFixed(1);
+        ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.55 - 1);
+
+        // Cents offset (smaller, below note name)
+        ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
+        const centsText = rebasedErr >= 0
+          ? `+${(rebasedErr * 100).toFixed(0)}¢`
+          : `${(rebasedErr * 100).toFixed(0)}¢`;
+        ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55 + 1);
+
+        xPos -= horizontalSpacing;
       }
+    } else {
+      // Draw ribbons
+      const ribbonHeight = 25;
+      const ribbonHalfHeight = ribbonHeight / 2;
+      const ribbonMaxWidth = Math.min(horizontalSpacing, 75);
 
-      // Rebase error ratio from segment stretch to current stretch
-      const targetStretch = getStretchCents(midi);
-      const rebasedErr = rebaseErrRatio(avgErrRatio, stretchCents ?? 0, targetStretch);
-      const biasColor = computeColorBiasFromErr(rebasedErr);
+      for (let i = mergedSegments.length - 1; i >= 0; i--) {
+        const { midi, avgErrRatio, stretchCents, durMs, startMs } = mergedSegments[i];
+        const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
+        const targetStretch = getStretchCents(midi);
+        const defaultErr = rebaseErrRatio(avgErrRatio, stretchCents ?? 0, targetStretch);
+        const midiSegments = byMidi.get(midi) || [];
 
-      // Draw balloon (circle)
-      ctx.beginPath();
-      ctx.arc(xPos, yPos, balloonRadius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
-      ctx.fill();
-      ctx.strokeStyle = SCORE_TEXT_COLOR;
-      ctx.lineWidth = 2;
-      ctx.stroke();
+        const widthFactor = Math.min(1, durMs / 4000);
+        const ribbonWidth = Math.max(12, Math.min(ribbonMaxWidth, ribbonMaxWidth * widthFactor));
+        const cols = Math.max(1, Math.round(ribbonWidth));
+        const samples = Math.max(4, cols * 4);
 
-      // Draw text inside balloon
-      ctx.fillStyle = SCORE_TEXT_COLOR;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+        const errs = new Array(samples);
+        for (let s = 0; s < samples; s++) {
+          const t = startMs + ((s + 0.5) / samples) * durMs;
+          let err = defaultErr;
+          for (let k = 0; k < midiSegments.length; k++) {
+            const seg = midiSegments[k];
+            const segStart = seg.startMs;
+            const segEnd = seg.startMs + seg.durMs;
+            if (t >= segStart && t <= segEnd) {
+              err = rebaseErrRatio(seg.seg.avgErrRatio, seg.seg.stretchCents ?? 0, targetStretch);
+              break;
+            }
+          }
+          errs[s] = err;
+        }
 
-      // Note name (larger)
-      ctx.font = `bold ${Math.round(balloonRadius * 0.8)}px sans-serif`;
-      const noteName = getNoteNameForMidi(midi);
-      ctx.fillText(noteName, xPos, yPos - balloonRadius * 0.1);
+        const left = xPos - ribbonWidth / 2;
+        for (let c = 0; c < cols; c++) {
+          const sStart = Math.floor((c * samples) / cols);
+          const sEnd = Math.floor(((c + 1) * samples) / cols);
+          let sum = 0;
+          let count = 0;
+          for (let s = sStart; s < sEnd; s++) {
+            sum += errs[s];
+            count++;
+          }
+          const avgErr = count ? sum / count : defaultErr;
+          const biasColor = computeColorBiasFromErr(avgErr);
+          const errCents = avgErr * 100;
+          const offset = Math.max(-ribbonHalfHeight, Math.min(ribbonHalfHeight, (errCents / 50) * ribbonHalfHeight));
+          const colW = ribbonWidth / cols;
+          const colX = left + c * colW;
+          const colY = yPos - ribbonHalfHeight - offset;
 
-      // Duration (smaller, above note name)
-      ctx.font = `${Math.round(balloonRadius * 0.45)}px sans-serif`;
-      const durSec = (durMs / 1000).toFixed(1);
-      ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.55);
+          ctx.fillStyle = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
+          ctx.fillRect(colX, colY, colW + 0.5, ribbonHeight);
+        }
 
-      // Cents offset (smaller, below note name)
-      ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
-      const centsText = rebasedErr >= 0
-        ? `+${(rebasedErr * 100).toFixed(0)}¢`
-        : `${(rebasedErr * 100).toFixed(0)}¢`;
-      ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55);
+        // Labels (reuse balloon styling)
+        ctx.fillStyle = SCORE_TEXT_COLOR;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
-      xPos -= horizontalSpacing;
+        ctx.font = `bold ${Math.round(balloonRadius * 0.8)}px sans-serif`;
+        const noteName = getNoteNameForMidi(midi, accidentalMode);
+        if (noteName.includes("♭")) {
+          const parts = noteName.split("♭");
+          const letter = parts[0] ?? "";
+          const accidental = "♭";
+          const accidentalSize = Math.round(balloonRadius * 0.72);
+          ctx.fillText(letter, xPos - accidentalSize * 0.2, yPos - balloonRadius * 0.1 + 4);
+          ctx.font = `bold ${accidentalSize}px sans-serif`;
+          ctx.fillText(accidental, xPos + accidentalSize * 0.35, yPos - balloonRadius * 0.1 + 4);
+        } else {
+          ctx.fillText(noteName, xPos, yPos - balloonRadius * 0.1 + 4);
+        }
+
+        ctx.font = `${Math.round(balloonRadius * 0.45)}px sans-serif`;
+        const durSec = (durMs / 1000).toFixed(1);
+        ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.55 - 1);
+
+        ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
+        const centsText = defaultErr >= 0
+          ? `+${(defaultErr * 100).toFixed(0)}¢`
+          : `${(defaultErr * 100).toFixed(0)}¢`;
+        ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55 + 1);
+
+        xPos -= horizontalSpacing;
+      }
     }
 
     // Snap scroll to the most recent balloons on the right
@@ -5605,7 +5793,10 @@
     let listeningStr;
     let guidanceStr = "--";
 
-    if (highRecent) {
+    if (micDisabled) {
+      listeningStr = "Mic Disabled";
+      guidanceStr = "Mic disabled";
+    } else if (highRecent) {
       rangeLabel.classList.add("alert");
       rangeSelect.classList.add("alert");
       guidanceStr = "Pitch above range";
@@ -5808,6 +5999,7 @@
 
   async function startMic() {
     try {
+      micDisabled = false;
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
@@ -5857,17 +6049,19 @@
     } catch (err) {
       console.error(err);
       running = false;
+      micDisabled = true;
       releaseScreenWakeLock();
       micBtn.classList.remove("on");
       micBtn.classList.add("paused");
       micBtnIcon.classList.remove("playing");
       micBtnIcon.classList.add("paused");
       micBtnIcon.textContent = "▶︎";
+      updateNoteReadoutText();
       // overlay remains if mic denied
     }
   }
 
-  function stopMic() {
+  function stopMic({ markDisabled = false } = {}) {
     running = false;
     scoreWindowNowMs = nowMs(); // freeze score window anchor at pause time
     releaseScreenWakeLock();
@@ -5894,6 +6088,9 @@
     micBtnIcon.classList.remove("playing");
     micBtnIcon.classList.add("paused");
     micBtnIcon.textContent = "▶︎";
+
+    micDisabled = markDisabled ? true : micDisabled;
+    updateNoteReadoutText();
 
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
@@ -5942,6 +6139,11 @@
 
   window.addEventListener("resize", updateGridAppearanceForViewport);
   window.addEventListener("resize", updateEdgeKeyVisibility);
+  window.addEventListener("resize", () => {
+    if (scoreViewActive) {
+      renderScore();
+    }
+  });
   window.addEventListener("orientationchange", updateGridAppearanceForViewport);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -6319,6 +6521,17 @@
       currentSettings.needleDirection = needleDirSelect.value === "vertical" ? "vertical" : "horizontal";
       persistSettings(currentSettings);
       highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
+    });
+  }
+
+  if (noteViewStyleSelect) {
+    noteViewStyleSelect.addEventListener("change", () => {
+      const val = noteViewStyleSelect.value === "ribbons" ? "ribbons" : "balloons";
+      currentSettings.noteViewStyle = val;
+      persistSettings(currentSettings);
+      if (scoreViewActive) {
+        renderScore();
+      }
     });
   }
 
