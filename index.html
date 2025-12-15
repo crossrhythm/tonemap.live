@@ -2866,8 +2866,9 @@
   let easterEggRestoreTimer = null;
   let easterEggSavedStyles = null;
   let scoreViewActive = false;
-  let scoreWindowNowMs = nowMs(); // frozen when paused; advanced only while running
+  let scoreActiveClockMs = 0; // advances only while running (for Note View window)
   let micDisabled = false;
+  let silentAdvanceAccumMs = 0; // track how much silence has advanced the active clock (capped)
   const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
 
   function generateCellColors(count) {
@@ -3045,7 +3046,7 @@
     { quote: "There is no substitute for hard work.", author: "Thomas Edison" },
     { quote: "Great works are performed not by strength but by perseverance.", author: "Samuel Johnson" },
     { quote: "The real secret of success is enthusiasm.", author: "Walter Chrysler" },
-    { quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant" },
+    { quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant (paraphrasing Aristotle)" },
     { quote: "Lost time is never found again.", author: "Benjamin Franklin" },
     { quote: "Doubt kills more dreams than failure ever will.", author: "Suzy Kassem" },
     { quote: "If you spend too much time thinking about a thing, you'll never get it done.", author: "Bruce Lee" },
@@ -3080,7 +3081,7 @@
   const HOLD_GATE_DEFAULT = false;
 
   // Score View Settings
-  const SCORE_VIEW_WINDOW_SECONDS = 30;  // Show last 30 seconds of notes
+  const SCORE_VIEW_WINDOW_SECONDS = 60;  // Show last 60 seconds of active listening
   const SCORE_MIN_DURATION_MS = 100;     // Filter out notes shorter than 0.1 seconds
   const SCORE_BALLOON_RADIUS = 40;        // Baseline size; actual radius is clamped below
   const SCORE_BALLOON_RADIUS_MIN = 25;    // Floor radius so dots are visible (50px diameter)
@@ -3089,6 +3090,7 @@
   const SCORE_HORIZONTAL_MARGIN = 30;     // Margin when laying out from the right
   const SCORE_BALLOON_PADDING = 10;       // Horizontal padding between balloons
   const SCORE_TEXT_COLOR = "white";
+  const SCORE_GAP_CAP_MS = 3000;          // Max silent gap rendered in ribbons
 
   const DEFAULT_SETTINGS = {
     a4: 440,
@@ -4945,6 +4947,8 @@
     st.segments.push({
       startMs: startMs,
       durMs: accumTimeMs,
+      startActiveMs: Math.max(0, scoreActiveClockMs - accumTimeMs),
+      durActiveMs: accumTimeMs,
       avgErrRatio: avgErr,
       stretchCents: segStretch
     });
@@ -4993,11 +4997,11 @@
     const containerWidth = scoreViewContainer.clientWidth || window.innerWidth;
     const containerHeight = scoreViewContainer.clientHeight || window.innerHeight;
 
-    const now = scoreWindowNowMs ?? nowMs();
+    const nowActive = scoreActiveClockMs;
     const windowMs = SCORE_VIEW_WINDOW_SECONDS * 1000;
-    const startTime = now - windowMs;
+    const startActive = Math.max(0, nowActive - windowMs);
 
-    console.log(`Score render: now=${now}, windowStart=${startTime}, cellState keys: ${Object.keys(cellState).length}`);
+    console.log(`Score render: activeNow=${nowActive}, windowStart=${startActive}, cellState keys: ${Object.keys(cellState).length}`);
 
     // Collect all segments from the last 30 seconds
     const rawSegments = [];
@@ -5011,19 +5015,28 @@
       for (const seg of st.segments) {
         // Include segment if it started within the window (or overlaps window)
         const segEnd = seg.startMs + seg.durMs;
-        const overlapsWindow = segEnd >= startTime;
+        const segStartActive = seg.startActiveMs ?? seg.startMs ?? 0;
+        const segEndActive = segStartActive + (seg.durActiveMs ?? seg.durMs);
+        const overlapsWindow = segEndActive >= startActive;
         if (overlapsWindow && seg.durMs > 0) {
           console.log(`    Including: startMs=${seg.startMs}, durMs=${seg.durMs}`);
-          rawSegments.push({ midi, seg, startMs: seg.startMs, durMs: seg.durMs });
+          rawSegments.push({
+            midi,
+            seg,
+            startMs: seg.startMs,
+            durMs: seg.durMs,
+            startActiveMs: segStartActive,
+            durActiveMs: seg.durActiveMs ?? seg.durMs
+          });
         }
       }
     }
 
-    console.log(`Collected ${rawSegments.length} segments in last 30s (window: ${startTime} to ${now})`);
+    console.log(`Collected ${rawSegments.length} segments in last 60s active (window: ${startActive} to ${nowActive})`);
     console.log(`Grid MIDI range: ${gridLowestMidiC} to ${gridHighestMidiLastNote}`);
 
     // Coalesce adjacent segments of the same MIDI into single "held note" spans for score view
-    const gapToleranceMs = 30; // allow tiny gaps between frames
+    const gapToleranceMs = 150; // allow tiny gaps between frames
     const byMidi = new Map();
     rawSegments.forEach(entry => {
       if (!byMidi.has(entry.midi)) byMidi.set(entry.midi, []);
@@ -5032,28 +5045,32 @@
 
     const mergedSegments = [];
     for (const [midi, list] of byMidi.entries()) {
-      list.sort((a, b) => a.startMs - b.startMs);
+      list.sort((a, b) => {
+        const aStart = a.startActiveMs ?? a.startMs ?? 0;
+        const bStart = b.startActiveMs ?? b.startMs ?? 0;
+        return aStart - bStart;
+      });
       let current = null;
       for (const entry of list) {
-        const segStart = entry.startMs;
-        const segEnd = entry.startMs + entry.durMs;
+        const segStart = entry.startActiveMs ?? entry.startMs ?? 0;
+        const segEnd = segStart + (entry.durActiveMs ?? entry.durMs);
         if (!current) {
           current = {
             midi,
             startMs: segStart,
             endMs: segEnd,
-            totalDurMs: entry.durMs,
-            weightedErrSum: (entry.seg.avgErrRatio ?? 0) * entry.durMs,
-            weightedStretchSum: (entry.seg.stretchCents ?? 0) * entry.durMs
+            totalDurMs: entry.durActiveMs ?? entry.durMs,
+            weightedErrSum: (entry.seg.avgErrRatio ?? 0) * (entry.durActiveMs ?? entry.durMs),
+            weightedStretchSum: (entry.seg.stretchCents ?? 0) * (entry.durActiveMs ?? entry.durMs)
           };
           continue;
         }
         const contiguous = segStart <= current.endMs + gapToleranceMs;
         if (contiguous) {
           current.endMs = Math.max(current.endMs, segEnd);
-          current.totalDurMs += entry.durMs;
-          current.weightedErrSum += (entry.seg.avgErrRatio ?? 0) * entry.durMs;
-          current.weightedStretchSum += (entry.seg.stretchCents ?? 0) * entry.durMs;
+          current.totalDurMs += (entry.durActiveMs ?? entry.durMs);
+          current.weightedErrSum += (entry.seg.avgErrRatio ?? 0) * (entry.durActiveMs ?? entry.durMs);
+          current.weightedStretchSum += (entry.seg.stretchCents ?? 0) * (entry.durActiveMs ?? entry.durMs);
         } else {
           if (current.totalDurMs >= SCORE_MIN_DURATION_MS) {
             mergedSegments.push({
@@ -5068,9 +5085,9 @@
             midi,
             startMs: segStart,
             endMs: segEnd,
-            totalDurMs: entry.durMs,
-            weightedErrSum: (entry.seg.avgErrRatio ?? 0) * entry.durMs,
-            weightedStretchSum: (entry.seg.stretchCents ?? 0) * entry.durMs
+            totalDurMs: entry.durActiveMs ?? entry.durMs,
+            weightedErrSum: (entry.seg.avgErrRatio ?? 0) * (entry.durActiveMs ?? entry.durMs),
+            weightedStretchSum: (entry.seg.stretchCents ?? 0) * (entry.durActiveMs ?? entry.durMs)
           };
         }
       }
@@ -5101,15 +5118,20 @@
       Math.min(SCORE_BALLOON_RADIUS_MAX, radiusCandidate || SCORE_BALLOON_RADIUS)
     );
 
-    // Calculate horizontal spacing (equal spacing, all balloons same width)
+    // Determine view style early
+    const noteViewStyle = currentSettings.noteViewStyle === "ribbons" ? "ribbons" : NOTE_VIEW_STYLE_DEFAULT;
+
+    // Calculate horizontal spacing / canvas width
     const numSegments = mergedSegments.length;
     const horizontalMargin = Math.max(SCORE_HORIZONTAL_MARGIN, SCORE_BALLOON_PADDING + balloonRadius);
-    const desiredSpacing = balloonRadius * 3; // centers at 3x radius
-    const desiredWidthCss = Math.max(
-      containerWidth,
-      2 * horizontalMargin + Math.max(0, (numSegments - 1)) * desiredSpacing + balloonRadius * 2,
-      2000
-    );
+    const desiredSpacing = balloonRadius * 3; // centers at 3x radius (balloons)
+    const desiredWidthCss = (noteViewStyle === "balloons")
+      ? Math.max(
+          containerWidth,
+          2 * horizontalMargin + Math.max(0, (numSegments - 1)) * desiredSpacing + balloonRadius * 2,
+          2000
+        )
+      : Math.max(containerWidth, 2000); // ribbons: fixed wide canvas, independent of note count
     const dpr = window.devicePixelRatio || 1;
     scoreCanvas.style.width = `${desiredWidthCss}px`;
     scoreCanvas.style.height = `${containerHeight}px`;
@@ -5129,8 +5151,6 @@
     const horizontalSpacing = desiredSpacing;
 
     let xPos = desiredWidthCss - horizontalMargin;  // start on the right (most recent)
-
-    const noteViewStyle = currentSettings.noteViewStyle === "ribbons" ? "ribbons" : NOTE_VIEW_STYLE_DEFAULT;
 
     if (noteViewStyle === "balloons") {
       // Draw balloons
@@ -5185,40 +5205,74 @@
 
         // Cents offset (smaller, below note name)
         ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
-        const centsText = rebasedErr >= 0
-          ? `+${(rebasedErr * 100).toFixed(0)}¢`
-          : `${(rebasedErr * 100).toFixed(0)}¢`;
+        const centsVal = 1200 * (Math.log(1 + rebasedErr) / Math.log(2));
+        const centsText = centsVal >= 0
+          ? `+${centsVal.toFixed(0)}¢`
+          : `${centsVal.toFixed(0)}¢`;
         ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55 + 1);
 
         xPos -= horizontalSpacing;
       }
     } else {
-      // Draw ribbons
-      const ribbonHeight = 25;
+      // Draw ribbons as a streaming waveform (contiguous, time-based)
+      const rowsApprox = Math.max(1, Math.ceil(numPitches / 12));
+      const clampedRows = Math.max(2, Math.min(8, rowsApprox));
+      const ribbonHeight = 50 - ((clampedRows - 2) / 6) * 25; // 50px at 2 rows, 25px at 8 rows
       const ribbonHalfHeight = ribbonHeight / 2;
-      const ribbonMaxWidth = Math.min(horizontalSpacing, 75);
+      const ribbonMaxOffset = 25; // max vertical differentiation for sharp/flat offsets
+      const gapCapMs = SCORE_GAP_CAP_MS; // cap gaps between notes
 
-      for (let i = mergedSegments.length - 1; i >= 0; i--) {
-        const { midi, avgErrRatio, stretchCents, durMs, startMs } = mergedSegments[i];
+      // Build time-ordered spans (note + gaps), newest to oldest
+      const spans = [];
+      let cursorMs = nowActive;
+      const mergedSorted = [...mergedSegments].sort((a, b) => (a.startActiveMs ?? a.startMs ?? 0) - (b.startActiveMs ?? b.startMs ?? 0));
+      for (let i = mergedSorted.length - 1; i >= 0; i--) {
+        const seg = mergedSorted[i];
+        const segStart = seg.startActiveMs ?? seg.startMs ?? 0;
+        const segEnd = segStart + seg.durMs;
+        const gap = Math.max(0, cursorMs - segEnd);
+        if (gap > 0) {
+          spans.push({ type: "gap", durMs: Math.min(gap, gapCapMs) });
+        }
+        spans.push({ type: "note", data: seg });
+        cursorMs = segStart;
+        if (cursorMs <= startActive) break;
+      }
+
+      // Time → pixels (right aligned)
+      const pxPerMs = desiredWidthCss / windowMs;
+      let xRight = desiredWidthCss;
+
+      for (const span of spans) {
+        if (span.type === "gap") {
+          const spanW = span.durMs * pxPerMs;
+          xRight -= spanW;
+          continue;
+        }
+
+        const { data } = span;
+        const { midi, avgErrRatio, stretchCents, durMs, startMs, startActiveMs } = data;
         const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
         const targetStretch = getStretchCents(midi);
         const defaultErr = rebaseErrRatio(avgErrRatio, stretchCents ?? 0, targetStretch);
         const midiSegments = byMidi.get(midi) || [];
 
-        const widthFactor = Math.min(1, durMs / 4000);
-        const ribbonWidth = Math.max(12, Math.min(ribbonMaxWidth, ribbonMaxWidth * widthFactor));
-        const cols = Math.max(1, Math.round(ribbonWidth));
-        const samples = Math.max(4, cols * 4);
+        const spanWidth = Math.max(4, durMs * pxPerMs);
+        const slices = Math.max(4, Math.round(spanWidth)); // 1px slices
+        const samplesPerSlice = 1; // 1:1 samples to pixels
+        const totalSamples = slices * samplesPerSlice;
 
-        const errs = new Array(samples);
-        for (let s = 0; s < samples; s++) {
-          const t = startMs + ((s + 0.5) / samples) * durMs;
+        // Pre-sample intonation across the span
+        const errs = new Array(totalSamples);
+        const segActiveStart = startActiveMs ?? startMs ?? 0;
+        for (let s = 0; s < totalSamples; s++) {
+          const tActive = segActiveStart + ((s + 0.5) / totalSamples) * durMs;
           let err = defaultErr;
           for (let k = 0; k < midiSegments.length; k++) {
             const seg = midiSegments[k];
-            const segStart = seg.startMs;
-            const segEnd = seg.startMs + seg.durMs;
-            if (t >= segStart && t <= segEnd) {
+            const segStart = seg.startActiveMs ?? seg.startMs ?? 0;
+            const segEnd = segStart + (seg.durActiveMs ?? seg.durMs);
+            if (tActive >= segStart && tActive <= segEnd) {
               err = rebaseErrRatio(seg.seg.avgErrRatio, seg.seg.stretchCents ?? 0, targetStretch);
               break;
             }
@@ -5226,58 +5280,44 @@
           errs[s] = err;
         }
 
-        const left = xPos - ribbonWidth / 2;
-        for (let c = 0; c < cols; c++) {
-          const sStart = Math.floor((c * samples) / cols);
-          const sEnd = Math.floor(((c + 1) * samples) / cols);
-          let sum = 0;
-          let count = 0;
-          for (let s = sStart; s < sEnd; s++) {
-            sum += errs[s];
-            count++;
-          }
-          const avgErr = count ? sum / count : defaultErr;
-          const biasColor = computeColorBiasFromErr(avgErr);
-          const errCents = avgErr * 100;
-          const offset = Math.max(-ribbonHalfHeight, Math.min(ribbonHalfHeight, (errCents / 50) * ribbonHalfHeight));
-          const colW = ribbonWidth / cols;
-          const colX = left + c * colW;
-          const colY = yPos - ribbonHalfHeight - offset;
-
+        const xLeft = xRight - spanWidth;
+        for (let c = 0; c < slices; c++) {
+          const idx = Math.min(totalSamples - 1, c);
+          const errVal = errs[idx];
+          const biasColor = computeColorBiasFromErr(errVal);
+          const colX = xLeft + c;
+          const colY = yPos - ribbonHalfHeight;
           ctx.fillStyle = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
-          ctx.fillRect(colX, colY, colW + 0.5, ribbonHeight);
+          ctx.fillRect(colX, colY, 1, ribbonHeight);
         }
 
-        // Labels (reuse balloon styling)
+        // Labels centered on this span
+        const labelX = xLeft + spanWidth / 2;
         ctx.fillStyle = SCORE_TEXT_COLOR;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        ctx.font = `bold ${Math.round(balloonRadius * 0.8)}px sans-serif`;
+        ctx.font = `bold ${Math.round(balloonRadius * 0.6)}px sans-serif`;
         const noteName = getNoteNameForMidi(midi, accidentalMode);
         if (noteName.includes("♭")) {
           const parts = noteName.split("♭");
           const letter = parts[0] ?? "";
           const accidental = "♭";
-          const accidentalSize = Math.round(balloonRadius * 0.72);
-          ctx.fillText(letter, xPos - accidentalSize * 0.2, yPos - balloonRadius * 0.1 + 4);
+          const accidentalSize = Math.round(balloonRadius * 0.54);
+          ctx.shadowColor = "rgba(0,0,0,0.65)";
+          ctx.shadowBlur = 3;
+          ctx.fillText(letter, labelX - accidentalSize * 0.2, yPos - balloonRadius * 0.1 + 4);
           ctx.font = `bold ${accidentalSize}px sans-serif`;
-          ctx.fillText(accidental, xPos + accidentalSize * 0.35, yPos - balloonRadius * 0.1 + 4);
+          ctx.fillText(accidental, labelX + accidentalSize * 0.35, yPos - balloonRadius * 0.1 + 4);
         } else {
-          ctx.fillText(noteName, xPos, yPos - balloonRadius * 0.1 + 4);
+          ctx.shadowColor = "rgba(0,0,0,0.65)";
+          ctx.shadowBlur = 3;
+          ctx.fillText(noteName, labelX, yPos - balloonRadius * 0.1 + 4);
         }
+        ctx.shadowBlur = 0;
 
-        ctx.font = `${Math.round(balloonRadius * 0.45)}px sans-serif`;
-        const durSec = (durMs / 1000).toFixed(1);
-        ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.55 - 1);
-
-        ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
-        const centsText = defaultErr >= 0
-          ? `+${(defaultErr * 100).toFixed(0)}¢`
-          : `${(defaultErr * 100).toFixed(0)}¢`;
-        ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55 + 1);
-
-        xPos -= horizontalSpacing;
+        xRight = xLeft;
+        if (xRight <= 0) break;
       }
     }
 
@@ -5852,7 +5892,6 @@
     const [pitch, clarity] = detector.findPitch(dataBuffer, sampleRate);
 
     const nowT = nowMs();
-    scoreWindowNowMs = nowT;
     const dtMs = nowT - lastFrameTime;
     lastFrameTime = nowT;
 
@@ -5880,6 +5919,10 @@
       const nd = freqToNoteData(adjustedPitch, A4);
       const { cents, midi, errRatio, stretchCents } = nd;
       noteDetectedThisFrame = true;
+      if (dtMs > 0) {
+        scoreActiveClockMs += dtMs;
+        silentAdvanceAccumMs = 0;
+      }
 
       let displayCents = cents;
       const tauMs = mode === "relaxed"
@@ -5961,6 +6004,16 @@
       heldMidiForDisplay = null;
       heldCentsForDisplay = 0;
 
+      // Advance active clock during silence up to a cap to keep ribbons moving briefly
+      if (dtMs > 0 && running) {
+        const remaining = Math.max(0, SCORE_GAP_CAP_MS - silentAdvanceAccumMs);
+        if (remaining > 0) {
+          const add = Math.min(dtMs, remaining);
+          scoreActiveClockMs += add;
+          silentAdvanceAccumMs += add;
+        }
+      }
+
       lastDisplayedMidi     = null;
       lastDisplayedHzText   = "-- Hz";
       lastDisplayedCentsText = "-- cents";
@@ -6026,7 +6079,7 @@
       detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
 
       running = true;
-      scoreWindowNowMs = nowMs();
+      lastFrameTime = nowMs();
       syncUsageLock();
       await requestScreenWakeLock();
       micBtn.classList.add("on");
@@ -6063,7 +6116,6 @@
 
   function stopMic({ markDisabled = false } = {}) {
     running = false;
-    scoreWindowNowMs = nowMs(); // freeze score window anchor at pause time
     releaseScreenWakeLock();
     forceStopUsageTimer(nowMs());
     releaseUsageLock();
