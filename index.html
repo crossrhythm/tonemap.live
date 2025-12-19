@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.3 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.4 (update window.APP_VERSION below when bumping release) -->
 <!-- Licensed under the MIT License; see LICENSE. -->
 <html lang="en">
 <head>
@@ -365,13 +365,176 @@
     position: relative;
     z-index: 2;
     background: transparent;
+    transition: flex 0.3s ease, max-width 0.3s ease;
   }
+
+  .right-col.mini-mode {
+    flex: 0 0 50px;
+    max-width: 50px;
+  }
+
+  /* In portrait mode, disable mini UI completely */
+  @media (max-aspect-ratio: 1/1) {
+    .right-col.mini-mode {
+      flex: 0 0 220px;
+      max-width: 220px;
+    }
+    .mini-sidebar {
+      display: none !important;
+    }
+    .right-fixed,
+    .right-scroll {
+      display: flex !important;
+    }
+  }
+
+  .mini-sidebar {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: 50px;
+    height: 100%;
+    background: transparent;
+    padding: 0.5rem 0;
+    gap: 0.75rem;
+  }
+
+  .right-col.mini-mode .mini-sidebar {
+    display: flex;
+  }
+
+  .right-col.mini-mode .right-fixed,
+  .right-col.mini-mode .right-scroll {
+    display: none;
+  }
+
+  .mini-logo {
+    width: 40px;
+    height: 40px;
+    padding: 3px;
+    box-sizing: border-box;
+    border-radius: 0.3rem;
+    overflow: hidden;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    outline: none;
+    object-fit: contain;
+    display: block;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mini-logo:focus-visible {
+    outline: none;
+  }
+
+  .mini-btn {
+    appearance: none;
+    width: var(--edge-btn-size);
+    height: var(--edge-btn-size);
+    min-width: var(--edge-btn-size);
+    min-height: var(--edge-btn-size);
+    border-radius: 0.45rem;
+    border: 2px solid var(--border-dim);
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .mini-btn:focus-visible {
+    border-color: var(--accent-green);
+    outline: none;
+  }
+
+  @media (hover: hover) {
+    .mini-btn:hover {
+      border-color: var(--accent-green);
+    }
+  }
+
+  .mini-btn:active {
+    transform: translateY(1px);
+  }
+
+  .mini-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+    filter: grayscale(0.4);
+  }
+
+  .mini-btn.alert {
+    border-color: var(--warn-color);
+    color: var(--warn-color);
+    box-shadow: 0 0 0 0.18rem rgba(250,204,21,0.15);
+  }
+
+  .mini-btn .icon-micstate.playing {
+    font-size: 1.1rem;
+  }
+
+  .mini-btn .icon-micstate.paused {
+    font-size: 0.9rem;
+  }
+
+  .mini-btn .icon-reset {
+    font-size: 0.825rem;
+  }
+
+  .mic-btn.on.mini-mode-active::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid var(--accent-green);
+    border-radius: 0.55rem;
+    pointer-events: none;
+    animation: micro-pulse 2s infinite;
+  }
+
+  @keyframes micro-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+    }
+  }
+
+  /* Landscape mode: add border and background to right column container */
+  @media (min-aspect-ratio: 1/1) {
+    .right-col {
+      background: rgba(15,23,42,0.65);
+      border: 1px solid rgba(148,163,184,0.12);
+      border-radius: 0.75rem;
+      padding: 0.425rem 0.5rem;
+    }
+    .right-col.mini-mode {
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+    .right-fixed {
+      padding-bottom: 0.5rem;
+    }
+    .right-scroll {
+      padding: 0;
+    }
+  }
+
   .right-fixed {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-bottom: 0.35rem;
   }
   .right-scroll {
     flex: 1 1 auto;
@@ -379,7 +542,6 @@
     overflow-y: auto;
     display: flex;
     justify-content: center;
-    padding: 0 0.25rem 1rem;
   }
 
   /********************
@@ -1542,7 +1704,7 @@
   }
 
   /* Landscape: shrink logo once viewport gets narrow */
-  @media (min-aspect-ratio: 1/1) and (max-width: 850px) {
+  @media (min-aspect-ratio: 1/1) and (max-width: 1000px) {
     body {
       padding-left: calc(0.5rem + env(safe-area-inset-left));
       padding-right: calc(0.5rem + env(safe-area-inset-right));
@@ -1570,6 +1732,24 @@
     .icon-micstate.paused,
     .icon-reset {
       font-size: 1.85rem;
+    }
+    .overlay-actions {
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .overlay-actions button {
+      width: 100%;
+    }
+
+    /* Always stack Note View / Options buttons in narrow landscape sidebar */
+    .overlay-button-stack {
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .overlay-button-stack button {
+      width: 100%;
+      min-width: 0;
     }
   }
 
@@ -1838,7 +2018,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.3";
+  window.APP_VERSION = "1.4";
 </script>
 
 <div class="page">
@@ -1898,10 +2078,27 @@
   <!-- RIGHT: CONTROLS / INFO -->
   <div class="right-col">
 
+    <!-- Mini sidebar (landscape mode only) -->
+    <div class="mini-sidebar">
+      <img class="mini-logo" id="miniLogoBtn" src="tonemapicon.png" alt="Tonemap logo" title="Return to full sidebar" role="button" tabindex="0">
+      <button class="mini-btn" id="miniMicBtn" type="button" title="Play/Pause listening">
+        <span class="icon-micstate paused">▶</span>
+      </button>
+      <button class="mini-btn" id="miniResetBtn" type="button" title="Reset the grid">
+        <span class="icon-reset">↺</span>
+      </button>
+      <button class="mini-btn" id="miniViewToggleBtn" type="button" title="Toggle view mode">
+        <span class="view-icon">♫</span>
+      </button>
+      <button class="mini-btn" id="miniOptionsBtn" type="button" title="Open options">
+        <span>⚙</span>
+      </button>
+    </div>
+
     <!-- Fixed header -->
     <div class="right-fixed">
       <div class="app-title">
-        <img src="tonemaplogo.jpg" alt="Tonemap.Live logo">
+        <img id="mainLogoBtn" src="tonemaplogo.jpg" alt="Tonemap.Live logo" style="cursor: pointer;" title="Collapse sidebar">
       </div>
     </div>
 
@@ -2082,18 +2279,6 @@
             <select id="needleDirSelect">
               <option value="horizontal">Horizontal</option>
               <option value="vertical" selected>Vertical</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label" for="noteViewStyleSelect">Note View Style</label>
-          </div>
-          <div class="opt-control">
-            <select id="noteViewStyleSelect">
-              <option value="balloons" selected>Balloons</option>
-              <option value="ribbons">Ribbons</option>
             </select>
           </div>
         </div>
@@ -2364,7 +2549,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.3";
+  const APP_VERSION = window.APP_VERSION || "1.4";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -2494,6 +2679,15 @@
   const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
   const rowStartSelect = document.getElementById("rowStartSelect");
+
+  // Mini UI elements
+  const rightCol = document.querySelector(".right-col");
+  const mainLogoBtn = document.getElementById("mainLogoBtn");
+  const miniLogoBtn = document.getElementById("miniLogoBtn");
+  const miniMicBtn = document.getElementById("miniMicBtn");
+  const miniResetBtn = document.getElementById("miniResetBtn");
+  const miniViewToggleBtn = document.getElementById("miniViewToggleBtn");
+  const miniOptionsBtn = document.getElementById("miniOptionsBtn");
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -2772,6 +2966,39 @@
     };
     el.addEventListener("pointerup", handler);
     el.addEventListener("touchend", handler, { passive: true });
+  }
+
+  /**********************
+   * MINI UI FUNCTIONS
+   **********************/
+  function toggleMiniUI() {
+    if (!rightCol) return;
+    const isMini = rightCol.classList.toggle("mini-mode");
+    localStorage.setItem(MINI_UI_STATE_KEY, isMini ? "true" : "false");
+  }
+
+  function loadMiniUIState() {
+    if (!rightCol) return;
+    const saved = localStorage.getItem(MINI_UI_STATE_KEY);
+    if (saved === "true") {
+      rightCol.classList.add("mini-mode");
+    }
+  }
+
+  function enforceMiniUIOrientationLock() {
+    if (!rightCol) return;
+    const isPortrait = window.matchMedia("(max-aspect-ratio: 1/1)").matches;
+    if (isPortrait && rightCol.classList.contains("mini-mode")) {
+      // Force exit mini mode in portrait
+      rightCol.classList.remove("mini-mode");
+    }
+  }
+
+  function updateMiniViewIcon() {
+    if (miniViewToggleBtn && miniViewToggleBtn.querySelector(".view-icon")) {
+      const icon = miniViewToggleBtn.querySelector(".view-icon");
+      icon.textContent = scoreViewActive ? "≣" : "♫";
+    }
   }
 
   if (appVersionEl) {
@@ -3058,6 +3285,7 @@
 
   const STORAGE_KEY = "tonemap.live.settings";
   const QUOTE_INDEX_KEY = "tonemap.live.quoteIndex";
+  const MINI_UI_STATE_KEY = "tonemap.live.miniUIState";
 
   const HISTORY_DEFAULT = "short";
   const NOTE_VIEW_STYLE_DEFAULT = "balloons";
@@ -3082,7 +3310,7 @@
 
   // Score View Settings
   const SCORE_VIEW_WINDOW_SECONDS = 60;  // Show last 60 seconds of active listening
-  const SCORE_MIN_DURATION_MS = 100;     // Filter out notes shorter than 0.1 seconds
+  const SCORE_MIN_DURATION_MS = 75;      // Filter out notes shorter than 75ms
   const SCORE_BALLOON_RADIUS = 40;        // Baseline size; actual radius is clamped below
   const SCORE_BALLOON_RADIUS_MIN = 25;    // Floor radius so dots are visible (50px diameter)
   const SCORE_BALLOON_RADIUS_MAX = 80;    // Ceiling to avoid covering the whole staff
@@ -3090,7 +3318,6 @@
   const SCORE_HORIZONTAL_MARGIN = 30;     // Margin when laying out from the right
   const SCORE_BALLOON_PADDING = 10;       // Horizontal padding between balloons
   const SCORE_TEXT_COLOR = "white";
-  const SCORE_GAP_CAP_MS = 3000;          // Max silent gap rendered in ribbons
 
   const DEFAULT_SETTINGS = {
     a4: 440,
@@ -3970,12 +4197,6 @@
     if (needleDirSelect) needleDirSelect.value = needleDirVal;
     if (originalNeedleDir !== needleDirVal) needsPersist = true;
     currentSettings.needleDirection = needleDirVal;
-
-    const originalNoteViewStyle = settings.noteViewStyle;
-    const styleVal = (originalNoteViewStyle === "ribbons") ? "ribbons" : NOTE_VIEW_STYLE_DEFAULT;
-    if (noteViewStyleSelect) noteViewStyleSelect.value = styleVal;
-    if (originalNoteViewStyle !== styleVal) needsPersist = true;
-    currentSettings.noteViewStyle = styleVal;
 
     if (settings.colorPalette) {
       currentPalette = normalizePalette(settings.colorPalette);
@@ -5118,20 +5339,15 @@
       Math.min(SCORE_BALLOON_RADIUS_MAX, radiusCandidate || SCORE_BALLOON_RADIUS)
     );
 
-    // Determine view style early
-    const noteViewStyle = currentSettings.noteViewStyle === "ribbons" ? "ribbons" : NOTE_VIEW_STYLE_DEFAULT;
-
     // Calculate horizontal spacing / canvas width
     const numSegments = mergedSegments.length;
     const horizontalMargin = Math.max(SCORE_HORIZONTAL_MARGIN, SCORE_BALLOON_PADDING + balloonRadius);
     const desiredSpacing = balloonRadius * 3; // centers at 3x radius (balloons)
-    const desiredWidthCss = (noteViewStyle === "balloons")
-      ? Math.max(
-          containerWidth,
-          2 * horizontalMargin + Math.max(0, (numSegments - 1)) * desiredSpacing + balloonRadius * 2,
-          2000
-        )
-      : Math.max(containerWidth, 2000); // ribbons: fixed wide canvas, independent of note count
+    const desiredWidthCss = Math.max(
+      containerWidth,
+      2 * horizontalMargin + Math.max(0, (numSegments - 1)) * desiredSpacing + balloonRadius * 2,
+      2000
+    );
     const dpr = window.devicePixelRatio || 1;
     scoreCanvas.style.width = `${desiredWidthCss}px`;
     scoreCanvas.style.height = `${containerHeight}px`;
@@ -5152,9 +5368,8 @@
 
     let xPos = desiredWidthCss - horizontalMargin;  // start on the right (most recent)
 
-    if (noteViewStyle === "balloons") {
-      // Draw balloons
-      for (let i = mergedSegments.length - 1; i >= 0; i--) {
+    // Draw balloons
+    for (let i = mergedSegments.length - 1; i >= 0; i--) {
         const { midi, avgErrRatio, stretchCents, durMs } = mergedSegments[i];
         const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
 
@@ -5211,114 +5426,7 @@
           : `${centsVal.toFixed(0)}¢`;
         ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55 + 1);
 
-        xPos -= horizontalSpacing;
-      }
-    } else {
-      // Draw ribbons as a streaming waveform (contiguous, time-based)
-      const rowsApprox = Math.max(1, Math.ceil(numPitches / 12));
-      const clampedRows = Math.max(2, Math.min(8, rowsApprox));
-      const ribbonHeight = 50 - ((clampedRows - 2) / 6) * 25; // 50px at 2 rows, 25px at 8 rows
-      const ribbonHalfHeight = ribbonHeight / 2;
-      const ribbonMaxOffset = 25; // max vertical differentiation for sharp/flat offsets
-      const gapCapMs = SCORE_GAP_CAP_MS; // cap gaps between notes
-
-      // Build time-ordered spans (note + gaps), newest to oldest
-      const spans = [];
-      let cursorMs = nowActive;
-      const mergedSorted = [...mergedSegments].sort((a, b) => (a.startActiveMs ?? a.startMs ?? 0) - (b.startActiveMs ?? b.startMs ?? 0));
-      for (let i = mergedSorted.length - 1; i >= 0; i--) {
-        const seg = mergedSorted[i];
-        const segStart = seg.startActiveMs ?? seg.startMs ?? 0;
-        const segEnd = segStart + seg.durMs;
-        const gap = Math.max(0, cursorMs - segEnd);
-        if (gap > 0) {
-          spans.push({ type: "gap", durMs: Math.min(gap, gapCapMs) });
-        }
-        spans.push({ type: "note", data: seg });
-        cursorMs = segStart;
-        if (cursorMs <= startActive) break;
-      }
-
-      // Time → pixels (right aligned)
-      const pxPerMs = desiredWidthCss / windowMs;
-      let xRight = desiredWidthCss;
-
-      for (const span of spans) {
-        if (span.type === "gap") {
-          const spanW = span.durMs * pxPerMs;
-          xRight -= spanW;
-          continue;
-        }
-
-        const { data } = span;
-        const { midi, avgErrRatio, stretchCents, durMs, startMs, startActiveMs } = data;
-        const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
-        const targetStretch = getStretchCents(midi);
-        const defaultErr = rebaseErrRatio(avgErrRatio, stretchCents ?? 0, targetStretch);
-        const midiSegments = byMidi.get(midi) || [];
-
-        const spanWidth = Math.max(4, durMs * pxPerMs);
-        const slices = Math.max(4, Math.round(spanWidth)); // 1px slices
-        const samplesPerSlice = 1; // 1:1 samples to pixels
-        const totalSamples = slices * samplesPerSlice;
-
-        // Pre-sample intonation across the span
-        const errs = new Array(totalSamples);
-        const segActiveStart = startActiveMs ?? startMs ?? 0;
-        for (let s = 0; s < totalSamples; s++) {
-          const tActive = segActiveStart + ((s + 0.5) / totalSamples) * durMs;
-          let err = defaultErr;
-          for (let k = 0; k < midiSegments.length; k++) {
-            const seg = midiSegments[k];
-            const segStart = seg.startActiveMs ?? seg.startMs ?? 0;
-            const segEnd = segStart + (seg.durActiveMs ?? seg.durMs);
-            if (tActive >= segStart && tActive <= segEnd) {
-              err = rebaseErrRatio(seg.seg.avgErrRatio, seg.seg.stretchCents ?? 0, targetStretch);
-              break;
-            }
-          }
-          errs[s] = err;
-        }
-
-        const xLeft = xRight - spanWidth;
-        for (let c = 0; c < slices; c++) {
-          const idx = Math.min(totalSamples - 1, c);
-          const errVal = errs[idx];
-          const biasColor = computeColorBiasFromErr(errVal);
-          const colX = xLeft + c;
-          const colY = yPos - ribbonHalfHeight;
-          ctx.fillStyle = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
-          ctx.fillRect(colX, colY, 1, ribbonHeight);
-        }
-
-        // Labels centered on this span
-        const labelX = xLeft + spanWidth / 2;
-        ctx.fillStyle = SCORE_TEXT_COLOR;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        ctx.font = `bold ${Math.round(balloonRadius * 0.6)}px sans-serif`;
-        const noteName = getNoteNameForMidi(midi, accidentalMode);
-        if (noteName.includes("♭")) {
-          const parts = noteName.split("♭");
-          const letter = parts[0] ?? "";
-          const accidental = "♭";
-          const accidentalSize = Math.round(balloonRadius * 0.54);
-          ctx.shadowColor = "rgba(0,0,0,0.65)";
-          ctx.shadowBlur = 3;
-          ctx.fillText(letter, labelX - accidentalSize * 0.2, yPos - balloonRadius * 0.1 + 4);
-          ctx.font = `bold ${accidentalSize}px sans-serif`;
-          ctx.fillText(accidental, labelX + accidentalSize * 0.35, yPos - balloonRadius * 0.1 + 4);
-        } else {
-          ctx.shadowColor = "rgba(0,0,0,0.65)";
-          ctx.shadowBlur = 3;
-          ctx.fillText(noteName, labelX, yPos - balloonRadius * 0.1 + 4);
-        }
-        ctx.shadowBlur = 0;
-
-        xRight = xLeft;
-        if (xRight <= 0) break;
-      }
+      xPos -= horizontalSpacing;
     }
 
     // Snap scroll to the most recent balloons on the right
@@ -6004,9 +6112,10 @@
       heldMidiForDisplay = null;
       heldCentsForDisplay = 0;
 
-      // Advance active clock during silence up to a cap to keep ribbons moving briefly
+      // Advance active clock during silence up to a short cap
       if (dtMs > 0 && running) {
-        const remaining = Math.max(0, SCORE_GAP_CAP_MS - silentAdvanceAccumMs);
+        const silentAdvanceCapMs = 3000;
+        const remaining = Math.max(0, silentAdvanceCapMs - silentAdvanceAccumMs);
         if (remaining > 0) {
           const add = Math.min(dtMs, remaining);
           scoreActiveClockMs += add;
@@ -6087,6 +6196,15 @@
       micBtnIcon.classList.remove("paused");
       micBtnIcon.classList.add("playing");
       micBtnIcon.textContent = "⏸︎";
+      if (miniMicBtn) {
+        miniMicBtn.classList.add("on");
+        const icon = miniMicBtn.querySelector(".icon-micstate");
+        if (icon) {
+          icon.classList.remove("paused");
+          icon.classList.add("playing");
+          icon.textContent = "⏸︎";
+        }
+      }
 
       overlayVeil.style.display = "none";
       if (pendingMilestone) {
@@ -6109,6 +6227,16 @@
       micBtnIcon.classList.remove("playing");
       micBtnIcon.classList.add("paused");
       micBtnIcon.textContent = "▶︎";
+      if (miniMicBtn) {
+        miniMicBtn.classList.remove("on");
+        miniMicBtn.classList.add("paused");
+        const icon = miniMicBtn.querySelector(".icon-micstate");
+        if (icon) {
+          icon.classList.remove("playing");
+          icon.classList.add("paused");
+          icon.textContent = "▶︎";
+        }
+      }
       updateNoteReadoutText();
       // overlay remains if mic denied
     }
@@ -6140,6 +6268,16 @@
     micBtnIcon.classList.remove("playing");
     micBtnIcon.classList.add("paused");
     micBtnIcon.textContent = "▶︎";
+    if (miniMicBtn) {
+      miniMicBtn.classList.remove("on");
+      miniMicBtn.classList.add("paused");
+      const icon = miniMicBtn.querySelector(".icon-micstate");
+      if (icon) {
+        icon.classList.remove("playing");
+        icon.classList.add("paused");
+        icon.textContent = "▶︎";
+      }
+    }
 
     micDisabled = markDisabled ? true : micDisabled;
     updateNoteReadoutText();
@@ -6401,18 +6539,74 @@
         noteGrid.style.display = "none";
         scoreViewContainer.style.display = "flex";
         scoreViewToggleBtn.textContent = "Grid View";
-        // Pause mic when entering score view
-        if (micBtn && micBtn.classList.contains("on")) {
-          micBtn.click();
-        }
+        updateMiniViewIcon();
         renderScore();
       } else {
         noteGrid.style.display = "grid";
         scoreViewContainer.style.display = "none";
         scoreViewToggleBtn.textContent = "Note View";
+        updateMiniViewIcon();
       }
     });
   }
+
+  /**********************
+   * MINI UI EVENT LISTENERS
+   **********************/
+  if (mainLogoBtn) {
+    mainLogoBtn.addEventListener("click", () => {
+      toggleMiniUI();
+    });
+  }
+
+  if (miniLogoBtn) {
+    miniLogoBtn.addEventListener("click", () => {
+      toggleMiniUI();
+    });
+
+    miniLogoBtn.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleMiniUI();
+      }
+    });
+  }
+
+  if (miniMicBtn) {
+    miniMicBtn.addEventListener("click", () => {
+      if (micBtn) micBtn.click();
+    });
+  }
+
+  if (miniResetBtn) {
+    miniResetBtn.addEventListener("click", () => {
+      if (resetBtn) resetBtn.click();
+    });
+  }
+
+  if (miniViewToggleBtn) {
+    miniViewToggleBtn.addEventListener("click", () => {
+      if (scoreViewToggleBtn) scoreViewToggleBtn.click();
+    });
+  }
+
+  if (miniOptionsBtn) {
+    miniOptionsBtn.addEventListener("click", () => {
+      openOptionsOverlay();
+    });
+  }
+
+  // Load mini UI state on page load
+  loadMiniUIState();
+
+  // Enforce mini UI orientation lock (disable mini mode in portrait)
+  enforceMiniUIOrientationLock();
+  window.addEventListener("orientationchange", () => {
+    enforceMiniUIOrientationLock();
+  });
+  window.addEventListener("resize", () => {
+    enforceMiniUIOrientationLock();
+  });
 
   if (optionsOverlay) {
     optionsOverlay.addEventListener("click", event => {
@@ -6573,17 +6767,6 @@
       currentSettings.needleDirection = needleDirSelect.value === "vertical" ? "vertical" : "horizontal";
       persistSettings(currentSettings);
       highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
-    });
-  }
-
-  if (noteViewStyleSelect) {
-    noteViewStyleSelect.addEventListener("change", () => {
-      const val = noteViewStyleSelect.value === "ribbons" ? "ribbons" : "balloons";
-      currentSettings.noteViewStyle = val;
-      persistSettings(currentSettings);
-      if (scoreViewActive) {
-        renderScore();
-      }
     });
   }
 
