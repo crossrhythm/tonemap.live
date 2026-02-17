@@ -3816,6 +3816,18 @@
     if (previewMidi == null || !Number.isFinite(previewDurMs) || previewDurMs <= 0) {
       return null;
     }
+
+    // Filter preview notes by minimum duration (Note View only)
+    if (previewDurMs < SCORE_MIN_DURATION_MS) {
+      return null;
+    }
+
+    // Respect note-specific minimum hold (e.g., 70ms for octave jumps)
+    const requiredMinHoldMs = activeNoteInfo.minHoldMs || 0;
+    if (requiredMinHoldMs > 0 && previewDurMs < requiredMinHoldMs) {
+      return null;
+    }
+
     const avgErrRatio = activeNoteInfo.accumErrWeighted / previewDurMs;
     return {
       midi: previewMidi,
