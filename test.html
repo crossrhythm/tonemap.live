@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
 <!-- Version: 1.4 (update window.APP_VERSION below when bumping release) -->
+<!-- STATUS: Beta/test version for testing on mobile devices -->
+<!-- Once thoroughly tested, copy changes to index.html for production deployment -->
 <!-- Licensed under the MIT License; see LICENSE. -->
 <html lang="en">
 <head>
@@ -44,12 +46,6 @@
     --grid-text-on: #ffffff;
     --grid-active-border: 6px;
 
-    --panel-bg: #1e293b;
-    --panel-border: #475569;
-    --panel-text-dim: #94a3b8;
-    --panel-text-lite: #f8fafc;
-    --panel-highlight: rgb(34,197,94);
-
     --note-font-size: 2.4rem;
 
     --edge-btn-size: 32px;
@@ -64,6 +60,11 @@
     box-sizing: border-box;
   }
 
+  html,
+  body {
+    margin: 0;
+  }
+
   body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg-main);
@@ -72,7 +73,6 @@
     flex-direction: column;
     min-height: 100vh;
     padding: 1rem;
-    box-sizing: border-box;
     gap: 1rem;
     min-width: 320px;
   }
@@ -166,16 +166,29 @@
     height: 100%;
     background: var(--grid-bg);
     overflow-x: auto;
-    overflow-y: auto;
+    overflow-y: hidden;
     overscroll-behavior: none;
     z-index: 10;
-    display: flex;
+    display: block;
   }
 
   #scoreCanvas {
+    position: sticky;
+    top: 0;
+    left: 0;
     display: block;
+    width: 100%;
+    height: 100%;
     background: var(--grid-bg);
-    flex: 0 0 auto;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .score-timeline-spacer {
+    height: 1px;
+    min-height: 1px;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .edge-controls {
@@ -374,21 +387,6 @@
     max-width: 50px;
   }
 
-  /* In portrait mode, disable mini UI completely */
-  @media (max-aspect-ratio: 1/1) {
-    .right-col.mini-mode {
-      flex: 0 0 220px;
-      max-width: 220px;
-    }
-    .mini-sidebar {
-      display: none !important;
-    }
-    .right-fixed,
-    .right-scroll {
-      display: flex !important;
-    }
-  }
-
   .mini-sidebar {
     display: none;
     flex-direction: column;
@@ -485,7 +483,16 @@
   }
 
   .mini-btn .icon-reset {
-    font-size: 0.825rem;
+    font-size: 1.24rem;
+  }
+
+  .mini-btn .view-icon {
+    line-height: 1;
+    display: inline-block;
+  }
+
+  .mini-btn .view-icon.line-mode {
+    font-size: 1.25em;
   }
 
   .mic-btn.on.mini-mode-active::before {
@@ -512,6 +519,9 @@
 
   /* Landscape mode: add border and background to right column container */
   @media (min-aspect-ratio: 1/1) {
+    .page:has(.right-col.mini-mode) {
+      gap: 0.5rem;
+    }
     .right-col {
       background: rgba(15,23,42,0.65);
       border: 1px solid rgba(148,163,184,0.12);
@@ -521,6 +531,9 @@
     .right-col.mini-mode {
       background: transparent;
       border: none;
+      padding: 0;
+    }
+    .right-col.mini-mode .mini-sidebar {
       padding: 0;
     }
     .right-fixed {
@@ -542,7 +555,8 @@
     min-height: 0;
     overflow-y: auto;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
   }
 
   /********************
@@ -632,6 +646,9 @@
     font-size: 0.75rem;
     line-height: 1.3;
     color: var(--text-lite);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .footer-line {
@@ -724,9 +741,11 @@
   }
 
   #pitchBlockFixedSlot {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: .2rem;
   }
   #pitchBlockFixedSlot:empty {
@@ -785,15 +804,6 @@
     display: inline-block;
     min-width: 1.1ch;
     text-align: left;
-  }
-
-  #pitchBlockFixedSlot {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-  }
-  #pitchBlockFixedSlot {
-    flex-direction: column;
   }
 
   /* A4 block */
@@ -909,7 +919,7 @@
 
   .preset-label {
     font-size: 0.75rem;
-    color: var(--panel-text-dim);
+    color: var(--text-dim);
     white-space: nowrap;
   }
 
@@ -1106,6 +1116,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
   }
 
   .options-overlay-header,
@@ -1146,7 +1157,7 @@
   .status-overlay-version {
     font-size: 0.8rem;
     font-weight: 500;
-    color: var(--panel-text-dim);
+    color: var(--text-dim);
   }
 
   .status-grid {
@@ -1161,19 +1172,177 @@
     gap: 1.25rem;
   }
 
-.options-overlay-body,
-.status-overlay-body {
+.scroll-fade-y {
   flex: 1 1 auto;
   overflow-y: auto;
   padding: 0 1.5rem 1.5rem;
   min-height: 0;
+  position: relative;
+  /* Always-visible scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148,163,184,0.4) transparent;
+}
+.options-overlay-body::-webkit-scrollbar,
+.status-overlay-body::-webkit-scrollbar {
+  width: 6px;
+}
+.options-overlay-body::-webkit-scrollbar-track,
+.status-overlay-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.options-overlay-body::-webkit-scrollbar-thumb,
+.status-overlay-body::-webkit-scrollbar-thumb {
+  background: rgba(148,163,184,0.4);
+  border-radius: 3px;
+}
+.options-overlay-body::-webkit-scrollbar-thumb:hover,
+.status-overlay-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(148,163,184,0.6);
 }
 
+  /********************
+   * SCROLL FADE GRADIENTS
+   ********************/
+
+  /* Shared fade pseudo-element base */
+  .right-scroll::before,
+  .right-scroll::after {
+    content: "";
+    background: linear-gradient(
+      to bottom,
+      rgba(15,23,42,1) 0,
+      rgba(15,23,42,1) 3px,
+      rgba(15,23,42,0.9) 10px,
+      transparent 100%
+    );
+    position: sticky;
+    left: 0;
+    width: 100%;
+    height: calc(1.5rem + 10px);
+    pointer-events: none;
+    z-index: 10;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  /* Top fade (scroll-up indicator) */
+  .right-scroll::before {
+    top: -3px;
+    height: calc(1.5rem + 13px);
+    background: linear-gradient(to bottom, rgba(15,23,42,0.85), transparent);
+    margin-bottom: calc(-1.5rem - 13px);
+  }
+
+  /* Bottom fade (scroll-down indicator) */
+  .right-scroll::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(15,23,42,0.85), transparent);
+    margin-top: calc(-1.5rem - 10px);
+  }
+
+  /* Overlay scroll fades (reusable): pseudo layers above scrolling content */
+  .scroll-fade-y::before,
+  .scroll-fade-y::after {
+    content: "";
+    display: block;
+    position: sticky;
+    left: 0;
+    width: 100%;
+    height: calc(1.6rem + 10px);
+    pointer-events: none;
+    z-index: 8;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .scroll-fade-y::before {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(15,23,42,0.92), transparent);
+    margin-bottom: calc(-1.6rem - 10px);
+  }
+
+  .scroll-fade-y::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgba(15,23,42,0.92), transparent);
+    margin-top: calc(-1.6rem - 10px);
+  }
+
+  /* Options overlay bottom fade belongs at footer boundary, not inside body */
+  .options-overlay-body::after {
+    display: none;
+  }
+
+  .options-overlay-footer::before {
+    content: "";
+    position: absolute;
+    top: calc(-1.6rem - 10px);
+    left: 0;
+    right: 0;
+    height: calc(1.6rem + 10px);
+    background: linear-gradient(to top, rgba(15,23,42,0.92), transparent);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .scroll-fade-y.can-scroll-up::before {
+    opacity: 1;
+  }
+
+  .scroll-fade-y.can-scroll-down::after {
+    opacity: 1;
+  }
+
+  .options-overlay-body.can-scroll-down + .options-overlay-footer::before {
+    opacity: 1;
+  }
+
+  /* Show fades based on scroll position (toggled via JS) */
+  .right-scroll.can-scroll-up::before {
+    opacity: 1;
+  }
+  .right-scroll.can-scroll-down::after {
+    opacity: 1;
+  }
+
+  /* Safari seam fix: independent top mask to cover sticky subpixel gap */
+  @supports (-webkit-touch-callout: none) {
+    .right-scroll.can-scroll-up {
+      box-shadow: inset 0 3px 0 rgba(15,23,42,1);
+    }
+  }
+
+  /* Portrait page: bottom-only fade over footer area */
+  @media (max-aspect-ratio: 1/1) {
+    .page::after {
+      content: "";
+      display: block;
+      position: fixed;
+      bottom: env(safe-area-inset-bottom, 0);
+      left: 0;
+      width: 100%;
+      height: 2rem;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      background: linear-gradient(to top, var(--bg-main), transparent);
+    }
+    .page.can-scroll-down::after {
+      opacity: 1;
+    }
+  }
+
   .options-overlay-footer {
-    padding: 0 1.5rem 1.5rem;
+    padding: 1rem 1.5rem 1.5rem;
     display: flex;
     justify-content: flex-end;
-    margin-top: 0.5rem;
+    margin-top: 0;
+    position: relative;
+    z-index: 2;
+    background: rgba(15,23,42,0.78);
   }
 
   .option-field {
@@ -1197,7 +1366,7 @@
 
   .option-field .opt-hint {
     font-size: 0.7rem;
-    color: var(--panel-text-dim);
+    color: var(--text-dim);
     line-height: 1.4;
   }
 
@@ -1365,7 +1534,7 @@
   .option-info-detail {
     margin: 0;
     font-size: 0.82rem;
-    color: var(--panel-text-lite);
+    color: var(--text-lite);
     line-height: 1.5;
   }
 
@@ -1403,7 +1572,7 @@
   }
 
   .status-key {
-    color: var(--panel-text-dim);
+    color: var(--text-dim);
   }
 
   .status-row .status-btn {
@@ -1413,7 +1582,7 @@
   }
 
   .status-val {
-    color: var(--panel-text-lite);
+    color: var(--text-lite);
     text-align: right;
     min-width: 3.5rem;
     font-feature-settings: "tnum";
@@ -1421,7 +1590,7 @@
   }
 
   .status-val.deadzone-active {
-    color: var(--panel-highlight);
+    color: var(--accent-green);
     font-weight: 600;
   }
 
@@ -1433,7 +1602,7 @@
     justify-content: space-between;
     gap: 1rem;
     font-size: 0.7rem;
-    color: var(--panel-text-dim);
+    color: var(--text-dim);
     flex-wrap: wrap;
   }
 
@@ -1599,24 +1768,28 @@
     body {
       padding: 0.75rem;
       min-height: 625px;
-      height: 100vh;
+      height: 100dvh;
+      gap: 0;
       overflow-x: hidden;
       overflow-y: auto;
     }
     .page {
+      flex: 1 1 auto;
       flex-direction: column;
-      min-height: calc(625px - 1.5rem);
-      height: calc(100vh - 1.5rem);
+      min-height: 0;
+      height: 100%;
       gap: 0.75rem;
-      overflow: visible;
+      overflow: hidden;
     }
     .left-col {
-      flex: 1 1 auto;
+      flex: 1 1 0;
       min-height: 0;
       height: auto;
+      overflow: hidden;
     }
     .grid-surface {
-      min-height: clamp(220px, 48vh, 560px);
+      min-height: 0;
+      height: 100%;
     }
     .right-col {
       flex: 0 0 auto;
@@ -1628,6 +1801,79 @@
       border-radius: 0.75rem;
       padding: 0.85rem 1rem;
       overflow: hidden;
+    }
+    .right-col.mini-mode {
+      width: 100%;
+      max-width: none;
+      flex: 0 0 auto;
+      height: auto;
+      padding: 0;
+      background: transparent;
+      border: none;
+    }
+    .right-col {
+      transition: padding 220ms ease, background-color 220ms ease, border-color 220ms ease;
+    }
+    .right-col .mini-sidebar {
+      width: 100%;
+      height: auto;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      justify-items: center;
+      align-items: center;
+      column-gap: 0.4rem;
+      row-gap: 0;
+      padding: 0;
+      opacity: 0;
+      transform: translateY(8px);
+      max-height: 0;
+      overflow: hidden;
+      pointer-events: none;
+      transition: opacity 220ms ease, transform 220ms ease, max-height 220ms ease;
+    }
+    .right-col .right-fixed,
+    .right-col .right-scroll {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 1000px;
+      overflow: hidden;
+      pointer-events: auto;
+      transition: opacity 220ms ease, transform 220ms ease, max-height 220ms ease;
+    }
+    .right-col.mini-mode .mini-sidebar {
+      display: grid;
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 84px;
+      pointer-events: auto;
+    }
+    .right-col.mini-mode .right-fixed,
+    .right-col.mini-mode .right-scroll {
+      display: flex;
+      opacity: 0;
+      transform: translateY(-8px);
+      max-height: 0;
+      pointer-events: none;
+    }
+    .right-col.mini-mode .right-scroll {
+      padding-right: 0;
+    }
+    .right-col.mini-mode .mini-logo,
+    .right-col.mini-mode .mini-btn {
+      flex: 0 0 auto;
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      min-height: 42px;
+    }
+    .right-col.mini-mode .mini-logo {
+      border: 1px solid var(--border-dim);
+      border-radius: 0.45rem;
+      padding: 5px;
+      background: var(--bg-panel);
+    }
+    .right-col.mini-mode .mini-btn {
+      border-radius: 0.45rem;
     }
     .right-fixed {
       flex-direction: row;
@@ -1692,15 +1938,25 @@
       width: 100%;
       max-height: 80vh;
     }
-    .app-title {
-      max-width: 160px;
-    }
     .overlay-button-stack {
       flex-wrap: wrap;
     }
 
     .edge-gradient {
       height: 110px;
+    }
+  }
+
+  @media (max-aspect-ratio: 1/1) and (max-width: 820px) {
+    .app-title {
+      max-width: 160px;
+    }
+    .overlay-button-stack button {
+      min-width: 0;
+      padding: 0.3rem 0.5rem;
+    }
+    .overlay-button-stack .options-btn {
+      font-size: 0.7rem;
     }
   }
 
@@ -1748,13 +2004,16 @@
       gap: 0.5rem;
       width: 100%;
     }
-    .overlay-button-stack button {
+    .right-scroll .overlay-button-stack button {
       width: 100%;
       min-width: 0;
     }
   }
 
   @media (max-width: 500px) {
+    .quick-state {
+      white-space: normal;
+    }
     .status-grid {
       grid-template-columns: 1fr;
     }
@@ -1763,7 +2022,7 @@
     }
   }
 
-  @media (max-width: 640px) {
+  @media (min-aspect-ratio: 1/1) and (max-width: 640px) {
     .overlay-nav-btn {
       order: 3;
       flex: 0 0 auto;
@@ -1921,7 +2180,7 @@
     margin: 0;
     font-size: 0.95rem;
     line-height: 1.5;
-    color: var(--panel-text-lite);
+    color: var(--text-lite);
   }
 
   .confetti-stats-btn {
@@ -2079,14 +2338,14 @@
   <!-- RIGHT: CONTROLS / INFO -->
   <div class="right-col">
 
-    <!-- Mini sidebar (landscape mode only) -->
+    <!-- Mini controls (landscape sidebar / portrait strip) -->
     <div class="mini-sidebar">
       <img class="mini-logo" id="miniLogoBtn" src="tonemapicon.png" alt="Tonemap logo" title="Return to full sidebar" role="button" tabindex="0">
       <button class="mini-btn" id="miniMicBtn" type="button" title="Play/Pause listening">
         <span class="icon-micstate paused">▶</span>
       </button>
       <button class="mini-btn" id="miniResetBtn" type="button" title="Reset the grid">
-        <span class="icon-reset">↺</span>
+        <span class="icon-reset">↻</span>
       </button>
       <button class="mini-btn" id="miniViewToggleBtn" type="button" title="Toggle view mode">
         <span class="view-icon">♫</span>
@@ -2170,7 +2429,7 @@
             <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close options overlay">Apply ✕</button>
           </div>
         </div>
-    <div class="options-overlay-body">
+    <div class="options-overlay-body scroll-fade-y">
       <div class="options-grid">
         <div class="option-field">
           <div class="opt-label-row">
@@ -2399,7 +2658,7 @@
       <button id="statusCloseBtn" class="status-close-btn" type="button" aria-label="Close status overlay">Close ✕</button>
     </div>
 
-    <div class="status-overlay-body">
+    <div class="status-overlay-body scroll-fade-y">
       <div class="status-grid">
       <section class="status-section">
         <h3 class="status-section-title">Session</h3>
@@ -2637,8 +2896,6 @@
   const noteLetterEl  = noteEl ? noteEl.querySelector(".note-letter") : null;
   const noteAccidentalEl = noteEl ? noteEl.querySelector(".note-accidental") : null;
   const noteOctaveEl  = noteEl ? noteEl.querySelector(".note-octave") : null;
-  const freqEl        = document.getElementById("freq");
-  const centsEl       = document.getElementById("cents");
   const appVersionEl  = document.getElementById("appVersion");
   const optionsToggleBtn = document.getElementById("optionsToggleBtn");
   const optionsOverlay   = document.getElementById("optionsOverlay");
@@ -2646,7 +2903,12 @@
   const scoreViewToggleBtn = document.getElementById("scoreViewToggleBtn");
   const scoreViewContainer = document.getElementById("scoreViewContainer");
   const scoreCanvas = document.getElementById("scoreCanvas");
-  const noteViewStyleSelect = document.getElementById("noteViewStyleSelect");
+  let scoreTimelineSpacer = null;
+  if (scoreViewContainer && scoreCanvas) {
+    scoreTimelineSpacer = document.createElement("div");
+    scoreTimelineSpacer.className = "score-timeline-spacer";
+    scoreViewContainer.insertBefore(scoreTimelineSpacer, scoreCanvas);
+  }
   const optionInfoOverlay = document.getElementById("optionInfoOverlay");
   const optionInfoTitle = document.getElementById("optionInfoTitle");
   const optionInfoSummary = document.getElementById("optionInfoSummary");
@@ -2714,12 +2976,64 @@
   const dbgCumulativeTime = document.getElementById("dbgCumulativeTime");
   const resetUsageBtn = document.getElementById("resetUsageBtn");
 
+  // Scrollable containers for fade gradients
+  const rightScrollEl = document.querySelector(".right-scroll");
+  const optionsOverlayBodyEl = document.querySelector("#optionsOverlay .options-overlay-body");
+  const statusOverlayBodyEl = document.querySelector("#statusOverlay .status-overlay-body");
+  const pageEl = document.querySelector(".page");
+
+  function attachScrollFade(el) {
+    if (!el || el._scrollFadeAttached) return;
+    el._scrollFadeAttached = true;
+    function update() {
+      const top = el.scrollTop;
+      const bottom = el.scrollHeight - el.clientHeight - top;
+      el.classList.toggle("can-scroll-up", top > 2);
+      el.classList.toggle("can-scroll-down", bottom > 2);
+    }
+    el.addEventListener("scroll", update, { passive: true });
+    new ResizeObserver(update).observe(el);
+    update();
+  }
+
+  function attachPortraitPageFade() {
+    if (!pageEl) return;
+    const isPortrait = () => window.matchMedia("(max-aspect-ratio: 1/1)").matches;
+    function update() {
+      if (!isPortrait()) {
+        pageEl.classList.remove("can-scroll-down");
+        return;
+      }
+      const scrollingEl = document.scrollingElement || document.documentElement;
+      const scrollTop = scrollingEl.scrollTop;
+      const scrollHeight = scrollingEl.scrollHeight;
+      const clientHeight = window.visualViewport?.height || document.documentElement.clientHeight;
+      const epsilon = 1;
+      const totalOverflow = Math.max(0, scrollHeight - clientHeight);
+      const bottom = totalOverflow - scrollTop;
+      const hasPageScroll = totalOverflow > epsilon;
+      pageEl.classList.toggle("can-scroll-down", hasPageScroll && bottom > epsilon);
+    }
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", update, { passive: true });
+      window.visualViewport.addEventListener("scroll", update, { passive: true });
+    }
+    update();
+  }
+
+  // Attach fades to always-present scrollable areas
+  attachScrollFade(rightScrollEl);
+  attachPortraitPageFade();
+
   function openOptionsOverlay() {
     if (!optionsOverlay) return;
     if (optionsOverlay.classList.contains("open")) return;
     optionsOverlay.classList.add("open");
     optionsOverlay.setAttribute("aria-hidden", "false");
     document.addEventListener("keydown", onOptionsOverlayKeyDown);
+    attachScrollFade(optionsOverlayBodyEl);
     if (optionsCloseBtn) {
       optionsCloseBtn.focus();
     }
@@ -2801,6 +3115,7 @@
     statusOverlay.classList.add("open");
     statusOverlay.setAttribute("aria-hidden", "false");
     document.addEventListener("keydown", onStatusOverlayKeyDown);
+    attachScrollFade(statusOverlayBodyEl);
     if (statusCloseBtn) {
       statusCloseBtn.focus();
     }
@@ -2899,7 +3214,7 @@
   const MEDIUM_NEEDLE_TAU_MS = 80;
 
   // Hard mode softened but still tighter than Medium
-  const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 2; // ~0.12%
+  const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 3; // ~0.076%
   const HARD_MIN_HOLD_MS = 40;
   const HARD_ERR_SCALE = 0.9;
   const HARD_NEEDLE_TAU_MS = 30;
@@ -2976,6 +3291,9 @@
     if (!rightCol) return;
     const isMini = rightCol.classList.toggle("mini-mode");
     localStorage.setItem(MINI_UI_STATE_KEY, isMini ? "true" : "false");
+    requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
   }
 
   function loadMiniUIState() {
@@ -2983,22 +3301,21 @@
     const saved = localStorage.getItem(MINI_UI_STATE_KEY);
     if (saved === "true") {
       rightCol.classList.add("mini-mode");
+      requestAnimationFrame(() => {
+        window.dispatchEvent(new Event("resize"));
+      });
     }
   }
 
   function enforceMiniUIOrientationLock() {
     if (!rightCol) return;
-    const isPortrait = window.matchMedia("(max-aspect-ratio: 1/1)").matches;
-    if (isPortrait && rightCol.classList.contains("mini-mode")) {
-      // Force exit mini mode in portrait
-      rightCol.classList.remove("mini-mode");
-    }
   }
 
   function updateMiniViewIcon() {
     if (miniViewToggleBtn && miniViewToggleBtn.querySelector(".view-icon")) {
       const icon = miniViewToggleBtn.querySelector(".view-icon");
       icon.textContent = scoreViewActive ? "≣" : "♫";
+      icon.classList.toggle("line-mode", scoreViewActive);
     }
   }
 
@@ -3164,6 +3481,7 @@
     accumTimeMs: 0,
     accumErrWeighted: 0,
     stretchCents: 0,
+    minHoldMs: 0,
   };
 
   // Range warning hysteresis
@@ -3310,8 +3628,10 @@
   const HOLD_GATE_DEFAULT = false;
 
   // Score View Settings
-  const SCORE_MAX_BALLOONS = 350;        // Maximum number of balloons to render
-  const SCORE_MIN_DURATION_MS = 75;      // Filter out notes shorter than 75ms
+  const SCORE_MAX_BALLOONS = 900;        // Maximum number of balloons to render
+  const SCORE_MIN_DURATION_MS = 10;      // Filter out notes shorter than Xms
+  const NOTE_VIEW_OCTAVE_JUMP_SEMITONES = 12;
+  const NOTE_VIEW_OCTAVE_JUMP_HOLD_MS = 70;
   const SCORE_BALLOON_RADIUS = 40;        // Baseline size; actual radius is clamped below
   const SCORE_BALLOON_RADIUS_MIN = 25;    // Floor radius so dots are visible (50px diameter)
   const SCORE_BALLOON_RADIUS_MAX = 80;    // Ceiling to avoid covering the whole staff
@@ -3320,6 +3640,192 @@
   const SCORE_HORIZONTAL_MARGIN = 30;     // Margin when laying out from the right
   const SCORE_BALLOON_PADDING = 10;       // Horizontal padding between balloons
   const SCORE_TEXT_COLOR = "white";
+  const SCORE_MERGE_GAP_TOLERANCE_MS = 150;
+  const SCORE_SCROLL_SNAP_EPSILON_PX = 16;
+  const SCORE_MIN_TIMELINE_WIDTH_PX = 0;
+  const SCORE_VIRTUAL_BUFFER_PX = 260;
+  const SCORE_BALLOON_GAP_PX = 2;
+  const SCORE_RIGHT_EXPANSION_RESERVE_FACTOR = 2;
+
+  const scoreRenderState = {
+    dataDirty: true,
+    layoutDirty: true,
+    mergedSegments: [],
+    layoutSegments: [],
+    cachedBgColor: "",
+    lastCanvasWidthCss: 0,
+    lastCanvasHeightCss: 0,
+    lastDpr: 0,
+    lastLayoutBalloonRadius: 0,
+    layoutRightEdge: 0,
+    timelineWidthCss: SCORE_MIN_TIMELINE_WIDTH_PX,
+    forceSnapToRight: true,
+    autoFollowRightmostKey: null,
+    autoFollowEnabled: true,
+    programmaticScrollLeft: null
+  };
+
+  function markScoreDataDirty() {
+    scoreRenderState.dataDirty = true;
+    scoreRenderState.layoutDirty = true;
+  }
+
+  function getBalloonHorizontalRadius(durMs, balloonRadius) {
+    const widthFactor = 0.5 + 1.0 * (1 - Math.exp(-durMs / SCORE_BALLOON_WIDTH_TAU));
+    return balloonRadius * widthFactor;
+  }
+
+  function rebuildScoreLayoutCache(balloonRadius, leftMargin, rightMargin, containerWidth) {
+    const layoutSegments = [];
+    let xLeft = leftMargin;
+    for (let i = 0; i < scoreRenderState.mergedSegments.length; i++) {
+      const seg = scoreRenderState.mergedSegments[i];
+      const horizontalRadius = getBalloonHorizontalRadius(seg.durMs, balloonRadius);
+      const xCenter = xLeft + horizontalRadius;
+      const xRight = xLeft + horizontalRadius * 2;
+      layoutSegments.push({
+        ...seg,
+        xLeft,
+        xCenter,
+        xRight,
+        horizontalRadius
+      });
+      xLeft = xRight + SCORE_BALLOON_GAP_PX;
+    }
+    scoreRenderState.layoutSegments = layoutSegments;
+    scoreRenderState.layoutRightEdge = layoutSegments.length
+      ? layoutSegments[layoutSegments.length - 1].xRight
+      : leftMargin;
+    scoreRenderState.timelineWidthCss = Math.max(
+      containerWidth,
+      scoreRenderState.layoutRightEdge + rightMargin,
+      SCORE_MIN_TIMELINE_WIDTH_PX
+    );
+    scoreRenderState.lastLayoutBalloonRadius = balloonRadius;
+    scoreRenderState.layoutDirty = false;
+  }
+
+  function getScoreBackgroundColor() {
+    if (scoreRenderState.cachedBgColor) {
+      return scoreRenderState.cachedBgColor;
+    }
+    let bgColor = getComputedStyle(document.documentElement).getPropertyValue("--grid-bg").trim();
+    if (!bgColor) bgColor = "#000000";
+    scoreRenderState.cachedBgColor = bgColor;
+    return bgColor;
+  }
+
+  function collectMergedScoreSegments() {
+    const rawSegments = [];
+    let order = 0;
+    for (const midiStr in cellState) {
+      const st = cellState[midiStr];
+      if (!st || !st.segments) continue;
+      const midi = parseInt(midiStr, 10);
+      if (!Number.isFinite(midi)) continue;
+
+      for (const seg of st.segments) {
+        if (seg.durMs > 0) {
+          const startMs = seg.startActiveMs ?? seg.startMs ?? 0;
+          const durMs = seg.durActiveMs ?? seg.durMs;
+          rawSegments.push({
+            midi,
+            startMs,
+            durMs,
+            avgErrRatio: seg.avgErrRatio ?? 0,
+            stretchCents: seg.stretchCents ?? 0,
+            order: order++
+          });
+        }
+      }
+    }
+
+    rawSegments.sort((a, b) => {
+      if (a.startMs !== b.startMs) return a.startMs - b.startMs;
+      return a.order - b.order;
+    });
+
+    const mergedSegments = [];
+    let current = null;
+    for (let i = 0; i < rawSegments.length; i++) {
+      const entry = rawSegments[i];
+      const segDur = entry.durMs;
+      const segStart = entry.startMs;
+      const segEnd = segStart + segDur;
+
+      if (!current) {
+        current = {
+          midi: entry.midi,
+          startMs: segStart,
+          endMs: segEnd,
+          totalDurMs: segDur,
+          weightedErrSum: entry.avgErrRatio * segDur,
+          weightedStretchSum: entry.stretchCents * segDur
+        };
+        continue;
+      }
+
+      const contiguous = segStart <= current.endMs + SCORE_MERGE_GAP_TOLERANCE_MS;
+      const sameMidi = entry.midi === current.midi;
+
+      if (contiguous && sameMidi) {
+        current.endMs = Math.max(current.endMs, segEnd);
+        current.totalDurMs += segDur;
+        current.weightedErrSum += entry.avgErrRatio * segDur;
+        current.weightedStretchSum += entry.stretchCents * segDur;
+      } else {
+        if (current.totalDurMs >= SCORE_MIN_DURATION_MS) {
+          mergedSegments.push({
+            midi: current.midi,
+            startMs: current.startMs,
+            durMs: current.totalDurMs,
+            avgErrRatio: current.totalDurMs > 0 ? current.weightedErrSum / current.totalDurMs : 0,
+            stretchCents: current.totalDurMs > 0 ? current.weightedStretchSum / current.totalDurMs : 0
+          });
+        }
+        current = {
+          midi: entry.midi,
+          startMs: segStart,
+          endMs: segEnd,
+          totalDurMs: segDur,
+          weightedErrSum: entry.avgErrRatio * segDur,
+          weightedStretchSum: entry.stretchCents * segDur
+        };
+      }
+    }
+
+    if (current && current.totalDurMs >= SCORE_MIN_DURATION_MS) {
+      mergedSegments.push({
+        midi: current.midi,
+        startMs: current.startMs,
+        durMs: current.totalDurMs,
+        avgErrRatio: current.totalDurMs > 0 ? current.weightedErrSum / current.totalDurMs : 0,
+        stretchCents: current.totalDurMs > 0 ? current.weightedStretchSum / current.totalDurMs : 0
+      });
+    }
+
+    if (mergedSegments.length > SCORE_MAX_BALLOONS) {
+      mergedSegments.splice(0, mergedSegments.length - SCORE_MAX_BALLOONS);
+    }
+    return mergedSegments;
+  }
+
+  function getActiveScorePreviewSegment() {
+    const previewMidi = activeNoteInfo.midi;
+    const previewDurMs = activeNoteInfo.accumTimeMs;
+    if (previewMidi == null || !Number.isFinite(previewDurMs) || previewDurMs <= 0) {
+      return null;
+    }
+    const avgErrRatio = activeNoteInfo.accumErrWeighted / previewDurMs;
+    return {
+      midi: previewMidi,
+      startMs: Math.max(0, scoreActiveClockMs - previewDurMs),
+      durMs: previewDurMs,
+      avgErrRatio,
+      stretchCents: activeNoteInfo.stretchCents ?? getStretchCents(previewMidi),
+      isPreview: true
+    };
+  }
 
   const DEFAULT_SETTINGS = {
     a4: 440,
@@ -3994,8 +4500,6 @@
         noteOctaveEl.classList.remove("note-status");
       }
     }
-    if (freqEl) freqEl.textContent = lastDisplayedHzText;
-    if (centsEl) centsEl.textContent = lastDisplayedCentsText;
   }
 
   function getNextOverlayQuote() {
@@ -4733,6 +5237,7 @@
     }
 
     cellState = nextCellState;
+    markScoreDataDirty();
 
     // Re-render score view if active (grid range changed)
     if (scoreViewActive && scoreCanvas) {
@@ -4980,10 +5485,8 @@
           if (st.justStained) {
             st.fadeAnchorIntensity = null;
           }
-        } else {
-          // No new stain this frame; hold at current display level
-          display = display;
         }
+        // No new stain this frame; display holds at current level
       } else {
         // Medium/Hard: no stain fade-in EMA; display matches base immediately
         display = baseIntensity;
@@ -5031,12 +5534,13 @@
     return finalColor;
   }
 
-  function beginActiveNote(midi, stretchCents = getStretchCents(midi)) {
+  function beginActiveNote(midi, stretchCents = getStretchCents(midi), minHoldMs = 0) {
     activeNoteInfo.midi = midi;
     activeNoteInfo.startTime = nowMs();
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
     activeNoteInfo.stretchCents = stretchCents ?? 0;
+    activeNoteInfo.minHoldMs = Math.max(0, Number.isFinite(minHoldMs) ? minHoldMs : 0);
   }
 
   function accumulateActiveNoteFrame(errRatio, stretchCents, dtMs) {
@@ -5070,6 +5574,17 @@
   function getCurrentMinHoldMs() {
     const mode = sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium";
     return getMinHoldMsForMode(mode);
+  }
+
+  function getNoteViewEffectiveHoldMs(baseHoldMs, midi) {
+    const safeBase = Math.max(0, Number.isFinite(baseHoldMs) ? baseHoldMs : 0);
+    if (!scoreViewActive) return safeBase;
+    const prevMidi = heldMidiForDisplay;
+    if (prevMidi == null || !Number.isFinite(prevMidi) || !Number.isFinite(midi)) {
+      return safeBase;
+    }
+    const jumpedOctave = Math.abs(midi - prevMidi) >= NOTE_VIEW_OCTAVE_JUMP_SEMITONES;
+    return jumpedOctave ? Math.max(safeBase, NOTE_VIEW_OCTAVE_JUMP_HOLD_MS) : safeBase;
   }
 
   function formatHoldGateText(mode = sensitivitySelect?.value ?? currentSettings?.sensitivity ?? "medium") {
@@ -5139,25 +5654,10 @@
 
   function finalizeActiveSegment(minHoldMs = 0) {
     const { midi, accumTimeMs, accumErrWeighted, stretchCents } = activeNoteInfo;
-    console.log(`finalizeActiveSegment called: midi=${midi}, accumTimeMs=${accumTimeMs}, minHoldMs=${minHoldMs}`);
-    if (midi == null) {
-      console.log(`  -> return: midi is null`);
-      return;
-    }
-    if (!cellState[midi]) {
-      console.log(`  -> return: cellState[${midi}] doesn't exist`);
-      return;
-    }
-    if (accumTimeMs <= 0) {
-      console.log(`  -> return: accumTimeMs=${accumTimeMs} <= 0`);
-      return;
-    }
-    if (minHoldMs > 0 && accumTimeMs < minHoldMs) {
-      console.log(`  -> return: accumTimeMs=${accumTimeMs} < minHoldMs=${minHoldMs}`);
-      return;
-    }
-
-    console.log(`  -> finalizing! accumTimeMs=${accumTimeMs}`);
+    if (midi == null) return;
+    if (!cellState[midi]) return;
+    if (accumTimeMs <= 0) return;
+    if (minHoldMs > 0 && accumTimeMs < minHoldMs) return;
     const st = cellState[midi];
     const avgErr = accumErrWeighted / accumTimeMs;
     const segStretch = stretchCents ?? getStretchCents(midi);
@@ -5176,12 +5676,6 @@
       stretchCents: segStretch
     });
 
-    console.log(`  -> pushed segment, total now: ${st.segments.length}`);
-
-    if (st.segments.length === 1) {
-      console.log(`First segment finalized for MIDI ${midi}: startMs=${startMs}, durMs=${accumTimeMs}, activeNoteInfo.startTime=${activeNoteInfo.startTime}`);
-    }
-
     // track first/last seen timestamps for this cell (metadata/pruning)
     if (!st.firstSeenMs) st.firstSeenMs = startMs;
     st.lastSeenMs = startMs + accumTimeMs;
@@ -5196,6 +5690,7 @@
     const biasColor = computeColorBiasFromErr(recentWeighted.avgErrRatio);
 
     updateCellColorMetadata(st, biasColor, intensity, { markStained: true });
+    markScoreDataDirty();
   }
 
   function clearActiveNote() {
@@ -5204,6 +5699,7 @@
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
     activeNoteInfo.stretchCents = 0;
+    activeNoteInfo.minHoldMs = 0;
     relaxedNeedleCents = NaN;
     relaxedSmoothingActive = false;
     heldMidiForDisplay = null;
@@ -5212,6 +5708,25 @@
 
   // Prevent browser back/forward gestures when scrolling Note View
   if (scoreViewContainer) {
+    scoreViewContainer.addEventListener("scroll", () => {
+      const maxScroll = Math.max(0, scoreViewContainer.scrollWidth - scoreViewContainer.clientWidth);
+      const distanceToRight = maxScroll - scoreViewContainer.scrollLeft;
+      if (scoreRenderState.programmaticScrollLeft != null) {
+        const drift = Math.abs(scoreViewContainer.scrollLeft - scoreRenderState.programmaticScrollLeft);
+        if (drift <= 1) {
+          scoreRenderState.programmaticScrollLeft = null;
+        } else {
+          scoreRenderState.programmaticScrollLeft = null;
+          scoreRenderState.autoFollowEnabled = distanceToRight <= (SCORE_SCROLL_SNAP_EPSILON_PX * 2);
+        }
+      } else {
+        scoreRenderState.autoFollowEnabled = distanceToRight <= (SCORE_SCROLL_SNAP_EPSILON_PX * 2);
+      }
+      if (scoreViewActive) {
+        renderScore();
+      }
+    }, { passive: true });
+
     scoreViewContainer.addEventListener("wheel", (e) => {
       const atLeft = scoreViewContainer.scrollLeft === 0;
       const atRight = scoreViewContainer.scrollLeft + scoreViewContainer.clientWidth >= scoreViewContainer.scrollWidth - 1;
@@ -5242,122 +5757,21 @@
   }
 
   function renderScore() {
-    if (!scoreViewActive || !scoreCanvas) return;
+    if (!scoreViewActive || !scoreCanvas || !scoreViewContainer) return;
 
     const ctx = scoreCanvas.getContext("2d");
     if (!ctx) return;
 
-    // Measure container (CSS pixels)
+    if (scoreRenderState.dataDirty) {
+      scoreRenderState.mergedSegments = collectMergedScoreSegments();
+      scoreRenderState.dataDirty = false;
+      scoreRenderState.layoutDirty = true;
+    }
+
     const containerWidth = scoreViewContainer.clientWidth || window.innerWidth;
     const containerHeight = scoreViewContainer.clientHeight || window.innerHeight;
-
-    console.log(`Score render: cellState keys: ${Object.keys(cellState).length}`);
-
-    // Collect all segments (no time filtering)
-    const rawSegments = [];
-    for (const midiStr in cellState) {
-      const st = cellState[midiStr];
-      if (!st.segments) continue;
-      const midi = parseInt(midiStr, 10);
-
-      console.log(`  MIDI ${midi}: ${st.segments.length} segments`);
-
-      for (const seg of st.segments) {
-        if (seg.durMs > 0) {
-          console.log(`    Including: startMs=${seg.startMs}, durMs=${seg.durMs}`);
-          rawSegments.push({
-            midi,
-            seg,
-            startMs: seg.startMs,
-            durMs: seg.durMs,
-            startActiveMs: seg.startActiveMs ?? seg.startMs ?? 0,
-            durActiveMs: seg.durActiveMs ?? seg.durMs
-          });
-        }
-      }
-    }
-
-    console.log(`Collected ${rawSegments.length} total segments`);
-    console.log(`Grid MIDI range: ${gridLowestMidiC} to ${gridHighestMidiLastNote}`);
-
-    // Coalesce adjacent segments of the same MIDI into single "held note" spans for score view
-    const gapToleranceMs = 150; // allow tiny gaps between frames
-    const byMidi = new Map();
-    rawSegments.forEach(entry => {
-      if (!byMidi.has(entry.midi)) byMidi.set(entry.midi, []);
-      byMidi.get(entry.midi).push(entry);
-    });
-
-    const mergedSegments = [];
-    for (const [midi, list] of byMidi.entries()) {
-      list.sort((a, b) => {
-        const aStart = a.startActiveMs ?? a.startMs ?? 0;
-        const bStart = b.startActiveMs ?? b.startMs ?? 0;
-        return aStart - bStart;
-      });
-      let current = null;
-      for (const entry of list) {
-        const segStart = entry.startActiveMs ?? entry.startMs ?? 0;
-        const segEnd = segStart + (entry.durActiveMs ?? entry.durMs);
-        if (!current) {
-          current = {
-            midi,
-            startMs: segStart,
-            endMs: segEnd,
-            totalDurMs: entry.durActiveMs ?? entry.durMs,
-            weightedErrSum: (entry.seg.avgErrRatio ?? 0) * (entry.durActiveMs ?? entry.durMs),
-            weightedStretchSum: (entry.seg.stretchCents ?? 0) * (entry.durActiveMs ?? entry.durMs)
-          };
-          continue;
-        }
-        const contiguous = segStart <= current.endMs + gapToleranceMs;
-        if (contiguous) {
-          current.endMs = Math.max(current.endMs, segEnd);
-          current.totalDurMs += (entry.durActiveMs ?? entry.durMs);
-          current.weightedErrSum += (entry.seg.avgErrRatio ?? 0) * (entry.durActiveMs ?? entry.durMs);
-          current.weightedStretchSum += (entry.seg.stretchCents ?? 0) * (entry.durActiveMs ?? entry.durMs);
-        } else {
-          if (current.totalDurMs >= SCORE_MIN_DURATION_MS) {
-            mergedSegments.push({
-              midi: current.midi,
-              startMs: current.startMs,
-              durMs: current.totalDurMs,
-              avgErrRatio: current.totalDurMs > 0 ? current.weightedErrSum / current.totalDurMs : 0,
-              stretchCents: current.totalDurMs > 0 ? current.weightedStretchSum / current.totalDurMs : 0
-            });
-          }
-          current = {
-            midi,
-            startMs: segStart,
-            endMs: segEnd,
-            totalDurMs: entry.durActiveMs ?? entry.durMs,
-            weightedErrSum: (entry.seg.avgErrRatio ?? 0) * (entry.durActiveMs ?? entry.durMs),
-            weightedStretchSum: (entry.seg.stretchCents ?? 0) * (entry.durActiveMs ?? entry.durMs)
-          };
-        }
-      }
-      if (current) {
-        if (current.totalDurMs >= SCORE_MIN_DURATION_MS) {
-          mergedSegments.push({
-            midi: current.midi,
-            startMs: current.startMs,
-            durMs: current.totalDurMs,
-            avgErrRatio: current.totalDurMs > 0 ? current.weightedErrSum / current.totalDurMs : 0,
-            stretchCents: current.totalDurMs > 0 ? current.weightedStretchSum / current.totalDurMs : 0
-          });
-        }
-      }
-    }
-
-    // Sort merged segments by start time so balloons go left-to-right
-    mergedSegments.sort((a, b) => a.startMs - b.startMs);
-
-    // Cap at most recent SCORE_MAX_BALLOONS
-    if (mergedSegments.length > SCORE_MAX_BALLOONS) {
-      mergedSegments.splice(0, mergedSegments.length - SCORE_MAX_BALLOONS);
-    }
-
-    console.log(`Rendering ${mergedSegments.length} balloons (max: ${SCORE_MAX_BALLOONS})`);
+    const prevMaxScroll = Math.max(0, scoreViewContainer.scrollWidth - containerWidth);
+    const nearRightEdge = (prevMaxScroll - scoreViewContainer.scrollLeft) <= SCORE_SCROLL_SNAP_EPSILON_PX;
 
     // Calculate vertical positions and balloon radius
     const lowestMidi = gridLowestMidiC || 36;
@@ -5370,106 +5784,152 @@
       Math.min(SCORE_BALLOON_RADIUS_MAX, radiusCandidate || SCORE_BALLOON_RADIUS)
     );
 
-    // Calculate horizontal spacing / canvas width
-    const numSegments = mergedSegments.length;
-    const horizontalMargin = Math.max(SCORE_HORIZONTAL_MARGIN, SCORE_BALLOON_PADDING + balloonRadius);
-    const desiredSpacing = balloonRadius * 3; // centers at 3x radius (balloons)
+    // Calculate horizontal layout / full timeline width
+    const leftMargin = Math.max(SCORE_HORIZONTAL_MARGIN, SCORE_BALLOON_PADDING + balloonRadius);
+    const rightMargin = leftMargin + balloonRadius * SCORE_RIGHT_EXPANSION_RESERVE_FACTOR;
+    if (
+      scoreRenderState.layoutDirty ||
+      Math.abs(scoreRenderState.lastLayoutBalloonRadius - balloonRadius) > 0.001
+    ) {
+      rebuildScoreLayoutCache(balloonRadius, leftMargin, rightMargin, containerWidth);
+    }
+
+    const previewSegment = getActiveScorePreviewSegment();
+    let previewLayout = null;
+    if (previewSegment) {
+      const prevRight = scoreRenderState.layoutRightEdge;
+      const xLeft = scoreRenderState.layoutSegments.length
+        ? prevRight + SCORE_BALLOON_GAP_PX
+        : leftMargin;
+      const horizontalRadius = getBalloonHorizontalRadius(previewSegment.durMs, balloonRadius);
+      const xCenter = xLeft + horizontalRadius;
+      const xRight = xLeft + horizontalRadius * 2;
+      previewLayout = {
+        ...previewSegment,
+        xLeft,
+        xCenter,
+        xRight,
+        horizontalRadius
+      };
+      scoreRenderState.timelineWidthCss = Math.max(
+        scoreRenderState.timelineWidthCss,
+        xRight + rightMargin,
+        SCORE_MIN_TIMELINE_WIDTH_PX
+      );
+    }
+
     const desiredWidthCss = Math.max(
+      scoreRenderState.timelineWidthCss,
       containerWidth,
-      2 * horizontalMargin + Math.max(0, (numSegments - 1)) * desiredSpacing + balloonRadius * 2,
-      2000
+      SCORE_MIN_TIMELINE_WIDTH_PX
     );
+
+    const rightmostSeg = previewLayout || scoreRenderState.layoutSegments[scoreRenderState.layoutSegments.length - 1] || null;
+    const rightmostKey = rightmostSeg
+      ? `${rightmostSeg.midi}:${Math.round(rightmostSeg.startMs ?? 0)}`
+      : null;
+    const rightmostChanged = rightmostKey !== scoreRenderState.autoFollowRightmostKey;
+    if (rightmostChanged) {
+      scoreRenderState.autoFollowRightmostKey = rightmostKey;
+    }
+
+    if (scoreTimelineSpacer) {
+      const nextWidth = `${desiredWidthCss}px`;
+      if (scoreTimelineSpacer.style.width !== nextWidth) {
+        scoreTimelineSpacer.style.width = nextWidth;
+      }
+    }
+
     const dpr = window.devicePixelRatio || 1;
-    scoreCanvas.style.width = `${desiredWidthCss}px`;
-    scoreCanvas.style.height = `${containerHeight}px`;
-    scoreCanvas.width = Math.max(1, Math.round(desiredWidthCss * dpr));
-    scoreCanvas.height = Math.max(1, Math.round(containerHeight * dpr));
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.scale(dpr, dpr);
+    const needsResize =
+      scoreRenderState.lastCanvasWidthCss !== containerWidth ||
+      scoreRenderState.lastCanvasHeightCss !== containerHeight ||
+      scoreRenderState.lastDpr !== dpr;
+
+    if (needsResize) {
+      scoreCanvas.style.width = `${containerWidth}px`;
+      scoreCanvas.style.height = `${containerHeight}px`;
+      scoreCanvas.width = Math.max(1, Math.round(containerWidth * dpr));
+      scoreCanvas.height = Math.max(1, Math.round(containerHeight * dpr));
+      scoreRenderState.lastCanvasWidthCss = containerWidth;
+      scoreRenderState.lastCanvasHeightCss = containerHeight;
+      scoreRenderState.lastDpr = dpr;
+    }
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Clear canvas with fallback color
-    let bgColor = getComputedStyle(document.documentElement).getPropertyValue("--grid-bg").trim();
-    if (!bgColor || bgColor === "") bgColor = "#000000";
+    const bgColor = getScoreBackgroundColor();
     ctx.fillStyle = bgColor;
-    ctx.fillRect(0, 0, desiredWidthCss, containerHeight);
+    ctx.fillRect(0, 0, containerWidth, containerHeight);
+    const scrollLeft = scoreViewContainer.scrollLeft;
+    const windowStart = Math.max(0, scrollLeft - SCORE_VIRTUAL_BUFFER_PX);
+    const windowEnd = Math.min(desiredWidthCss, scrollLeft + containerWidth + SCORE_VIRTUAL_BUFFER_PX);
 
-    console.log(`Score canvas size (css): ${desiredWidthCss}x${containerHeight}, dpr=${dpr}, backing: ${scoreCanvas.width}x${scoreCanvas.height}`);
+    const drawSegments = previewLayout
+      ? [...scoreRenderState.layoutSegments, previewLayout]
+      : scoreRenderState.layoutSegments;
 
-    const horizontalSpacing = desiredSpacing;
+    for (let i = 0; i < drawSegments.length; i++) {
+      const seg = drawSegments[i];
+      if (seg.xRight < windowStart || seg.xLeft > windowEnd) continue;
 
-    let xPos = desiredWidthCss - horizontalMargin;  // start on the right (most recent)
+      const { midi, avgErrRatio, stretchCents, durMs, xCenter, horizontalRadius } = seg;
+      const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
+      const verticalRadius = balloonRadius;
+      const xPos = xCenter - scrollLeft;
 
-    // Draw balloons
-    for (let i = mergedSegments.length - 1; i >= 0; i--) {
-        const { midi, avgErrRatio, stretchCents, durMs } = mergedSegments[i];
-        const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
+      const targetStretch = getStretchCents(midi);
+      const rebasedErr = rebaseErrRatio(avgErrRatio, stretchCents ?? 0, targetStretch);
+      const biasColor = computeColorBiasFromErr(rebasedErr);
 
-        if (i === mergedSegments.length - 1) {
-          console.log(`First balloon: MIDI=${midi}, yPos=${yPos}, xPos=${xPos}, balloonRadius=${balloonRadius}`);
-        }
+      ctx.beginPath();
+      ctx.ellipse(xPos, yPos, horizontalRadius, verticalRadius, 0, 0, Math.PI * 2);
+      ctx.fillStyle = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
+      ctx.fill();
+      ctx.strokeStyle = SCORE_TEXT_COLOR;
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-        // Rebase error ratio from segment stretch to current stretch
-        const targetStretch = getStretchCents(midi);
-        const rebasedErr = rebaseErrRatio(avgErrRatio, stretchCents ?? 0, targetStretch);
-        const biasColor = computeColorBiasFromErr(rebasedErr);
+      ctx.fillStyle = SCORE_TEXT_COLOR;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-        // Calculate balloon width based on duration (asymptotic growth)
-        const widthFactor = 0.5 + 1.0 * (1 - Math.exp(-durMs / SCORE_BALLOON_WIDTH_TAU));
-        const horizontalRadius = balloonRadius * widthFactor;
-        const verticalRadius = balloonRadius;
+      ctx.font = `bold ${Math.round(balloonRadius * 0.8)}px sans-serif`;
+      const noteName = getNoteNameForMidi(midi, accidentalMode);
+      if (noteName.includes("♭")) {
+        const parts = noteName.split("♭");
+        const letter = parts[0] ?? "";
+        const accidental = "♭";
+        const accidentalSize = Math.round(balloonRadius * 0.72);
+        ctx.fillText(letter, xPos - accidentalSize * 0.2, yPos - balloonRadius * 0.1 + 4);
+        ctx.font = `bold ${accidentalSize}px sans-serif`;
+        ctx.fillText(accidental, xPos + accidentalSize * 0.35, yPos - balloonRadius * 0.1 + 4);
+      } else {
+        ctx.fillText(noteName, xPos, yPos - balloonRadius * 0.1 + 4);
+      }
 
-        // Draw balloon (ellipse)
-        ctx.beginPath();
-        ctx.ellipse(xPos, yPos, horizontalRadius, verticalRadius, 0, 0, Math.PI * 2);
-        ctx.fillStyle = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
-        ctx.fill();
-        ctx.strokeStyle = SCORE_TEXT_COLOR;
-        ctx.lineWidth = 2;
-        ctx.stroke();
+      ctx.font = `${Math.round(balloonRadius * 0.45)}px sans-serif`;
+      const durSec = (durMs / 1000).toFixed(1);
+      ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.55 - 1);
 
-        // Draw text inside balloon
-        ctx.fillStyle = SCORE_TEXT_COLOR;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        // Note name (larger)
-        ctx.font = `bold ${Math.round(balloonRadius * 0.8)}px sans-serif`;
-        const noteName = getNoteNameForMidi(midi, accidentalMode);
-        if (noteName.includes("♭")) {
-          const parts = noteName.split("♭");
-          const letter = parts[0] ?? "";
-          const accidental = "♭";
-          const accidentalSize = Math.round(balloonRadius * 0.72); // 10% smaller than letter
-          // Draw letter
-          ctx.fillText(letter, xPos - accidentalSize * 0.2, yPos - balloonRadius * 0.1 + 4);
-          // Draw flat symbol slightly smaller and closer
-          ctx.font = `bold ${accidentalSize}px sans-serif`;
-          ctx.fillText(accidental, xPos + accidentalSize * 0.35, yPos - balloonRadius * 0.1 + 4);
-        } else {
-          ctx.fillText(noteName, xPos, yPos - balloonRadius * 0.1 + 4);
-        }
-
-        // Duration (smaller, above note name)
-        ctx.font = `${Math.round(balloonRadius * 0.45)}px sans-serif`;
-        const durSec = (durMs / 1000).toFixed(1);
-        ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.55 - 1);
-
-        // Cents offset (smaller, below note name)
-        ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
-        const centsVal = 1200 * (Math.log(1 + rebasedErr) / Math.log(2));
-        const centsText = centsVal >= 0
-          ? `+${centsVal.toFixed(0)}¢`
-          : `${centsVal.toFixed(0)}¢`;
-        ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55 + 1);
-
-      xPos -= horizontalSpacing;
+      ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
+      const centsVal = 1200 * (Math.log(1 + rebasedErr) / Math.log(2));
+      const centsText = centsVal >= 0
+        ? `+${centsVal.toFixed(0)}¢`
+        : `${centsVal.toFixed(0)}¢`;
+      ctx.fillText(centsText, xPos, yPos + balloonRadius * 0.55 + 1);
     }
 
-    // Snap scroll to the most recent balloons on the right
-    if (scoreViewContainer) {
-      const targetScroll = Math.max(0, (parseFloat(scoreCanvas.style.width) || scoreCanvas.width) - scoreViewContainer.clientWidth);
+    const targetScroll = Math.max(0, desiredWidthCss - containerWidth);
+    const shouldSnapToRight =
+      scoreRenderState.forceSnapToRight ||
+      (scoreRenderState.autoFollowEnabled && (rightmostChanged || needsResize));
+    if (shouldSnapToRight) {
+      scoreRenderState.programmaticScrollLeft = targetScroll;
       scoreViewContainer.scrollLeft = targetScroll;
     }
+    scoreRenderState.forceSnapToRight = false;
   }
 
   function renderHeatmap() {
@@ -5877,6 +6337,7 @@
       shifted[String(targetMidi)] = masterCellState[midiStr];
     }
     masterCellState = shifted;
+    markScoreDataDirty();
     buildGrid({ preserveStain: true });
     recomputeAllCellColorsAndRender();
   }
@@ -6100,22 +6561,24 @@
     lastDisplayedCentsText = `${displayCents.toFixed(1)} cents`;
 
       // active note hold logic
+      const noteHoldMs = getNoteViewEffectiveHoldMs(minHold, midi);
       if (currentMidiHeld !== midi) {
-        finalizeActiveSegment(minHold);
+        const prevMinHoldMs = Math.max(0, Number.isFinite(activeNoteInfo.minHoldMs) ? activeNoteInfo.minHoldMs : minHold);
+        finalizeActiveSegment(prevMinHoldMs);
         clearActiveNote();
 
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
-        beginActiveNote(midi, stretchCents);
+        beginActiveNote(midi, stretchCents, noteHoldMs);
         // keep previous held display until new note meets hold gate
       } else {
         accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
       }
 
       const heldForMs = nowT - currentMidiHoldStart;
-      if (heldForMs >= minHold) {
-        finalizeActiveSegment(minHold);
-        beginActiveNote(midi, stretchCents);
+      if (heldForMs >= noteHoldMs) {
+        finalizeActiveSegment(noteHoldMs);
+        beginActiveNote(midi, stretchCents, noteHoldMs);
         currentMidiHoldStart = nowT;
         capturingNow = true;
         relaxedSmoothingActive = (mode === "relaxed");
@@ -6141,7 +6604,8 @@
 
       updateDebugPanel({ freq: pitch, clarity, cents, rms });
     } else {
-      finalizeActiveSegment(minHold);
+      const prevMinHoldMs = Math.max(0, Number.isFinite(activeNoteInfo.minHoldMs) ? activeNoteInfo.minHoldMs : minHold);
+      finalizeActiveSegment(prevMinHoldMs);
       clearActiveNote();
       currentMidiHeld = null;
       currentMidiHoldStart = nowT;
@@ -6224,7 +6688,6 @@
       detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
 
       running = true;
-      lastFrameTime = nowMs();
       syncUsageLock();
       await requestScreenWakeLock();
       micBtn.classList.add("on");
@@ -6325,6 +6788,8 @@
   function resetHeatmapOnly() {
     finalizeActiveSegment();
     clearActiveNote();
+    markScoreDataDirty();
+    scoreRenderState.forceSnapToRight = true;
 
     for (const midi in masterCellState) {
       masterCellState[midi].totalVoiceMs = 0;
@@ -6357,10 +6822,6 @@
     ledTargetState = LED_STATE.GRAY;
     ledLastSwitchTime = performance.now();
     applyLEDVisual();
-  }
-
-  function fullResetState() {
-    resetHeatmapOnly();
   }
 
   window.addEventListener("resize", updateGridAppearanceForViewport);
@@ -6573,9 +7034,12 @@
         }
         
         noteGrid.style.display = "none";
-        scoreViewContainer.style.display = "flex";
+        scoreViewContainer.style.display = "block";
         scoreViewToggleBtn.textContent = "Grid View";
         updateMiniViewIcon();
+        scoreRenderState.forceSnapToRight = true;
+        scoreRenderState.autoFollowEnabled = true;
+        scoreRenderState.programmaticScrollLeft = null;
         renderScore();
       } else {
         noteGrid.style.display = "grid";
@@ -6635,7 +7099,7 @@
   // Load mini UI state on page load
   loadMiniUIState();
 
-  // Enforce mini UI orientation lock (disable mini mode in portrait)
+  // Keep mini UI state stable across orientation changes
   enforceMiniUIOrientationLock();
   window.addEventListener("orientationchange", () => {
     enforceMiniUIOrientationLock();
@@ -6767,8 +7231,7 @@
   sensitivitySelect.addEventListener("change", () => {
     currentSettings.sensitivity = sensitivitySelect.value;
     persistSettings(currentSettings);
-    updateDebugPanel({});
-    fullResetState();
+    resetHeatmapOnly();
     updateDebugPanel({});
   });
 
