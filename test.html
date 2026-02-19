@@ -3224,12 +3224,14 @@
 
   // Modes
   const RELAXED_DEADZONE_RATIO = 0.003;  // 0.3%
-  const RELAXED_MIN_HOLD_MS = 80;
+  // All modes now use 40ms timing for responsive updates
+  // Mode differences are in color calculation, deadzone, and needle smoothing
+  const RELAXED_MIN_HOLD_MS = 40;
   const RELAXED_ERR_SCALE = 0.7; // 50% less sensitive stain/color
   const RELAXED_NEEDLE_TAU_MS = 350; // EMA time constant for needle damping (vocal-friendly)
 
   const MEDIUM_DEADZONE_RATIO = 0.0023; // ~0.23%
-  const MEDIUM_MIN_HOLD_MS = 80;
+  const MEDIUM_MIN_HOLD_MS = 40;
   const MEDIUM_ERR_SCALE = 0.7;
   const MEDIUM_NEEDLE_TAU_MS = 80;
 
@@ -3253,10 +3255,10 @@
   ];
 
   // time to reach full brightness in the cell heatmap
-  const FULL_CONF_MS = 1000;
+  const FULL_CONF_MS = 500;  // 2x faster fade-in (was 1000ms)
   const STAIN_MIN_FRACTION = 0.25;
   const STAIN_FADE_SECONDS = 10;
-  const STAIN_FADE_IN_MS = 250;
+  const STAIN_FADE_IN_MS = 125;  // 2x faster visual fade (was 250ms)
 
   // LED smoothing
   const LED_STATE = Object.freeze({
@@ -3710,8 +3712,27 @@
   function rebuildNoteViewLayoutCache(balloonRadius, leftMargin, rightMargin, containerWidth) {
     const layoutSegments = [];
     let xLeft = leftMargin;
+    let previousNoteEndMs = null;
+
     for (let i = 0; i < noteViewRenderState.mergedSegments.length; i++) {
       const seg = noteViewRenderState.mergedSegments[i];
+
+      // Add visual spacing for pauses/rests between notes (cap at max balloon width)
+      if (previousNoteEndMs !== null) {
+        const noteStartMs = seg.startMs || 0;
+        const gapMs = noteStartMs - previousNoteEndMs;
+        const minGapThreshold = 50; // Ignore tiny gaps
+        const maxGapPx = balloonRadius * 2; // Cap at max balloon diameter
+
+        if (gapMs > minGapThreshold) {
+          const gapPx = gapMs / 20; // Same scale as segments (20ms = 1px)
+          const cappedGapPx = Math.min(gapPx, maxGapPx);
+          xLeft += cappedGapPx;
+        }
+      }
+      const noteEndMs = (seg.startMs || 0) + (seg.durMs || 0);
+      previousNoteEndMs = noteEndMs;
+
       const horizontalRadius = getBalloonHorizontalRadius(seg.durMs, balloonRadius);
       const xCenter = xLeft + horizontalRadius;
       const xRight = xLeft + horizontalRadius * 2;
@@ -3875,17 +3896,17 @@
   const DEFAULT_SETTINGS = {
     a4: 440,
     sensitivity: "medium",
-    stretch: "none",
+    stretch: "minimal",
     accidentalMode: "sharps",
     noteViewStyle: NOTE_VIEW_STYLE_DEFAULT,
     transposition: "0",
     rowStart: "0",
     lowNote: "C3",
-    history: HISTORY_DEFAULT,
+    history: "medium",
     stainHold: STAIN_HOLD_DEFAULT,
     needleDirection: "horizontal",
     range: null, // computed default
-    minVol: 0.1,
+    minVol: 0,
     colorPalette: null,
     holdGate: HOLD_GATE_DEFAULT
   };
@@ -3928,7 +3949,7 @@
     holdGate: {
       title: "Hold Gate",
       summary: "Waits for the pitch to settle briefly before coloring a cell.",
-      detail: "When on, stain waits a short mode-based hold before logging: ~80ms (relaxed/medium), ~40ms (hard)."
+      detail: "When on, stain waits a short hold before logging: ~40ms (all modes). Mode differences are in color sensitivity and deadzone, not timing."
     },
     accidentals: {
       title: "Accidentals",
@@ -5833,11 +5854,11 @@
       const noteDurMs = mergedNote.durMs || 0;
       const noteEndMs = noteStartMs + noteDurMs;
 
-      // Add visual spacing for pauses/rests between notes (up to 1 second)
+      // Add visual spacing for pauses/rests between notes (up to 2 seconds)
       if (previousNoteEndMs !== null) {
         const gapMs = noteStartMs - previousNoteEndMs;
         const minGapThreshold = 50; // Ignore tiny gaps
-        const maxGapMs = 1000; // Cap at 1 second
+        const maxGapMs = 2000; // Cap at 2 seconds
 
         if (gapMs > minGapThreshold) {
           const visualGapMs = Math.min(gapMs, maxGapMs);
@@ -5886,11 +5907,11 @@
       const noteDurMs = mergedNote.durMs || 0;
       const noteEndMs = noteStartMs + noteDurMs;
 
-      // Add visual spacing for pauses/rests between notes (up to 1 second)
+      // Add visual spacing for pauses/rests between notes (up to 2 seconds)
       if (previousNoteEndMs !== null) {
         const gapMs = noteStartMs - previousNoteEndMs;
         const minGapThreshold = 50; // Ignore tiny gaps
-        const maxGapMs = 1000; // Cap at 1 second
+        const maxGapMs = 2000; // Cap at 2 seconds
 
         if (gapMs > minGapThreshold) {
           const visualGapMs = Math.min(gapMs, maxGapMs);
@@ -6337,7 +6358,7 @@
 
     if (shouldSnapToRight) {
       noteViewRenderState.programmaticScrollLeft = targetScroll;
-      noteViewContainer.scrollLeft = targetScroll;
+      noteViewContainer.scrollTo({ left: targetScroll, behavior: 'smooth' });
     }
     noteViewRenderState.forceSnapToRight = false;
   }
@@ -7234,6 +7255,20 @@
     applyLEDVisual();
   }
 
+  // Recompute colors on mode change without clearing segments (all modes use 40ms now)
+  function recomputeColorsOnModeChange() {
+    finalizeActiveSegment();
+    clearActiveNote();
+
+    // Recompute all cell colors with new mode's color calculation
+    recomputeAllCellColorsAndRender();
+
+    lastDisplayedMidi     = null;
+    lastDisplayedHzText   = "-- Hz";
+    lastDisplayedCentsText = "-- cents";
+    updateNoteReadoutText();
+  }
+
   window.addEventListener("resize", updateGridAppearanceForViewport);
   window.addEventListener("resize", updateEdgeKeyVisibility);
   window.addEventListener("resize", () => {
@@ -7641,7 +7676,8 @@
   sensitivitySelect.addEventListener("change", () => {
     currentSettings.sensitivity = sensitivitySelect.value;
     persistSettings(currentSettings);
-    resetHeatmapOnly();
+    // Recompute colors with new mode without clearing segments (all modes use 40ms now)
+    recomputeColorsOnModeChange();
     updateDebugPanel({});
   });
 
