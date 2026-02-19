@@ -3704,8 +3704,20 @@
     forceSnapToRight: true,
     autoFollowRightmostKey: null,
     autoFollowEnabled: true,
-    programmaticScrollLeft: null
+    programmaticScrollLeft: null,
+    resizeRenderRafId: null
   };
+
+  function scheduleNoteViewResizeRender() {
+    if (!noteViewActive) return;
+    if (noteViewRenderState.resizeRenderRafId != null) return;
+    noteViewRenderState.resizeRenderRafId = requestAnimationFrame(() => {
+      noteViewRenderState.resizeRenderRafId = null;
+      if (noteViewActive) {
+        renderNoteView();
+      }
+    });
+  }
 
   function markNoteViewDataDirty() {
     noteViewRenderState.dataDirty = true;
@@ -5849,9 +5861,7 @@
 
   if (noteViewContainer && typeof ResizeObserver !== "undefined") {
     const noteViewResizeObserver = new ResizeObserver(() => {
-      if (noteViewActive) {
-        renderNoteView();
-      }
+      scheduleNoteViewResizeRender();
     });
     noteViewResizeObserver.observe(noteViewContainer);
   }
@@ -6370,7 +6380,7 @@
       noteViewRenderState.autoFollowEnabled &&
       desiredWidthCss > (noteViewContainer.scrollLeft + containerWidth);
 
-    const liveFollowOnResize = needsResize && wasNearRightBeforeLayout;
+    const liveFollowOnResize = needsResize && (noteViewRenderState.autoFollowEnabled || wasNearRightBeforeLayout);
 
     const shouldSnapToRight =
       noteViewRenderState.forceSnapToRight ||
@@ -6382,8 +6392,9 @@
       if (liveFollowOnResize) {
         noteViewRenderState.autoFollowEnabled = true;
       }
+      const scrollBehavior = liveFollowOnResize ? 'auto' : 'smooth';
       noteViewRenderState.programmaticScrollLeft = targetScroll;
-      noteViewContainer.scrollTo({ left: targetScroll, behavior: 'smooth' });
+      noteViewContainer.scrollTo({ left: targetScroll, behavior: scrollBehavior });
     }
     noteViewRenderState.forceSnapToRight = false;
   }
@@ -7299,9 +7310,7 @@
   window.addEventListener("resize", updateGridAppearanceForViewport);
   window.addEventListener("resize", updateEdgeKeyVisibility);
   window.addEventListener("resize", () => {
-    if (noteViewActive) {
-      renderNoteView();
-    }
+    scheduleNoteViewResizeRender();
   });
   window.addEventListener("orientationchange", updateGridAppearanceForViewport);
   document.addEventListener("visibilitychange", () => {
