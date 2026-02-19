@@ -5847,6 +5847,15 @@
     }, { passive: false });
   }
 
+  if (noteViewContainer && typeof ResizeObserver !== "undefined") {
+    const noteViewResizeObserver = new ResizeObserver(() => {
+      if (noteViewActive) {
+        renderNoteView();
+      }
+    });
+    noteViewResizeObserver.observe(noteViewContainer);
+  }
+
   function calculatePillsLayout(mergedNotes, leftMargin, rightMargin, balloonRadius) {
     // Calculate cumulative width for Pills mode
     let cumulativeX = leftMargin;
@@ -6153,7 +6162,7 @@
     const containerWidth = noteViewContainer.clientWidth || window.innerWidth;
     const containerHeight = noteViewContainer.clientHeight || window.innerHeight;
     const prevMaxScroll = Math.max(0, noteViewContainer.scrollWidth - containerWidth);
-    const nearRightEdge = (prevMaxScroll - noteViewContainer.scrollLeft) <= NOTE_VIEW_SCROLL_SNAP_EPSILON_PX;
+    const wasNearRightBeforeLayout = (prevMaxScroll - noteViewContainer.scrollLeft) <= (NOTE_VIEW_SCROLL_SNAP_EPSILON_PX * 2);
 
     // Calculate vertical positions and balloon radius
     const lowestMidi = gridLowestMidiC || 36;
@@ -6361,12 +6370,18 @@
       noteViewRenderState.autoFollowEnabled &&
       desiredWidthCss > (noteViewContainer.scrollLeft + containerWidth);
 
+    const liveFollowOnResize = needsResize && wasNearRightBeforeLayout;
+
     const shouldSnapToRight =
       noteViewRenderState.forceSnapToRight ||
+      liveFollowOnResize ||
       (noteViewRenderState.autoFollowEnabled && (rightmostChanged || needsResize)) ||
       pillsNeedScroll;
 
     if (shouldSnapToRight) {
+      if (liveFollowOnResize) {
+        noteViewRenderState.autoFollowEnabled = true;
+      }
       noteViewRenderState.programmaticScrollLeft = targetScroll;
       noteViewContainer.scrollTo({ left: targetScroll, behavior: 'smooth' });
     }
