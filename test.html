@@ -3444,9 +3444,16 @@
   let easterEggSavedStyles = null;
   let noteViewActive = false;
   let noteViewActiveClockMs = 0; // advances only while running (for Note View window)
+  let noteViewHasPaintedNote = false;
   let micDisabled = false;
   let silentAdvanceAccumMs = 0; // track how much silence has advanced the active clock (capped)
   const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
+
+  function recalcNoteViewPaintState() {
+    noteViewHasPaintedNote = Object.values(masterCellState).some(st =>
+      Array.isArray(st?.segments) && st.segments.some(seg => (seg?.durMs ?? 0) > 0)
+    );
+  }
 
   function generateCellColors(count) {
     const colors = [];
@@ -3486,6 +3493,7 @@
   }
   function resetMasterCellState() {
     masterCellState = {};
+    noteViewHasPaintedNote = false;
   }
   function getMasterCellState(midi) {
     const key = String(midi);
@@ -5319,6 +5327,7 @@
 
     cellState = nextCellState;
     markNoteViewDataDirty();
+    recalcNoteViewPaintState();
 
     // Re-render score view if active (grid range changed)
     if (noteViewActive && noteViewCanvas) {
@@ -5756,6 +5765,7 @@
       avgErrRatio: avgErr,
       stretchCents: segStretch
     });
+    noteViewHasPaintedNote = true;
 
     // track first/last seen timestamps for this cell (metadata/pruning)
     if (!st.firstSeenMs) st.firstSeenMs = startMs;
@@ -7043,8 +7053,9 @@
       heldMidiForDisplay = null;
       heldCentsForDisplay = 0;
 
-      // Advance active clock during silence up to a short cap
-      if (dtMs > 0 && running) {
+      // Advance active clock during silence up to a short cap,
+      // but only after at least one note has been painted.
+      if (dtMs > 0 && running && noteViewHasPaintedNote) {
         const silentAdvanceCapMs = 3000;
         const remaining = Math.max(0, silentAdvanceCapMs - silentAdvanceAccumMs);
         if (remaining > 0) {
@@ -7221,6 +7232,7 @@
     clearActiveNote();
     markNoteViewDataDirty();
     noteViewRenderState.forceSnapToRight = true;
+    noteViewHasPaintedNote = false;
 
     for (const midi in masterCellState) {
       masterCellState[midi].totalVoiceMs = 0;
