@@ -3701,9 +3701,8 @@
     lastLayoutBalloonRadius: 0,
     layoutRightEdge: 0,
     timelineWidthCss: NOTE_VIEW_MIN_TIMELINE_WIDTH_PX,
-    forceSnapToRight: true,
+    isLive: true,
     autoFollowRightmostKey: null,
-    autoFollowEnabled: true,
     programmaticScrollLeft: null,
     resizeRenderRafId: null
   };
@@ -5813,18 +5812,14 @@
   if (noteViewContainer) {
     noteViewContainer.addEventListener("scroll", () => {
       const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
-      const distanceToRight = maxScroll - noteViewContainer.scrollLeft;
+      const atRight = (maxScroll - noteViewContainer.scrollLeft) <= NOTE_VIEW_SCROLL_SNAP_EPSILON_PX;
       if (noteViewRenderState.programmaticScrollLeft != null) {
         const drift = Math.abs(noteViewContainer.scrollLeft - noteViewRenderState.programmaticScrollLeft);
-        if (drift <= 1) {
-          noteViewRenderState.programmaticScrollLeft = null;
-        } else {
-          noteViewRenderState.programmaticScrollLeft = null;
-          noteViewRenderState.autoFollowEnabled = distanceToRight <= (NOTE_VIEW_SCROLL_SNAP_EPSILON_PX * 2);
-        }
-      } else {
-        noteViewRenderState.autoFollowEnabled = distanceToRight <= (NOTE_VIEW_SCROLL_SNAP_EPSILON_PX * 2);
+        noteViewRenderState.programmaticScrollLeft = null;
+        if (drift <= 1) return; // Our own scroll landed — ignore
       }
+      // User-initiated scroll: update live state based on position
+      noteViewRenderState.isLive = atRight;
       if (noteViewActive) {
         renderNoteView();
       }
@@ -6171,8 +6166,6 @@
 
     const containerWidth = noteViewContainer.clientWidth || window.innerWidth;
     const containerHeight = noteViewContainer.clientHeight || window.innerHeight;
-    const prevMaxScroll = Math.max(0, noteViewContainer.scrollWidth - containerWidth);
-    const wasNearRightBeforeLayout = (prevMaxScroll - noteViewContainer.scrollLeft) <= (NOTE_VIEW_SCROLL_SNAP_EPSILON_PX * 2);
 
     // Calculate vertical positions and balloon radius
     const lowestMidi = gridLowestMidiC || 36;
@@ -6373,30 +6366,11 @@
       }
     }
 
-    const targetScroll = Math.max(0, desiredWidthCss - containerWidth);
-
-    // For Pills mode, also check if the timeline has grown beyond the current viewport
-    const pillsNeedScroll = noteViewStyle === NOTE_VIEW_STYLE_PILLS &&
-      noteViewRenderState.autoFollowEnabled &&
-      desiredWidthCss > (noteViewContainer.scrollLeft + containerWidth);
-
-    const liveFollowOnResize = needsResize && (noteViewRenderState.autoFollowEnabled || wasNearRightBeforeLayout);
-
-    const shouldSnapToRight =
-      noteViewRenderState.forceSnapToRight ||
-      liveFollowOnResize ||
-      (noteViewRenderState.autoFollowEnabled && (rightmostChanged || needsResize)) ||
-      pillsNeedScroll;
-
-    if (shouldSnapToRight) {
-      if (liveFollowOnResize) {
-        noteViewRenderState.autoFollowEnabled = true;
-      }
-      const scrollBehavior = liveFollowOnResize ? 'auto' : 'smooth';
+    if (noteViewRenderState.isLive) {
+      const targetScroll = Math.max(0, desiredWidthCss - containerWidth);
       noteViewRenderState.programmaticScrollLeft = targetScroll;
-      noteViewContainer.scrollTo({ left: targetScroll, behavior: scrollBehavior });
+      noteViewContainer.scrollTo({ left: targetScroll, behavior: needsResize ? 'auto' : 'smooth' });
     }
-    noteViewRenderState.forceSnapToRight = false;
   }
 
   function renderHeatmap() {
@@ -7257,7 +7231,7 @@
     finalizeActiveSegment();
     clearActiveNote();
     markNoteViewDataDirty();
-    noteViewRenderState.forceSnapToRight = true;
+    noteViewRenderState.isLive = true;
     noteViewHasPaintedNote = false;
 
     for (const midi in masterCellState) {
@@ -7518,8 +7492,7 @@
         noteViewContainer.style.display = "block";
         noteViewToggleBtn.textContent = "Grid View";
         updateMiniViewIcon();
-        noteViewRenderState.forceSnapToRight = true;
-        noteViewRenderState.autoFollowEnabled = true;
+        noteViewRenderState.isLive = true;
         noteViewRenderState.programmaticScrollLeft = null;
         renderNoteView();
       } else {
