@@ -6369,7 +6369,7 @@
     if (noteViewRenderState.isLive) {
       const targetScroll = Math.max(0, desiredWidthCss - containerWidth);
       noteViewRenderState.programmaticScrollLeft = targetScroll;
-      noteViewContainer.scrollTo({ left: targetScroll, behavior: needsResize ? 'auto' : 'smooth' });
+      noteViewContainer.scrollTo({ left: targetScroll, behavior: 'auto' });
     }
   }
 
