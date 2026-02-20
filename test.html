@@ -7275,6 +7275,7 @@
 
     // Recompute all cell colors with new mode's color calculation
     recomputeAllCellColorsAndRender();
+    if (noteViewActive) renderNoteView();
 
     lastDisplayedMidi     = null;
     lastDisplayedHzText   = "-- Hz";
