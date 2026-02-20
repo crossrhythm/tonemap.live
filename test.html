@@ -2498,7 +2498,7 @@
           </div>
           <div class="opt-control">
             <select id="noteViewStyleSelect">
-              <option value="pills" title="Shows intonation changes over time with colored bands">Pills (intonation over time)</option>
+              <option value="ribbons" title="Shows intonation changes over time with colored bands">Ribbons (intonation over time)</option>
               <option value="balloons" title="Shows average intonation with single color">Balloons (average color)</option>
             </select>
           </div>
@@ -3648,8 +3648,8 @@
 
   const HISTORY_DEFAULT = "short";
   const NOTE_VIEW_STYLE_BALLOONS = "balloons";
-  const NOTE_VIEW_STYLE_PILLS = "pills";
-  const NOTE_VIEW_STYLE_DEFAULT = NOTE_VIEW_STYLE_PILLS;
+  const NOTE_VIEW_STYLE_RIBBONS = "ribbons";
+  const NOTE_VIEW_STYLE_DEFAULT = NOTE_VIEW_STYLE_RIBBONS;
   const HISTORY_WINDOWS = Object.freeze({
     short: 1,
     medium: 3,
@@ -3961,7 +3961,7 @@
       title: "Note View Style",
       summary: "Chooses how notes are visualized in Note View.",
       detail: [
-        "• Pills: Shows intonation changes over time. Each note displays as color bands representing pitch accuracy at different moments (40-80ms resolution). Reveals vibrato, pitch bends, and intonation drift.",
+        "• Ribbons: Shows intonation changes over time. Each note displays as color bands representing pitch accuracy at different moments (40-80ms resolution). Reveals vibrato, pitch bends, and intonation drift.",
         "• Balloons: Shows overall average intonation. Each note displays as a single color representing the average pitch accuracy across its entire duration."
       ]
     },
@@ -4735,7 +4735,7 @@
     currentSettings.sensitivity = sensitivityVal;
 
     const originalNoteViewStyle = settings.noteViewStyle;
-    const validStyles = new Set([NOTE_VIEW_STYLE_BALLOONS, NOTE_VIEW_STYLE_PILLS]);
+    const validStyles = new Set([NOTE_VIEW_STYLE_BALLOONS, NOTE_VIEW_STYLE_RIBBONS]);
     const noteViewStyleVal = validStyles.has(originalNoteViewStyle) ? originalNoteViewStyle : NOTE_VIEW_STYLE_DEFAULT;
     if (noteViewStyleSelect) noteViewStyleSelect.value = noteViewStyleVal;
     if (originalNoteViewStyle !== noteViewStyleVal) needsPersist = true;
@@ -5861,11 +5861,11 @@
     noteViewResizeObserver.observe(noteViewContainer);
   }
 
-  function calculatePillsLayout(mergedNotes, leftMargin, rightMargin, balloonRadius) {
-    // Calculate cumulative width for Pills mode
+  function calculateRibbonsLayout(mergedNotes, leftMargin, rightMargin, balloonRadius) {
+    // Calculate cumulative width for Ribbons mode
     let cumulativeX = leftMargin;
     let maxX = leftMargin;
-    const minPillWidth = balloonRadius;
+    const minRibbonWidth = balloonRadius;
     let previousNoteEndMs = null; // Track previous note end time for gap detection
 
     for (let i = 0; i < mergedNotes.length; i++) {
@@ -5892,28 +5892,28 @@
       }
       previousNoteEndMs = noteEndMs;
 
-      // Calculate natural pill width from segments
-      let naturalPillWidth = 0;
+      // Calculate natural ribbon width from segments
+      let naturalRibbonWidth = 0;
       for (const seg of st.segments) {
         const segStart = seg.startActiveMs ?? seg.startMs ?? 0;
         const segEnd = segStart + (seg.durActiveMs ?? seg.durMs ?? 0);
         if (segEnd > noteStartMs && segStart < noteEndMs) {
           const segDurMs = seg.durActiveMs ?? seg.durMs ?? 0;
-          naturalPillWidth += segDurMs / 20;
+          naturalRibbonWidth += segDurMs / 20;
         }
       }
 
       // Apply minimum width (matches rendering logic)
-      const pillWidth = Math.max(naturalPillWidth, minPillWidth);
+      const ribbonWidth = Math.max(naturalRibbonWidth, minRibbonWidth);
 
-      cumulativeX += pillWidth + NOTE_VIEW_BALLOON_GAP_PX;
+      cumulativeX += ribbonWidth + NOTE_VIEW_BALLOON_GAP_PX;
       maxX = cumulativeX;
     }
 
     return maxX + rightMargin;
   }
 
-  function renderPillsNotes(ctx, mergedNotes, params) {
+  function renderRibbonsNotes(ctx, mergedNotes, params) {
     const { windowStart, windowEnd, scrollLeft, containerHeight, lowestMidi, verticalSpacing, balloonRadius } = params;
 
     const leftMargin = Math.max(NOTE_VIEW_HORIZONTAL_MARGIN, NOTE_VIEW_BALLOON_PADDING + balloonRadius);
@@ -5967,50 +5967,50 @@
       // Sort by time
       relevantSegments.sort((a, b) => a.segStartMs - b.segStartMs);
 
-      // Calculate natural pill width from segments
-      let naturalPillWidth = 0;
+      // Calculate natural ribbon width from segments
+      let naturalRibbonWidth = 0;
       for (const seg of relevantSegments) {
         const segDurMs = seg.durActiveMs ?? seg.durMs ?? 0;
-        naturalPillWidth += segDurMs / 20; // 40ms = 2px, 80ms = 4px
+        naturalRibbonWidth += segDurMs / 20; // 40ms = 2px, 80ms = 4px
       }
 
       // Apply minimum width (use radius, not diameter)
-      const minPillWidth = balloonRadius;
-      const pillWidth = Math.max(naturalPillWidth, minPillWidth);
+      const minRibbonWidth = balloonRadius;
+      const ribbonWidth = Math.max(naturalRibbonWidth, minRibbonWidth);
 
       // Calculate scaling factor for segments if below minimum
-      const segmentScale = naturalPillWidth < minPillWidth
-        ? minPillWidth / naturalPillWidth
+      const segmentScale = naturalRibbonWidth < minRibbonWidth
+        ? minRibbonWidth / naturalRibbonWidth
         : 1.0;
 
       // Check viewport culling using absolute timeline positions
-      const pillAbsoluteStart = cumulativeX;
-      const pillAbsoluteEnd = cumulativeX + pillWidth;
+      const ribbonAbsoluteStart = cumulativeX;
+      const ribbonAbsoluteEnd = cumulativeX + ribbonWidth;
 
       // Skip if outside viewport (compare absolute positions)
-      if (pillAbsoluteEnd < windowStart || pillAbsoluteStart > windowEnd) {
-        cumulativeX += pillWidth + NOTE_VIEW_BALLOON_GAP_PX;
+      if (ribbonAbsoluteEnd < windowStart || ribbonAbsoluteStart > windowEnd) {
+        cumulativeX += ribbonWidth + NOTE_VIEW_BALLOON_GAP_PX;
         continue;
       }
 
       // Convert to screen positions for rendering
-      const pillStartX = cumulativeX - scrollLeft;
-      const pillEndX = pillStartX + pillWidth;
+      const ribbonStartX = cumulativeX - scrollLeft;
+      const ribbonEndX = ribbonStartX + ribbonWidth;
 
       // Draw color bands - use gradient for ≤8 segments, discrete bands for >8
       const borderWidth = 2;
       const bandInset = borderWidth / 2; // 1px inset on each side
-      const horizontalInsetScale = (pillWidth - borderWidth) / pillWidth; // Scale to fit inset area
+      const horizontalInsetScale = (ribbonWidth - borderWidth) / ribbonWidth; // Scale to fit inset area
       const useGradient = relevantSegments.length <= 8;
 
       if (useGradient) {
         // Create gradient for smooth color transitions (short notes)
-        const gradientStartX = pillStartX + bandInset;
-        const gradientEndX = pillStartX + pillWidth - bandInset;
+        const gradientStartX = ribbonStartX + bandInset;
+        const gradientEndX = ribbonStartX + ribbonWidth - bandInset;
         const gradient = ctx.createLinearGradient(gradientStartX, yPos, gradientEndX, yPos);
 
         let cumulativePos = 0;
-        const totalWidth = pillWidth - borderWidth;
+        const totalWidth = ribbonWidth - borderWidth;
 
         for (let i = 0; i < relevantSegments.length; i++) {
           const seg = relevantSegments[i];
@@ -6038,7 +6038,7 @@
         const colorStr = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
         gradient.addColorStop(1.0, colorStr);
 
-        // Fill entire pill with gradient
+        // Fill entire ribbon with gradient
         ctx.fillStyle = gradient;
         ctx.fillRect(
           gradientStartX,
@@ -6048,7 +6048,7 @@
         );
       } else {
         // Discrete color bands for longer notes (>8 segments)
-        let targetX = pillStartX + bandInset; // Track fractional position
+        let targetX = ribbonStartX + bandInset; // Track fractional position
 
         for (const seg of relevantSegments) {
           const segDurMs = seg.durActiveMs ?? seg.durMs ?? 0;
@@ -6083,9 +6083,9 @@
 
       // Use small corner radius for rounded rectangle
       const cornerRadius = Math.min(8, verticalRadius * 0.3);
-      const rectX = pillStartX;
+      const rectX = ribbonStartX;
       const rectY = yPos - verticalRadius;
-      const rectWidth = pillWidth;
+      const rectWidth = ribbonWidth;
       const rectHeight = verticalRadius * 2;
 
       // Draw rounded rectangle using roundRect if available, otherwise manual arcs
@@ -6107,7 +6107,7 @@
       ctx.stroke();
 
       // Draw note name at center with subtle black glow for visibility
-      const pillCenterX = pillStartX + pillWidth / 2;
+      const ribbonCenterX = ribbonStartX + ribbonWidth / 2;
       ctx.fillStyle = NOTE_VIEW_TEXT_COLOR;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -6133,14 +6133,14 @@
 
         // Draw letter on top line
         ctx.font = `bold ${fontSize}px sans-serif`;
-        ctx.fillText(letter, pillCenterX, yPos - lineSpacing / 2);
+        ctx.fillText(letter, ribbonCenterX, yPos - lineSpacing / 2);
 
         // Draw accidental on bottom line
         ctx.font = `bold ${accidentalSize}px sans-serif`;
-        ctx.fillText(accidental, pillCenterX, yPos + lineSpacing / 2);
+        ctx.fillText(accidental, ribbonCenterX, yPos + lineSpacing / 2);
       } else {
         // No accidental - single line centered
-        ctx.fillText(noteName, pillCenterX, yPos);
+        ctx.fillText(noteName, ribbonCenterX, yPos);
       }
 
       // Reset shadow for border drawing
@@ -6148,7 +6148,7 @@
       ctx.shadowBlur = 0;
 
       // Move to next position (add gap between notes)
-      cumulativeX += pillWidth + NOTE_VIEW_BALLOON_GAP_PX;
+      cumulativeX += ribbonWidth + NOTE_VIEW_BALLOON_GAP_PX;
     }
   }
 
@@ -6182,20 +6182,20 @@
     const leftMargin = Math.max(NOTE_VIEW_HORIZONTAL_MARGIN, NOTE_VIEW_BALLOON_PADDING + balloonRadius);
     const noteViewStyle = currentSettings.noteViewStyle || NOTE_VIEW_STYLE_DEFAULT;
 
-    // Pills mode needs minimal right margin since they grow linearly and predictably
+    // Ribbons mode needs minimal right margin since they grow linearly and predictably
     // Balloons need more reserve space for asymptotic expansion
-    const rightMargin = noteViewStyle === NOTE_VIEW_STYLE_PILLS
-      ? NOTE_VIEW_BALLOON_PADDING  // Just 10px for pills
+    const rightMargin = noteViewStyle === NOTE_VIEW_STYLE_RIBBONS
+      ? NOTE_VIEW_BALLOON_PADDING  // Just 10px for ribbons
       : leftMargin + balloonRadius * NOTE_VIEW_RIGHT_EXPANSION_RESERVE_FACTOR;
 
     if (
       noteViewRenderState.layoutDirty ||
       Math.abs(noteViewRenderState.lastLayoutBalloonRadius - balloonRadius) > 0.001
     ) {
-      if (noteViewStyle === NOTE_VIEW_STYLE_PILLS) {
-        // Pills mode - calculate cumulative width
-        const pillsWidth = calculatePillsLayout(noteViewRenderState.mergedSegments, leftMargin, rightMargin, balloonRadius);
-        noteViewRenderState.timelineWidthCss = Math.max(pillsWidth, NOTE_VIEW_MIN_TIMELINE_WIDTH_PX);
+      if (noteViewStyle === NOTE_VIEW_STYLE_RIBBONS) {
+        // Ribbons mode - calculate cumulative width
+        const ribbonsWidth = calculateRibbonsLayout(noteViewRenderState.mergedSegments, leftMargin, rightMargin, balloonRadius);
+        noteViewRenderState.timelineWidthCss = Math.max(ribbonsWidth, NOTE_VIEW_MIN_TIMELINE_WIDTH_PX);
         noteViewRenderState.layoutDirty = false;
         noteViewRenderState.lastLayoutBalloonRadius = balloonRadius;
       } else {
@@ -6208,20 +6208,20 @@
     let previewLayout = null;
     let rightmostSeg = null;
 
-    if (noteViewStyle === NOTE_VIEW_STYLE_PILLS) {
-      // Pills mode - find rightmost from mergedSegments
+    if (noteViewStyle === NOTE_VIEW_STYLE_RIBBONS) {
+      // Ribbons mode - find rightmost from mergedSegments
       const lastMerged = noteViewRenderState.mergedSegments[noteViewRenderState.mergedSegments.length - 1];
       rightmostSeg = previewSegment || lastMerged || null;
 
-      // Recalculate Pills width including preview if present
+      // Recalculate Ribbons width including preview if present
       if (previewSegment) {
-        const pillsWidthWithPreview = calculatePillsLayout(
+        const ribbonsWidthWithPreview = calculateRibbonsLayout(
           [...noteViewRenderState.mergedSegments, previewSegment],
           leftMargin,
           rightMargin,
           balloonRadius
         );
-        noteViewRenderState.timelineWidthCss = Math.max(pillsWidthWithPreview, NOTE_VIEW_MIN_TIMELINE_WIDTH_PX);
+        noteViewRenderState.timelineWidthCss = Math.max(ribbonsWidthWithPreview, NOTE_VIEW_MIN_TIMELINE_WIDTH_PX);
       }
     } else {
       // Balloons mode - use existing layout logic
@@ -6296,10 +6296,10 @@
     const windowStart = Math.max(0, scrollLeft - NOTE_VIEW_VIRTUAL_BUFFER_PX);
     const windowEnd = Math.min(desiredWidthCss, scrollLeft + containerWidth + NOTE_VIEW_VIRTUAL_BUFFER_PX);
 
-    if (noteViewStyle === NOTE_VIEW_STYLE_PILLS) {
-      // Pills mode - render with color bands showing intonation over time
-      // Use mergedSegments directly (Pills don't use layoutSegments)
-      renderPillsNotes(ctx, noteViewRenderState.mergedSegments, {
+    if (noteViewStyle === NOTE_VIEW_STYLE_RIBBONS) {
+      // Ribbons mode - render with color bands showing intonation over time
+      // Use mergedSegments directly (Ribbons don't use layoutSegments)
+      renderRibbonsNotes(ctx, noteViewRenderState.mergedSegments, {
         windowStart,
         windowEnd,
         scrollLeft,
