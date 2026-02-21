@@ -6130,13 +6130,15 @@
       ctx.font = `bold ${fontSize}px sans-serif`;
 
       // Check for accidentals (sharp or flat) and render as two lines
-      if (noteName.includes("♭") || noteName.includes("♯")) {
-        const hasFlat = noteName.includes("♭");
-        const parts = noteName.split(hasFlat ? "♭" : "♯");
-        const letter = parts[0] ?? "";
+      const hasFlat = noteName.includes("♭");
+      const hasSharp = noteName.includes("♯") || noteName.includes("#");
+      if (hasFlat || hasSharp) {
+        const letter = noteName.charAt(0);
         const accidental = hasFlat ? "♭" : "♯";
-        const accidentalSize = Math.round(balloonRadius * 0.72);
-        const lineSpacing = fontSize * 0.6;
+        // Flat needs more spacing: its stem ascender extends high above the round body
+        const lineSpacing = hasFlat ? fontSize * 0.9 : fontSize * 0.65;
+        // Flat glyph has no bold variant in most fonts; use a larger size to compensate
+        const accidentalSize = hasFlat ? Math.round(balloonRadius * 0.82) : Math.round(balloonRadius * 0.72);
 
         // Draw letter on top line
         ctx.font = `bold ${fontSize}px sans-serif`;
