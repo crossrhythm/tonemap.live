@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.5 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.6 (update window.APP_VERSION below when bumping release) -->
 <!-- STATUS: Beta/test version for testing on mobile devices -->
 <!-- Once thoroughly tested, copy changes to index.html for production deployment -->
 <!-- Licensed under the MIT License; see LICENSE. -->
@@ -2317,7 +2317,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.5";
+  window.APP_VERSION = "1.6";
 </script>
 
 <div class="page">
@@ -2861,7 +2861,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.5";
+  const APP_VERSION = window.APP_VERSION || "1.6";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -6162,15 +6162,15 @@
         const letter = noteName.charAt(0);
         const accidental = hasFlat ? "♭" : "♯";
         const lineSpacing = fontSize * 0.9;
-        const accidentalSize = Math.round(balloonRadius * 0.82);
+        const accidentalSize = Math.round(balloonRadius * 0.68);
 
         // Draw letter on top line
         ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.fillText(letter, ribbonCenterX, yPos - lineSpacing / 2);
 
-        // Draw accidental on bottom line
+        // Draw accidental on bottom line (slightly smaller and lower)
         ctx.font = `bold ${accidentalSize}px sans-serif`;
-        ctx.fillText(accidental, ribbonCenterX, yPos + lineSpacing / 2);
+        ctx.fillText(accidental, ribbonCenterX, yPos + lineSpacing / 2 + fontSize * 0.12);
       } else {
         // No accidental - single line centered
         ctx.fillText(noteName, ribbonCenterX, yPos);
