@@ -6161,10 +6161,8 @@
       if (hasFlat || hasSharp) {
         const letter = noteName.charAt(0);
         const accidental = hasFlat ? "♭" : "♯";
-        // Flat needs more spacing: its stem ascender extends high above the round body
-        const lineSpacing = hasFlat ? fontSize * 0.9 : fontSize * 0.65;
-        // Flat glyph has no bold variant in most fonts; use a larger size to compensate
-        const accidentalSize = hasFlat ? Math.round(balloonRadius * 0.82) : Math.round(balloonRadius * 0.72);
+        const lineSpacing = fontSize * 0.9;
+        const accidentalSize = Math.round(balloonRadius * 0.82);
 
         // Draw letter on top line
         ctx.font = `bold ${fontSize}px sans-serif`;
