@@ -3711,7 +3711,7 @@
   const NOTE_VIEW_BALLOON_RADIUS_MIN = 25;    // Floor radius so dots are visible (50px diameter)
   const NOTE_VIEW_BALLOON_RADIUS_MAX = 80;    // Ceiling to avoid covering the whole staff
   const NOTE_VIEW_BALLOON_VERTICAL_DIVISOR = 1.0; // Smaller divisor = larger balloons
-  const NOTE_VIEW_BALLOON_WIDTH_TAU = 1500;   // Inflation time constant (ms): controls how fast width grows
+  const NOTE_VIEW_BALLOON_WIDTH_TAU = 10000;  // Inflation time constant (ms): controls how fast width grows
   const NOTE_VIEW_HORIZONTAL_MARGIN = 30;     // Margin when laying out from the right
   const NOTE_VIEW_BALLOON_PADDING = 10;       // Horizontal padding between balloons
   const NOTE_VIEW_TEXT_COLOR = "white";
@@ -3721,6 +3721,7 @@
   const NOTE_VIEW_VIRTUAL_BUFFER_PX = 260;
   const NOTE_VIEW_BALLOON_GAP_PX = 2;
   const NOTE_VIEW_RIGHT_EXPANSION_RESERVE_FACTOR = 2;
+  const NOTE_VIEW_SCROLL_LERP_FACTOR = 0.2; // fraction of remaining distance closed per frame (~60fps)
 
   const noteViewRenderState = {
     dataDirty: true,
@@ -3737,6 +3738,7 @@
     isLive: true,
     autoFollowRightmostKey: null,
     programmaticScrollLeft: null,
+    scrollLerpX: null,
     resizeRenderRafId: null
   };
 
@@ -3757,7 +3759,7 @@
   }
 
   function getBalloonHorizontalRadius(durMs, balloonRadius) {
-    const widthFactor = 0.5 + 1.0 * (1 - Math.exp(-durMs / NOTE_VIEW_BALLOON_WIDTH_TAU));
+    const widthFactor = 0.5 + 9.5 * (1 - Math.exp(-durMs / NOTE_VIEW_BALLOON_WIDTH_TAU));
     return balloonRadius * widthFactor;
   }
 
@@ -3774,7 +3776,7 @@
         const noteStartMs = seg.startMs || 0;
         const gapMs = noteStartMs - previousNoteEndMs;
         const minGapThreshold = 50; // Ignore tiny gaps
-        const maxGapPx = balloonRadius * 2; // Cap at max balloon diameter
+        const maxGapPx = balloonRadius * 4; // Cap at 2× max balloon diameter
 
         if (gapMs > minGapThreshold) {
           const gapPx = gapMs / 20; // Same scale as segments (20ms = 1px)
@@ -5842,6 +5844,10 @@
   }
 
   // Prevent browser back/forward gestures when scrolling Note View
+  // Track whether a scroll event was preceded by a real user gesture.
+  // Resize reflows can also fire scroll events — we must not let those disengage isLive.
+  let noteViewScrollIsUserInitiated = false;
+
   if (noteViewContainer) {
     noteViewContainer.addEventListener("scroll", () => {
       const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
@@ -5849,27 +5855,39 @@
       if (noteViewRenderState.programmaticScrollLeft != null) {
         const drift = Math.abs(noteViewContainer.scrollLeft - noteViewRenderState.programmaticScrollLeft);
         noteViewRenderState.programmaticScrollLeft = null;
-        if (drift <= 1) return; // Our own scroll landed — ignore
+        if (drift <= 1) {
+          noteViewScrollIsUserInitiated = false; // our own scroll, not the user's
+          return;
+        }
       }
-      // User-initiated scroll: update live state based on position
-      noteViewRenderState.isLive = atRight;
-      if (noteViewActive) {
-        renderNoteView();
+      if (noteViewScrollIsUserInitiated) {
+        // Confirmed user gesture: allow full live-state toggle
+        noteViewScrollIsUserInitiated = false;
+        noteViewRenderState.isLive = atRight;
+        if (!atRight) noteViewRenderState.scrollLerpX = null;
+        if (noteViewActive) renderNoteView();
+      } else if (atRight && !noteViewRenderState.isLive) {
+        // Resize or reflow brought us back to the right edge — re-engage live
+        noteViewRenderState.isLive = true;
+        if (noteViewActive) renderNoteView();
       }
+      // Resize scrolls that land away from right edge: ignored — isLive unchanged
     }, { passive: true });
 
     noteViewContainer.addEventListener("wheel", (e) => {
+      if (e.deltaX !== 0) noteViewScrollIsUserInitiated = true;
       const atLeft = noteViewContainer.scrollLeft === 0;
       const atRight = noteViewContainer.scrollLeft + noteViewContainer.clientWidth >= noteViewContainer.scrollWidth - 1;
       const scrollingLeft = e.deltaX < 0;
       const scrollingRight = e.deltaX > 0;
-      
+
       if ((atLeft && scrollingLeft) || (atRight && scrollingRight)) {
         e.preventDefault();
       }
     }, { passive: false });
 
     noteViewContainer.addEventListener("touchstart", (e) => {
+      noteViewScrollIsUserInitiated = true;
       noteViewContainer._touchStartX = e.touches[0].clientX;
     }, { passive: true });
 
@@ -5885,6 +5903,16 @@
         e.preventDefault();
       }
     }, { passive: false });
+
+    // Scrollbar drag (desktop): pointerdown precedes the scroll event
+    noteViewContainer.addEventListener("pointerdown", () => {
+      noteViewScrollIsUserInitiated = true;
+    }, { passive: true });
+
+    // Safety reset: pointer released without causing a scroll (e.g. a tap) — clear the flag
+    noteViewContainer.addEventListener("pointerup", () => {
+      noteViewScrollIsUserInitiated = false;
+    }, { passive: true });
   }
 
   if (noteViewContainer && typeof ResizeObserver !== "undefined") {
@@ -5915,7 +5943,7 @@
       if (previousNoteEndMs !== null) {
         const gapMs = noteStartMs - previousNoteEndMs;
         const minGapThreshold = 50; // Ignore tiny gaps
-        const maxGapMs = 2000; // Cap at 2 seconds
+        const maxGapMs = 4000; // Cap at 4 seconds
 
         if (gapMs > minGapThreshold) {
           const visualGapMs = Math.min(gapMs, maxGapMs);
@@ -5968,7 +5996,7 @@
       if (previousNoteEndMs !== null) {
         const gapMs = noteStartMs - previousNoteEndMs;
         const minGapThreshold = 50; // Ignore tiny gaps
-        const maxGapMs = 2000; // Cap at 2 seconds
+        const maxGapMs = 4000; // Cap at 4 seconds
 
         if (gapMs > minGapThreshold) {
           const visualGapMs = Math.min(gapMs, maxGapMs);
@@ -6329,6 +6357,28 @@
     const windowStart = Math.max(0, scrollLeft - NOTE_VIEW_VIRTUAL_BUFFER_PX);
     const windowEnd = Math.min(desiredWidthCss, scrollLeft + containerWidth + NOTE_VIEW_VIRTUAL_BUFFER_PX);
 
+    // Pitch guide lines — drawn behind notes, one per semitone
+    ctx.save();
+    ctx.shadowColor = "transparent";
+    ctx.shadowBlur = 0;
+    for (let midi = lowestMidi; midi <= highestMidi; midi++) {
+      const lineY = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
+      if (lineY <= 0 || lineY >= containerHeight) continue; // skip if at viewport edge
+      const isC = (midi % 12) === 0;
+      ctx.beginPath();
+      ctx.moveTo(0, lineY);
+      ctx.lineTo(containerWidth, lineY);
+      if (isC) {
+        ctx.strokeStyle = "rgba(150, 150, 150, 0.45)"; // thicker for octave starts
+        ctx.lineWidth = 1.5;
+      } else {
+        ctx.strokeStyle = "rgba(100, 100, 100, 0.45)"; // thinner for semitones
+        ctx.lineWidth = 0.5;
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
     if (noteViewStyle === NOTE_VIEW_STYLE_RIBBONS) {
       // Ribbons mode - render with color bands showing intonation over time
       // Use mergedSegments directly (Ribbons don't use layoutSegments)
@@ -6401,8 +6451,20 @@
 
     if (noteViewRenderState.isLive) {
       const targetScroll = Math.max(0, desiredWidthCss - containerWidth);
-      noteViewRenderState.programmaticScrollLeft = targetScroll;
-      noteViewContainer.scrollTo({ left: targetScroll, behavior: 'auto' });
+      // Initialise lerp position from current scroll if not yet set
+      if (noteViewRenderState.scrollLerpX == null) {
+        noteViewRenderState.scrollLerpX = noteViewContainer.scrollLeft;
+      }
+      // Advance toward target each frame for smooth scroll without browser smooth-scroll
+      noteViewRenderState.scrollLerpX +=
+        (targetScroll - noteViewRenderState.scrollLerpX) * NOTE_VIEW_SCROLL_LERP_FACTOR;
+      // Snap when very close to avoid endless sub-pixel updates
+      if (Math.abs(noteViewRenderState.scrollLerpX - targetScroll) < 0.5) {
+        noteViewRenderState.scrollLerpX = targetScroll;
+      }
+      const scrollPos = Math.round(noteViewRenderState.scrollLerpX);
+      noteViewRenderState.programmaticScrollLeft = scrollPos;
+      noteViewContainer.scrollLeft = scrollPos;
     }
   }
 
