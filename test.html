@@ -80,6 +80,55 @@
     --pitch-color-sharp: rgb(249,115,22);
     --pitch-color-center: rgb(34,197,94);
     --pitch-color-flat: rgb(147,51,234);
+
+    --ui-overlay-backdrop: rgba(15,23,42,0.65);
+    --ui-overlay-card-bg: rgba(15,23,42,0.28);
+    --ui-overlay-card-border: rgba(148,163,184,0.25);
+    --ui-overlay-header-bg: rgba(15,23,42,0.75);
+    --ui-overlay-footer-bg: rgba(15,23,42,0.78);
+    --ui-overlay-shadow: 0 22px 40px rgba(0,0,0,0.55);
+
+    --ui-panel-glass-bg: rgba(15,23,42,0.65);
+    --ui-panel-glass-border: rgba(148,163,184,0.12);
+
+    --ui-scroll-fade-top: rgba(15,23,42,0.92);
+    --ui-scroll-fade-bottom: rgba(15,23,42,0.92);
+
+    --ui-footer-text: rgba(226,232,240,0.85);
+    --ui-text-muted-strong: #cbd5e1;
+  }
+
+  :root[data-ui-theme="light"] {
+    --bg-main: #f1f5f9;
+    --bg-panel: #ffffff;
+    --veil-bg: rgba(241,245,249,0.86);
+
+    --text-dim: #475569;
+    --text-lite: #0f172a;
+
+    --border-dim: #94a3b8;
+
+    --grid-bg: #e2e8f0;
+    --grid-line: #94a3b8;
+    --grid-text-off: #64748b;
+    --grid-text-seen: #334155;
+    --grid-text-on: #0f172a;
+
+    --ui-overlay-backdrop: rgba(148,163,184,0.45);
+    --ui-overlay-card-bg: rgba(255,255,255,0.9);
+    --ui-overlay-card-border: rgba(100,116,139,0.35);
+    --ui-overlay-header-bg: rgba(255,255,255,0.95);
+    --ui-overlay-footer-bg: rgba(255,255,255,0.95);
+    --ui-overlay-shadow: 0 18px 32px rgba(15,23,42,0.16);
+
+    --ui-panel-glass-bg: rgba(255,255,255,0.82);
+    --ui-panel-glass-border: rgba(100,116,139,0.24);
+
+    --ui-scroll-fade-top: rgba(241,245,249,0.96);
+    --ui-scroll-fade-bottom: rgba(241,245,249,0.96);
+
+    --ui-footer-text: #334155;
+    --ui-text-muted-strong: #334155;
   }
 
   *, *::before, *::after {
@@ -339,7 +388,7 @@
     top: 50%;
     transform: translateY(-50%);
     height: 8px;
-    background: #000;
+    background: var(--grid-bg);
     opacity: 0.9;
     z-index: 1;
   }
@@ -555,8 +604,8 @@
       gap: 0.5rem;
     }
     .right-col {
-      background: rgba(15,23,42,0.65);
-      border: 1px solid rgba(148,163,184,0.12);
+      background: var(--ui-panel-glass-bg);
+      border: 1px solid var(--ui-panel-glass-border);
       border-radius: 0.75rem;
       padding: 0.425rem 0.5rem;
     }
@@ -686,12 +735,12 @@
   .footer-line {
     text-align: center;
     font-size: 0.7rem;
-    color: rgba(226,232,240,0.85);
+    color: var(--ui-footer-text);
   }
 
   .footer-line a,
   .footer-line a:visited {
-    color: rgba(226,232,240,0.85);
+    color: var(--ui-footer-text);
     text-decoration: none;
   }
 
@@ -1048,6 +1097,31 @@
     background-color: var(--accent-green);
   }
 
+  .attack-speed-wrap {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 0.65rem;
+  }
+
+  .attack-speed-slider-col {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .option-field .attack-speed-slider-col input[type="range"] {
+    width: 100%;
+  }
+
+  .attack-speed-value {
+    min-width: 4rem;
+    text-align: right;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   .rms-gauge-threshold {
     position: absolute;
     top: -1px;
@@ -1140,7 +1214,7 @@
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
-    background: rgba(15,23,42,0.65);
+    background: var(--ui-overlay-backdrop);
     backdrop-filter: blur(3px);
     z-index: 1200;
   }
@@ -1154,10 +1228,10 @@
   .status-overlay-card {
     width: min(720px, 100%);
     max-height: 90vh;
-    background: rgba(15,23,42,0.28);
-    border: 1px solid rgba(148,163,184,0.25);
+    background: var(--ui-overlay-card-bg);
+    border: 1px solid var(--ui-overlay-card-border);
     border-radius: 1rem;
-    box-shadow: 0 22px 40px rgba(0,0,0,0.55);
+    box-shadow: var(--ui-overlay-shadow);
     backdrop-filter: blur(12px);
     display: flex;
     flex-direction: column;
@@ -1175,7 +1249,7 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    background: rgba(15,23,42,0.75);
+    background: var(--ui-overlay-header-bg);
     backdrop-filter: blur(16px);
   }
 
@@ -1256,9 +1330,9 @@
     content: "";
     background: linear-gradient(
       to bottom,
-      rgba(15,23,42,1) 0,
-      rgba(15,23,42,1) 3px,
-      rgba(15,23,42,0.9) 10px,
+      var(--ui-scroll-fade-top) 0,
+      var(--ui-scroll-fade-top) 3px,
+      var(--ui-scroll-fade-top) 10px,
       transparent 100%
     );
     position: sticky;
@@ -1276,14 +1350,14 @@
   .right-scroll::before {
     top: -3px;
     height: calc(1.5rem + 13px);
-    background: linear-gradient(to bottom, rgba(15,23,42,0.85), transparent);
+    background: linear-gradient(to bottom, var(--ui-scroll-fade-top), transparent);
     margin-bottom: calc(-1.5rem - 13px);
   }
 
   /* Bottom fade (scroll-down indicator) */
   .right-scroll::after {
     bottom: 0;
-    background: linear-gradient(to top, rgba(15,23,42,0.85), transparent);
+    background: linear-gradient(to top, var(--ui-scroll-fade-bottom), transparent);
     margin-top: calc(-1.5rem - 10px);
   }
 
@@ -1304,13 +1378,13 @@
 
   .scroll-fade-y::before {
     top: 0;
-    background: linear-gradient(to bottom, rgba(15,23,42,0.92), transparent);
+    background: linear-gradient(to bottom, var(--ui-scroll-fade-top), transparent);
     margin-bottom: calc(-1.6rem - 10px);
   }
 
   .scroll-fade-y::after {
     bottom: 0;
-    background: linear-gradient(to top, rgba(15,23,42,0.92), transparent);
+    background: linear-gradient(to top, var(--ui-scroll-fade-bottom), transparent);
     margin-top: calc(-1.6rem - 10px);
   }
 
@@ -1326,7 +1400,7 @@
     left: 0;
     right: 0;
     height: calc(1.6rem + 10px);
-    background: linear-gradient(to top, rgba(15,23,42,0.92), transparent);
+    background: linear-gradient(to top, var(--ui-scroll-fade-bottom), transparent);
     pointer-events: none;
     z-index: 3;
     opacity: 0;
@@ -1388,7 +1462,7 @@
     margin-top: 0;
     position: relative;
     z-index: 2;
-    background: rgba(15,23,42,0.78);
+    background: var(--ui-overlay-footer-bg);
   }
 
   .option-field {
@@ -1538,7 +1612,7 @@
     align-items: center;
     justify-content: center;
     padding: 1.25rem;
-    background: rgba(15,23,42,0.65);
+    background: var(--ui-overlay-backdrop);
     backdrop-filter: blur(6px);
     z-index: 1400;
   }
@@ -1549,10 +1623,10 @@
 
   .option-info-card {
     width: min(520px, 100%);
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(148,163,184,0.4);
+    background: var(--ui-overlay-card-bg);
+    border: 1px solid var(--ui-overlay-card-border);
     border-radius: 1rem;
-    box-shadow: 0 22px 42px rgba(0,0,0,0.55);
+    box-shadow: var(--ui-overlay-shadow);
     padding: 1.25rem 1.35rem;
     display: flex;
     flex-direction: column;
@@ -1581,7 +1655,7 @@
   .option-info-summary {
     margin: 0;
     font-size: 0.9rem;
-    color: #e2e8f0;
+    color: var(--ui-text-muted-strong);
     font-weight: 600;
     line-height: 1.4;
   }
@@ -1598,10 +1672,10 @@
   }
 
   .status-section {
-    border: 1px solid rgba(100,116,139,0.35);
+    border: 1px solid var(--ui-overlay-card-border);
     border-radius: 0.85rem;
     padding: 1rem;
-    background: rgba(15,23,42,0.18);
+    background: var(--ui-overlay-card-bg);
   }
 
   .status-section-title {
@@ -1618,7 +1692,7 @@
     gap: 0.75rem;
     font-size: 0.75rem;
     line-height: 1.35;
-    color: #cbd5e1;
+    color: var(--ui-text-muted-strong);
     margin-bottom: 0.5rem;
   }
 
@@ -1652,7 +1726,7 @@
   .status-footer {
     margin-top: 1.5rem;
     padding-top: 1rem;
-    border-top: 1px solid rgba(100,116,139,0.35);
+    border-top: 1px solid var(--ui-overlay-card-border);
     display: flex;
     justify-content: space-between;
     gap: 1rem;
@@ -1761,7 +1835,7 @@
     top: 50%;
     transform: translateY(-50%);
     height: 8px;
-    background: #000;
+    background: var(--grid-bg);
     opacity: 0.9;
     z-index: 1;
   }
@@ -1819,6 +1893,20 @@
     height: 0;
   }
 
+  .theme-mode-wrap {
+    display: flex;
+    width: 100%;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .theme-mode-btn {
+    flex: 1 1 30%;
+    min-width: 0;
+    text-align: center;
+    padding: 0.42rem 0.65rem;
+  }
+
   @media (max-aspect-ratio: 1/1) {
     body {
       padding: 0.75rem;
@@ -1851,8 +1939,8 @@
       max-width: none;
       width: 100%;
       height: auto;
-      background: rgba(15,23,42,0.65);
-      border: 1px solid rgba(148,163,184,0.12);
+      background: var(--ui-panel-glass-bg);
+      border: 1px solid var(--ui-panel-glass-border);
       border-radius: 0.75rem;
       padding: 0.85rem 1rem;
       overflow: hidden;
@@ -2097,7 +2185,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #000;
+    background: var(--grid-bg);
     color: var(--grid-text-off);
     font-weight: 500;
     text-align: center;
@@ -2123,7 +2211,7 @@
     right: 0;
     top: 50%;
     height: 8px;
-    background: #000;
+    background: var(--grid-bg);
     transform: translateY(-50%);
     z-index: 0;
   }
@@ -2135,7 +2223,7 @@
     right: auto;
     top: 0;
     transform: translateX(-50%);
-    background: #000;
+    background: var(--grid-bg);
   }
 
   .grid-cell .note-label {
@@ -2199,7 +2287,7 @@
   .confetti-stats-modal {
     position: fixed;
     inset: 0;
-    background: rgba(15,23,42,0.45);
+    background: var(--ui-overlay-backdrop);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2213,9 +2301,9 @@
   }
 
   .confetti-stats-card {
-    background: rgba(15,23,42,0.92);
-    border: 1px solid rgba(148,163,184,0.45);
-    box-shadow: 0 18px 32px rgba(0,0,0,0.55);
+    background: var(--ui-overlay-card-bg);
+    border: 1px solid var(--ui-overlay-card-border);
+    box-shadow: var(--ui-overlay-shadow);
     border-radius: 1rem;
     padding: 1.25rem 1.5rem;
     max-width: min(480px, 94vw);
@@ -2562,11 +2650,16 @@
 
         <div class="option-field">
           <div class="opt-label-row">
-            <label class="opt-label">Hold Gate</label>
-            <button class="info-btn" type="button" data-info-key="holdGate" aria-label="Learn about Hold Gate">i</button>
+            <label class="opt-label" for="attackSpeedSlider">Onset Filter (Pitch Stabilization)</label>
+            <button class="info-btn" type="button" data-info-key="attackSpeed" aria-label="Learn about Onset Filter (Pitch Stabilization)">i</button>
           </div>
-          <div class="opt-control">
-            <button id="holdGateToggle" class="toggle-btn" type="button">Hold: On</button>
+          <div class="opt-control opt-control-slider">
+            <div class="attack-speed-wrap">
+              <div class="attack-speed-slider-col">
+                <input id="attackSpeedSlider" type="range" min="0" max="100" step="1" />
+              </div>
+              <span id="attackSpeedValue" class="attack-speed-value">None</span>
+            </div>
           </div>
         </div>
 
@@ -2782,8 +2875,8 @@
           <span class="status-val" id="dbgDeadZone">~0.23%</span>
         </div>
         <div class="status-row">
-          <span class="status-key">Min Hold</span>
-          <span class="status-val" id="dbgHold">0.10 s</span>
+          <span class="status-key">Onset Filter (Pitch Stabilization)</span>
+          <span class="status-val" id="dbgHold">None</span>
         </div>
         <div class="status-row">
           <span class="status-key">History</span>
@@ -2855,6 +2948,18 @@
       </div>
     </div>
     <div class="options-overlay-body">
+      <div class="option-field">
+        <div class="opt-label-row">
+          <label class="opt-label" for="themeModeSystemBtn">UI Theme</label>
+        </div>
+        <div class="opt-control">
+          <div class="theme-mode-wrap" role="group" aria-label="UI theme mode">
+            <button id="themeModeLightBtn" class="toggle-btn theme-mode-btn" type="button" data-ui-theme-choice="light" aria-pressed="false">Light</button>
+            <button id="themeModeDarkBtn" class="toggle-btn theme-mode-btn" type="button" data-ui-theme-choice="dark" aria-pressed="false">Dark</button>
+            <button id="themeModeSystemBtn" class="toggle-btn theme-mode-btn" type="button" data-ui-theme-choice="system" aria-pressed="false">System</button>
+          </div>
+        </div>
+      </div>
       <div class="palette-layout">
           <div class="palette-preview" id="palettePreview">
           <div class="palette-gradient" id="paletteGradientBox">
@@ -2964,7 +3069,8 @@
   const stainHoldSelect   = document.getElementById("stainHoldSelect");
   const stretchSelect     = document.getElementById("stretchSelect");
   const accidentalToggle  = document.getElementById("accidentalToggle");
-  const holdGateToggle    = document.getElementById("holdGateToggle");
+  const attackSpeedSliderEl = document.getElementById("attackSpeedSlider");
+  const attackSpeedValueEl = document.getElementById("attackSpeedValue");
   const needleDirSelect   = document.getElementById("needleDirSelect");
   const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
 
@@ -3020,6 +3126,10 @@
   const paletteCenterInput = document.getElementById("paletteCenterInput");
   const paletteFlatInput   = document.getElementById("paletteFlatInput");
   const paletteGradientBox = document.getElementById("paletteGradientBox");
+  const themeModeLightBtn = document.getElementById("themeModeLightBtn");
+  const themeModeDarkBtn = document.getElementById("themeModeDarkBtn");
+  const themeModeSystemBtn = document.getElementById("themeModeSystemBtn");
+  const themeModeButtons = [themeModeLightBtn, themeModeDarkBtn, themeModeSystemBtn].filter(Boolean);
   const optionsPaletteBtn = document.getElementById("optionsPaletteBtn");
   const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
@@ -3231,7 +3341,9 @@
   function openPaletteOverlay() {
     if (!paletteOverlay) return;
     pendingPalette = normalizePalette(currentPalette);
+    pendingUiTheme = normalizeUiThemeSetting(currentSettings.uiTheme);
     updatePalettePreview(pendingPalette);
+    syncUiThemeUI(pendingUiTheme);
     paletteOverlay.classList.add("open");
     paletteOverlay.setAttribute("aria-hidden", "false");
     document.addEventListener("keydown", onPaletteOverlayKeyDown);
@@ -3245,15 +3357,22 @@
     document.removeEventListener("keydown", onPaletteOverlayKeyDown);
     if (apply) {
       currentPalette = normalizePalette(pendingPalette);
+      currentSettings.uiTheme = normalizeUiThemeSetting(pendingUiTheme);
       applyPaletteToDocument(currentPalette);
+      applyUiThemeToDocument(currentSettings.uiTheme);
       currentSettings.colorPalette = currentPalette;
       persistSettings(currentSettings);
       recomputeAllCellColorsAndRender();
       syncPaletteUI(currentPalette);
       pendingPalette = normalizePalette(currentPalette);
+      pendingUiTheme = normalizeUiThemeSetting(currentSettings.uiTheme);
+      syncUiThemeUI(pendingUiTheme);
     } else {
       pendingPalette = normalizePalette(currentPalette);
+      pendingUiTheme = normalizeUiThemeSetting(currentSettings.uiTheme);
       updatePalettePreview(pendingPalette);
+      syncUiThemeUI(pendingUiTheme);
+      applyUiThemeToDocument(currentSettings.uiTheme);
     }
     if (edgeKey) edgeKey.focus();
   }
@@ -3286,20 +3405,15 @@
 
   // Modes
   const RELAXED_DEADZONE_RATIO = 0.003;  // 0.3%
-  // All modes now use 40ms timing for responsive updates
-  // Mode differences are in color calculation, deadzone, and needle smoothing
-  const RELAXED_MIN_HOLD_MS = 40;
   const RELAXED_ERR_SCALE = 0.7; // 50% less sensitive stain/color
   const RELAXED_NEEDLE_TAU_MS = 350; // EMA time constant for needle damping (vocal-friendly)
 
   const MEDIUM_DEADZONE_RATIO = 0.0023; // ~0.23%
-  const MEDIUM_MIN_HOLD_MS = 40;
   const MEDIUM_ERR_SCALE = 0.7;
   const MEDIUM_NEEDLE_TAU_MS = 80;
 
   // Hard mode softened but still tighter than Medium
   const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 3; // ~0.076%
-  const HARD_MIN_HOLD_MS = 40;
   const HARD_ERR_SCALE = 0.9;
   const HARD_NEEDLE_TAU_MS = 30;
 
@@ -3716,7 +3830,8 @@
     "unlimited": Infinity
   });
 
-  const HOLD_GATE_DEFAULT = false;
+  const ATTACK_SPEED_DEFAULT_MS = 0;
+  const ATTACK_SPEED_MAX_MS = 100;
 
   // Note View Settings
   const NOTE_VIEW_MAX_BALLOONS = 900;        // Maximum number of balloons to render
@@ -3978,8 +4093,12 @@
     range: null, // computed default
     minVol: 0,
     colorPalette: null,
-    holdGate: HOLD_GATE_DEFAULT
+    attackMs: ATTACK_SPEED_DEFAULT_MS,
+    uiTheme: "system"
   };
+
+  const UI_THEME_OPTIONS = Object.freeze(["light", "dark", "system"]);
+  const UI_THEME_DEFAULT = "system";
 
   const DEFAULT_PALETTE = {
     sharp: { r: 255, g: 170, b: 0 },   // #FFAA00
@@ -4003,9 +4122,9 @@
       title: "Mode",
       summary: "Chooses how forgiving the tuner is before it paints the grid.  Dead zones are a margin of error that paints the cell as 'in-tune.'",
       detail: [
-        "• Relaxed: ~10 cents dead zone, 350ms needle smoothing. If on, Hold Gate = 80ms.",
-        "• Medium: ~8 cents dead zone, 120ms smoothing. If on, Hold Gate = 80ms.",
-        "• Hard: ~4 cents dead zone, 30ms smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily. If on, Hold Gate = 40ms."
+        "• Relaxed: ~10 cents dead zone, 350ms needle smoothing.",
+        "• Medium: ~8 cents dead zone, 120ms smoothing.",
+        "• Hard: ~4 cents dead zone, 30ms smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily."
       ]
     },
     noteViewStyle: {
@@ -4016,10 +4135,10 @@
         "• Balloons: Shows overall average intonation. Each note displays as a single color representing the average pitch accuracy across its entire duration."
       ]
     },
-    holdGate: {
-      title: "Hold Gate",
-      summary: "Waits for the pitch to settle briefly before coloring a cell.",
-      detail: "When on, stain waits a short hold before logging: ~40ms (all modes). Mode differences are in color sensitivity and deadzone, not timing."
+    attackSpeed: {
+      title: "Onset Filter (Pitch Stabilization)",
+      summary: "Sets how long a note must stay stable before it starts coloring a cell.",
+      detail: "Set to None for immediate response, or increase up to 100ms to ignore very brief attacks and noise."
     },
     accidentals: {
       title: "Accidentals",
@@ -4097,32 +4216,53 @@
   let lastUsageUiUpdateMs = 0;
   let pendingMilestone = false;
 
-  function normalizeHoldGateSetting(raw) {
-    return raw === false ? false : true;
+  function normalizeAttackSpeedSetting(raw, legacyHoldGate = undefined) {
+    if (typeof raw === "boolean") {
+      return raw ? 40 : 0;
+    }
+    if (Number.isFinite(raw)) {
+      return Math.max(0, Math.min(ATTACK_SPEED_MAX_MS, Math.round(raw)));
+    }
+    if (typeof raw === "string") {
+      const parsed = Number(raw);
+      if (Number.isFinite(parsed)) {
+        return Math.max(0, Math.min(ATTACK_SPEED_MAX_MS, Math.round(parsed)));
+      }
+    }
+    if (typeof legacyHoldGate === "boolean") {
+      return legacyHoldGate ? 40 : 0;
+    }
+    return ATTACK_SPEED_DEFAULT_MS;
   }
 
-  function defaultSettingsWithHoldGate() {
+  function defaultSettingsWithAttackSpeed() {
     return {
       ...DEFAULT_SETTINGS,
-      holdGate: normalizeHoldGateSetting(DEFAULT_SETTINGS.holdGate)
+      attackMs: normalizeAttackSpeedSetting(DEFAULT_SETTINGS.attackMs)
     };
+  }
+
+  function normalizeUiThemeSetting(raw) {
+    const value = (typeof raw === "string" ? raw : "").toLowerCase();
+    return UI_THEME_OPTIONS.includes(value) ? value : UI_THEME_DEFAULT;
   }
 
   function loadSettings() {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      const defaults = defaultSettingsWithHoldGate();
+      const defaults = defaultSettingsWithAttackSpeed();
       if (!raw) return defaults;
       const parsed = JSON.parse(raw);
       if (parsed && parsed.range != null) {
         parsed.range = String(parsed.range);
       }
       const merged = { ...defaults, ...parsed };
-      merged.holdGate = normalizeHoldGateSetting(parsed?.holdGate ?? merged.holdGate);
+      merged.attackMs = normalizeAttackSpeedSetting(parsed?.attackMs ?? merged.attackMs, parsed?.holdGate);
+      merged.uiTheme = normalizeUiThemeSetting(parsed?.uiTheme ?? merged.uiTheme);
       return merged;
     } catch (err) {
       console.warn("Failed to load settings, using defaults", err);
-      return defaultSettingsWithHoldGate();
+      return defaultSettingsWithAttackSpeed();
     }
   }
 
@@ -4473,6 +4613,8 @@
   let currentSettings = loadSettings();
   let currentPalette = normalizePalette(currentSettings.colorPalette || DEFAULT_PALETTE);
   let pendingPalette = normalizePalette(currentPalette);
+  let pendingUiTheme = normalizeUiThemeSetting(currentSettings.uiTheme);
+  let uiThemeMediaQuery = null;
 
   function applyPaletteToDocument(pal) {
     const root = document.documentElement;
@@ -4511,6 +4653,58 @@
     const currentVal = pendingPalette[which] || currentPalette[which] || DEFAULT_PALETTE[which];
     const parsed = hexToRgb(hexVal, currentVal);
     setPendingPalette({ ...pendingPalette, [which]: parsed });
+  }
+
+  function getSystemUiTheme() {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+
+  function resolveEffectiveUiTheme(themeMode) {
+    const normalized = normalizeUiThemeSetting(themeMode);
+    if (normalized === "system") return getSystemUiTheme();
+    return normalized;
+  }
+
+  function syncUiThemeUI(themeMode = pendingUiTheme) {
+    const normalized = normalizeUiThemeSetting(themeMode);
+    themeModeButtons.forEach(btn => {
+      const isActive = btn.dataset.uiThemeChoice === normalized;
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+  }
+
+  function applyUiThemeToDocument(themeMode = currentSettings.uiTheme) {
+    const normalized = normalizeUiThemeSetting(themeMode);
+    const resolved = resolveEffectiveUiTheme(normalized);
+    const root = document.documentElement;
+    root.dataset.uiThemeMode = normalized;
+    root.dataset.uiTheme = resolved;
+    noteViewRenderState.cachedBgColor = "";
+    if (noteViewActive) {
+      renderNoteView();
+    }
+  }
+
+  function setPendingUiTheme(themeMode) {
+    pendingUiTheme = normalizeUiThemeSetting(themeMode);
+    syncUiThemeUI(pendingUiTheme);
+    applyUiThemeToDocument(pendingUiTheme);
+  }
+
+  function ensureUiThemeSystemListener() {
+    if (uiThemeMediaQuery) return;
+    uiThemeMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const onSystemThemeChange = () => {
+      if (normalizeUiThemeSetting(currentSettings.uiTheme) === "system") {
+        applyUiThemeToDocument("system");
+      }
+    };
+    if (typeof uiThemeMediaQuery.addEventListener === "function") {
+      uiThemeMediaQuery.addEventListener("change", onSystemThemeChange);
+    } else if (typeof uiThemeMediaQuery.addListener === "function") {
+      uiThemeMediaQuery.addListener(onSystemThemeChange);
+    }
   }
 
   function getNoteNamesForMode(mode = accidentalMode) {
@@ -4554,12 +4748,15 @@
     accidentalToggle.setAttribute("aria-pressed", accidentalMode === "flats" ? "true" : "false");
   }
 
-  function updateHoldGateToggleUI() {
-    if (!holdGateToggle) return;
-    const enabled = isHoldGateEnabled();
-    holdGateToggle.classList.toggle("active", enabled);
-    holdGateToggle.setAttribute("aria-pressed", enabled ? "true" : "false");
-    holdGateToggle.textContent = `Hold: ${enabled ? "On" : "Off"}`;
+  function formatAttackSpeedText(attackMs) {
+    const safeMs = Math.max(0, Number.isFinite(attackMs) ? Math.round(attackMs) : 0);
+    if (safeMs <= 0) return "None";
+    return `${safeMs} ms`;
+  }
+
+  function updateAttackSpeedValueUI(attackMs = currentSettings?.attackMs) {
+    if (!attackSpeedValueEl) return;
+    attackSpeedValueEl.textContent = formatAttackSpeedText(attackMs);
   }
 
   function updateGridLabelsForAccidentals() {
@@ -4792,10 +4989,12 @@
     if (originalNoteViewStyle !== noteViewStyleVal) needsPersist = true;
     currentSettings.noteViewStyle = noteViewStyleVal;
 
-    const originalHoldGate = settings.holdGate;
-    const normalizedHoldGate = normalizeHoldGateSetting(originalHoldGate);
-    if (originalHoldGate !== normalizedHoldGate) needsPersist = true;
-    currentSettings.holdGate = normalizedHoldGate;
+    const originalAttackMs = settings.attackMs;
+    const normalizedAttackMs = normalizeAttackSpeedSetting(originalAttackMs, settings.holdGate);
+    if (originalAttackMs !== normalizedAttackMs) needsPersist = true;
+    currentSettings.attackMs = normalizedAttackMs;
+    if (attackSpeedSliderEl) attackSpeedSliderEl.value = String(normalizedAttackMs);
+    updateAttackSpeedValueUI(normalizedAttackMs);
 
     const originalStretch = settings.stretch;
     const stretchVal = (originalStretch === "minimal" || originalStretch === "medium" || originalStretch === "full") ? originalStretch : "none";
@@ -4856,6 +5055,14 @@
     if (originalNeedleDir !== needleDirVal) needsPersist = true;
     currentSettings.needleDirection = needleDirVal;
 
+    const originalUiTheme = settings.uiTheme;
+    const uiThemeVal = normalizeUiThemeSetting(originalUiTheme);
+    if (originalUiTheme !== uiThemeVal) needsPersist = true;
+    currentSettings.uiTheme = uiThemeVal;
+    pendingUiTheme = uiThemeVal;
+    syncUiThemeUI(uiThemeVal);
+    applyUiThemeToDocument(uiThemeVal);
+
     if (settings.colorPalette) {
       currentPalette = normalizePalette(settings.colorPalette);
     } else {
@@ -4884,7 +5091,7 @@
     }
     currentSettings.transposition = transposeVal;
 
-    updateHoldGateToggleUI();
+    updateAttackSpeedValueUI(currentSettings.attackMs);
 
     if (needsPersist) {
       persistSettings(currentSettings);
@@ -4939,14 +5146,6 @@
     if (noteViewActive) {
       renderNoteView();
     }
-  }
-
-  function toggleHoldGate() {
-    const enabled = !isHoldGateEnabled();
-    currentSettings.holdGate = enabled;
-    persistSettings(currentSettings);
-    updateHoldGateToggleUI();
-    updateDebugPanel({});
   }
 
   /**********************
@@ -5109,7 +5308,7 @@
         dbgSens.textContent     = "Hard";
         dbgDeadZone.textContent = "~0.12%";
     }
-    dbgHold.textContent = formatHoldGateText(mode);
+    dbgHold.textContent = formatAttackSpeedText(getCurrentMinHoldMs());
 
     if (dbgStretch) {
       let stretchLabel = "None (Equal Temperament)";
@@ -5708,25 +5907,10 @@
     return "medium";
   }
 
-  function isHoldGateEnabled() {
-    const enabled = normalizeHoldGateSetting(currentSettings?.holdGate);
-    currentSettings.holdGate = enabled;
-    return enabled;
-  }
-
-  function getMinHoldMsForMode(mode = sensitivitySelect?.value ?? currentSettings?.sensitivity ?? "medium") {
-    const resolved = resolveMode(mode);
-    const base = resolved === "relaxed"
-      ? RELAXED_MIN_HOLD_MS
-      : resolved === "medium"
-        ? MEDIUM_MIN_HOLD_MS
-        : HARD_MIN_HOLD_MS;
-    return isHoldGateEnabled() ? base : 0;
-  }
-
   function getCurrentMinHoldMs() {
-    const mode = sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium";
-    return getMinHoldMsForMode(mode);
+    const holdMs = normalizeAttackSpeedSetting(currentSettings?.attackMs, currentSettings?.holdGate);
+    currentSettings.attackMs = holdMs;
+    return holdMs;
   }
 
   function getNoteViewEffectiveHoldMs(baseHoldMs, midi) {
@@ -5738,12 +5922,6 @@
     }
     const jumpedOctave = Math.abs(midi - prevMidi) >= NOTE_VIEW_OCTAVE_JUMP_SEMITONES;
     return jumpedOctave ? Math.max(safeBase, NOTE_VIEW_OCTAVE_JUMP_HOLD_MS) : safeBase;
-  }
-
-  function formatHoldGateText(mode = sensitivitySelect?.value ?? currentSettings?.sensitivity ?? "medium") {
-    const holdMs = getMinHoldMsForMode(mode);
-    if (holdMs <= 0) return "Off";
-    return `${(holdMs / 1000).toFixed(2)} s`;
   }
 
   function getCurrentDeadzoneRatio() {
@@ -6946,11 +7124,11 @@
   /**********************
    * RANGE / STATUS MESSAGING
    **********************/
-  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = MEDIUM_MIN_HOLD_MS, quietSignalNow = false) {
+  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = ATTACK_SPEED_DEFAULT_MS, quietSignalNow = false) {
     const t = nowMs();
     let belowNow = false;
     let aboveNow = false;
-    const holdMs = outOfRangeHoldMs ?? MEDIUM_MIN_HOLD_MS;
+    const holdMs = outOfRangeHoldMs ?? ATTACK_SPEED_DEFAULT_MS;
 
     if (activeMidi != null) {
       if (activeMidi < gridLowestMidiC) {
@@ -7119,7 +7297,7 @@
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
         beginActiveNote(midi, stretchCents, noteHoldMs);
-        // keep previous held display until new note meets hold gate
+        // keep previous held display until new note meets attack-speed gate
       } else {
         accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
       }
@@ -7545,9 +7723,20 @@
       currentPalette = normalizePalette(DEFAULT_PALETTE);
       applyPaletteToDocument(currentPalette);
       currentSettings.colorPalette = currentPalette;
+      currentSettings.uiTheme = UI_THEME_DEFAULT;
+      applyUiThemeToDocument(currentSettings.uiTheme);
       persistSettings(currentSettings);
       recomputeAllCellColorsAndRender();
       setPendingPalette(currentPalette);
+      setPendingUiTheme(currentSettings.uiTheme);
+    });
+  }
+
+  if (themeModeButtons.length) {
+    themeModeButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        setPendingUiTheme(btn.dataset.uiThemeChoice);
+      });
     });
   }
 
@@ -7756,8 +7945,21 @@
       persistSettings(currentSettings);
     }
   });
+
+  if (attackSpeedSliderEl) {
+    attackSpeedSliderEl.addEventListener("input", () => {
+      const rawVal = Number(attackSpeedSliderEl.value);
+      const attackMs = normalizeAttackSpeedSetting(rawVal);
+      currentSettings.attackMs = attackMs;
+      attackSpeedSliderEl.value = String(attackMs);
+      updateAttackSpeedValueUI(attackMs);
+      persistSettings(currentSettings);
+      updateDebugPanel({});
+    });
+  }
   // initialize
   applySettingsToUI(currentSettings);
+  ensureUiThemeSystemListener();
   A4 = currentSettings.a4;
   dbgARef.textContent = `${A4}`;
   volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
@@ -7826,10 +8028,6 @@
     });
   }
 
-  if (holdGateToggle) {
-    holdGateToggle.addEventListener("click", () => toggleHoldGate());
-  }
-
   if (accidentalToggle) {
     accidentalToggle.addEventListener("click", () => {
       const nextMode = accidentalMode === "sharps" ? "flats" : "sharps";
@@ -7847,12 +8045,13 @@
 
   if (resetSettingsBtn) {
     resetSettingsBtn.addEventListener("click", () => {
-      currentSettings = defaultSettingsWithHoldGate();
+      const preservedUiTheme = normalizeUiThemeSetting(currentSettings.uiTheme);
+      const preservedPalette = normalizePalette(currentPalette);
+      currentSettings = defaultSettingsWithAttackSpeed();
+      currentSettings.uiTheme = preservedUiTheme;
+      currentSettings.colorPalette = preservedPalette;
       persistSettings(currentSettings);
       applySettingsToUI(currentSettings);
-      currentPalette = normalizePalette(DEFAULT_PALETTE);
-      pendingPalette = normalizePalette(currentPalette);
-      applyPaletteToDocument(currentPalette);
       recomputeAllCellColorsAndRender();
       A4 = currentSettings.a4;
       dbgARef.textContent = `${A4}`;
