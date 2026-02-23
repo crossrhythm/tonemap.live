@@ -965,7 +965,7 @@
     color: var(--text-dim);
   }
 
-  /* Min Vol + LED */
+  /* Min Vol + RMS gauge */
   .volume-wrap {
     display: flex;
     align-items: center;
@@ -1019,31 +1019,45 @@
     border: 1px solid var(--border-dim);
   }
 
-  /* LED with smoothed fade */
-  .led {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 1px solid #1f2937;
-    box-shadow: 0 0 8px rgba(0,0,0,0.9);
-    transition: background-color 0.5s ease-out,
-                box-shadow 0.5s ease-out,
-                border-color 0.5s ease-out;
+  .rms-gauge {
+    flex: 1 1 50%;
+    min-width: 0;
   }
-  .led.green {
-    background-color: rgba(34,197,94,1);
-    box-shadow: 0 0 12px rgba(34,197,94,0.9);
-    border-color: rgba(16,94,47,1);
+
+  .rms-gauge-track {
+    position: relative;
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid var(--border-dim);
+    background: var(--bg-panel);
   }
-  .led.red {
-    background-color: rgba(239,68,68,1);
-    box-shadow: 0 0 12px rgba(239,68,68,0.9);
-    border-color: rgba(127,29,29,1);
+
+  .rms-gauge-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 70ms linear, background-color 70ms linear;
   }
-  .led.gray {
-    background-color: rgba(107,114,128,1);
-    box-shadow: 0 0 8px rgba(0,0,0,0.9);
-    border-color: #1f2937;
+
+  .rms-gauge-fill.gray {
+    background-color: rgba(107,114,128,0.95);
+  }
+
+  .rms-gauge-fill.green {
+    background-color: var(--accent-green);
+  }
+
+  .rms-gauge-threshold {
+    position: absolute;
+    top: -1px;
+    bottom: -1px;
+    width: 2px;
+    left: 0%;
+    transform: translateX(-50%);
+    background: var(--text-lite);
+    opacity: 0.95;
+    pointer-events: none;
   }
 
   /********************
@@ -1457,12 +1471,21 @@
 
   .option-field .volume-wrap {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
+    align-items: center;
     gap: 0.75rem;
   }
 
   .option-field .slider-col {
-    width: 100%;
+    width: 50%;
+    max-width: 50%;
+    flex: 0 0 50%;
+  }
+
+  .option-field .rms-gauge {
+    width: 50%;
+    max-width: 50%;
+    flex: 0 0 50%;
   }
 
   .option-field input[type="range"] {
@@ -2669,9 +2692,14 @@
           <div class="opt-control opt-control-slider">
             <div class="volume-wrap">
               <div class="slider-col">
-                <input id="volThresh" type="range" min="0" max="0.75" step="0.01" />
+                <input id="volThresh" type="range" min="0" max="0.9" step="0.01" />
               </div>
-              <div id="led" class="led gray"></div>
+              <div class="rms-gauge" aria-hidden="true">
+                <div class="rms-gauge-track">
+                  <div id="rmsGaugeFill" class="rms-gauge-fill gray"></div>
+                  <div id="rmsGaugeThreshold" class="rms-gauge-threshold"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2922,7 +2950,8 @@
   const transpositionSelect = document.getElementById("transpositionSelect");
 
   const volThreshEl   = document.getElementById("volThresh");
-  const ledEl         = document.getElementById("led");
+  const rmsGaugeFillEl = document.getElementById("rmsGaugeFill");
+  const rmsGaugeThresholdEl = document.getElementById("rmsGaugeThreshold");
 
   const lowNoteLabel  = document.getElementById("lowNoteLabel");
   const rangeLabel    = document.getElementById("rangeLabel");
@@ -3293,40 +3322,27 @@
   const STAIN_FADE_SECONDS = 10;
   const STAIN_FADE_IN_MS = 125;  // 2x faster visual fade (was 250ms)
 
-  // LED smoothing
-  const LED_STATE = Object.freeze({
-    GRAY: "gray",
-    GREEN: "green",
-    RED: "red"
-  });
-  let ledTargetState = LED_STATE.GRAY;
-  let ledLastSwitchTime = performance.now();
-  const LED_OFF_DELAY_MS = 500; // hold green ~0.5s before fading gray
   const LED_QUIET_RATIO = 0.5; // fraction of threshold that still counts as "heard"
   const LED_MIN_FLOOR = 1e-5;
 
-  function applyLEDVisual(state = ledTargetState) {
-    if (!ledEl) return;
-    ledEl.classList.toggle("green", state === LED_STATE.GREEN);
-    ledEl.classList.toggle("red", state === LED_STATE.RED);
-    ledEl.classList.toggle("gray", state === LED_STATE.GRAY);
+  function updateRmsGaugeThresholdMarker(threshold) {
+    if (!rmsGaugeThresholdEl) return;
+    const gate = Number.isFinite(threshold) ? threshold : 0;
+    const clamped = Math.max(0, Math.min(1, gate));
+    rmsGaugeThresholdEl.style.left = `${(clamped * 100).toFixed(1)}%`;
   }
 
-  function updateLEDSticky(nextState) {
-    const t = performance.now();
+  function updateRmsGauge(rms, threshold) {
+    if (!rmsGaugeFillEl) return;
+    const safeRms = Number.isFinite(rms) ? rms : 0;
+    const normalized = Math.max(0, Math.min(1, safeRms));
+    const percent = normalized * 100;
+    const gate = Number.isFinite(threshold) ? threshold : 0;
 
-    if (nextState === LED_STATE.GREEN || nextState === LED_STATE.RED) {
-      ledTargetState = nextState;
-      ledLastSwitchTime = t;
-      applyLEDVisual();
-      return;
-    }
-
-    // only fade to gray if quiet for long enough
-    if (t - ledLastSwitchTime > LED_OFF_DELAY_MS) {
-      ledTargetState = LED_STATE.GRAY;
-      applyLEDVisual();
-    }
+    rmsGaugeFillEl.style.width = `${percent.toFixed(1)}%`;
+    rmsGaugeFillEl.classList.toggle("green", normalized >= gate);
+    rmsGaugeFillEl.classList.toggle("gray", normalized < gate);
+    updateRmsGaugeThresholdMarker(gate);
   }
 
   function addTouchBlur(el) {
@@ -4050,10 +4066,10 @@
       summary: "Sets the input level required before the tuner reacts.",
       detail: [
         "Move slider to the right to decrease sensitivity and block out room noise or extraneous sounds; move left to increase sensitivity.",
-        "LED states:",
-        "• Green: actively updating the grid (signal above threshold).",
-        "• Red: hearing a signal but it's softer than the threshold.",
-        "• Gray: quiet/idle."
+        "At maximum setting, the threshold is about 0.50 RMS (roughly half of full-scale input amplitude).",
+        "The bar to the right shows live RMS level.",
+        "• Green: input is at or above threshold.",
+        "• Gray: input is below threshold."
       ]
     }
   };
@@ -4819,13 +4835,14 @@
       const parsed = parseFloat(minVolVal);
       minVolVal = Number.isFinite(parsed) ? parsed : DEFAULT_SETTINGS.minVol;
     }
-    minVolVal = Math.min(Math.max(minVolVal, 0), 0.75);
+    minVolVal = Math.min(Math.max(minVolVal, 0), 0.9);
     if (minVolVal !== originalMinVol) needsPersist = true;
     currentSettings.minVol = minVolVal;
     if (volThreshEl) {
       volThreshEl.value = String(minVolVal);
     }
     volumeThreshold = sliderToThreshold(minVolVal);
+    updateRmsGaugeThresholdMarker(volumeThreshold);
     dbgThresh.textContent = volumeThreshold.toExponential(2);
 
     const originalAccidental = settings.accidentalMode;
@@ -7002,12 +7019,6 @@
 
     updateEdgeControlStates({ rangeAlert: highRecent, lowAlert: lowRecent });
 
-    const ledState = capturingNow
-      ? LED_STATE.GREEN
-      : quietSignalNow
-        ? LED_STATE.RED
-        : LED_STATE.GRAY;
-    updateLEDSticky(ledState);
     setDeadZoneHighlight(inDeadZoneNow);
   }
 
@@ -7042,6 +7053,8 @@
       clarity > 0.8 &&
       pitch > MIN_FREQ &&
       pitch < MAX_FREQ;
+
+    updateRmsGauge(rms, volumeThreshold);
 
     const mode = sensitivitySelect.value;
     const minHold = getCurrentMinHoldMs();
@@ -7317,6 +7330,7 @@
 
     micDisabled = markDisabled ? true : micDisabled;
     updateNoteReadoutText();
+    updateRmsGauge(0, volumeThreshold);
 
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
@@ -7357,10 +7371,7 @@
     lastDisplayedCentsText = "-- cents";
     updateNoteReadoutText();
 
-    // reset LED state
-    ledTargetState = LED_STATE.GRAY;
-    ledLastSwitchTime = performance.now();
-    applyLEDVisual();
+    updateRmsGauge(0, volumeThreshold);
   }
 
   // Recompute colors on mode change without clearing segments (all modes use 40ms now)
@@ -7737,8 +7748,9 @@
   volThreshEl.addEventListener("input", () => {
     const val = parseFloat(volThreshEl.value);
     if (!isNaN(val)) {
-      const clamped = Math.max(0, Math.min(0.75, val));
+      const clamped = Math.max(0, Math.min(0.9, val));
       volumeThreshold = sliderToThreshold(clamped);
+      updateRmsGaugeThresholdMarker(volumeThreshold);
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       currentSettings.minVol = clamped;
       persistSettings(currentSettings);
@@ -7749,7 +7761,8 @@
   A4 = currentSettings.a4;
   dbgARef.textContent = `${A4}`;
   volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
-  if (volThreshEl) volThreshEl.value = String(Math.min(0.75, currentSettings.minVol ?? 0.1));
+  updateRmsGaugeThresholdMarker(volumeThreshold);
+  if (volThreshEl) volThreshEl.value = String(Math.min(0.9, currentSettings.minVol ?? 0.1));
   dbgThresh.textContent = volumeThreshold.toExponential(2);
   initUsageTracking();
 
@@ -7844,7 +7857,8 @@
       A4 = currentSettings.a4;
       dbgARef.textContent = `${A4}`;
       volumeThreshold = sliderToThreshold(currentSettings.minVol);
-      if (volThreshEl) volThreshEl.value = String(Math.min(0.75, currentSettings.minVol));
+      updateRmsGaugeThresholdMarker(volumeThreshold);
+      if (volThreshEl) volThreshEl.value = String(Math.min(0.9, currentSettings.minVol));
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       finalizeActiveSegment();
       clearActiveNote();

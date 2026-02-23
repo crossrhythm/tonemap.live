@@ -2136,7 +2136,7 @@
           <div class="opt-control opt-control-slider">
             <div class="volume-wrap">
               <div class="slider-col">
-                <input id="volThresh" type="range" min="0" max="0.75" step="0.01" />
+                <input id="volThresh" type="range" min="0" max="0.9" step="0.01" />
               </div>
               <div id="led" class="led gray"></div>
             </div>
@@ -3126,6 +3126,7 @@
       summary: "Sets the input level required before the tuner reacts.",
       detail: [
         "Move slider to the right to decrease sensitivity and block out room noise or extraneous sounds; move left to increase sensitivity.",
+        "At maximum setting, the threshold is about 0.50 RMS (roughly half of full-scale input amplitude).",
         "LED states:",
         "• Green: actively updating the grid (signal above threshold).",
         "• Red: hearing a signal but it's softer than the threshold.",
@@ -3844,7 +3845,7 @@
       const parsed = parseFloat(minVolVal);
       minVolVal = Number.isFinite(parsed) ? parsed : DEFAULT_SETTINGS.minVol;
     }
-    minVolVal = Math.min(Math.max(minVolVal, 0), 0.75);
+    minVolVal = Math.min(Math.max(minVolVal, 0), 0.9);
     if (minVolVal !== originalMinVol) needsPersist = true;
     currentSettings.minVol = minVolVal;
     if (volThreshEl) {
@@ -5943,7 +5944,7 @@
   volThreshEl.addEventListener("input", () => {
     const val = parseFloat(volThreshEl.value);
     if (!isNaN(val)) {
-      const clamped = Math.max(0, Math.min(0.75, val));
+      const clamped = Math.max(0, Math.min(0.9, val));
       volumeThreshold = sliderToThreshold(clamped);
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       currentSettings.minVol = clamped;
@@ -5955,7 +5956,7 @@
   A4 = currentSettings.a4;
   dbgARef.textContent = `${A4}`;
   volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
-  if (volThreshEl) volThreshEl.value = String(Math.min(0.75, currentSettings.minVol ?? 0.1));
+  if (volThreshEl) volThreshEl.value = String(Math.min(0.9, currentSettings.minVol ?? 0.1));
   dbgThresh.textContent = volumeThreshold.toExponential(2);
   initUsageTracking();
 
@@ -6039,7 +6040,7 @@
       A4 = currentSettings.a4;
       dbgARef.textContent = `${A4}`;
       volumeThreshold = sliderToThreshold(currentSettings.minVol);
-      if (volThreshEl) volThreshEl.value = String(Math.min(0.75, currentSettings.minVol));
+      if (volThreshEl) volThreshEl.value = String(Math.min(0.9, currentSettings.minVol));
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       finalizeActiveSegment();
       clearActiveNote();
