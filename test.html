@@ -74,6 +74,11 @@
     --note-view-line-octave: rgba(150,150,150,0.45);
     --note-view-line-semitone: rgba(100,100,100,0.45);
     --note-view-outline-color: #ffffff;
+    --needle-reference-line: #000000;
+    --picker-graphic-fg: #ffffff;
+    --picker-graphic-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    --edge-pitch-label-glow: var(--picker-graphic-shadow);
+    --palette-pitch-label-glow: var(--picker-graphic-shadow);
     --grid-active-border: 6px;
 
     --note-font-size: 2.4rem;
@@ -108,24 +113,29 @@
   }
 
   :root[data-ui-theme="light"] {
-    --bg-main: #f1f5f9;
+    --bg-main: #f1f2f4;
     --bg-panel: #ffffff;
-    --veil-bg: rgba(241,245,249,0.86);
+    --veil-bg: rgba(241,242,244,0.86);
 
     --text-dim: #475569;
     --text-lite: #0f172a;
 
     --border-dim: #94a3b8;
 
-    --grid-bg: #f8fafc;
-    --grid-line: #0f172a;
+    --grid-bg: #eceef1;
+    --grid-line: #b8bec8;
     --grid-text-off: #64748b;
     --grid-text-seen: #334155;
     --grid-text-on: #0f172a;
-    --grid-note-glow: 0 1px 2px rgba(255,255,255,0.85), 0 0 3px rgba(255,255,255,0.75);
+    --grid-note-glow: 0 1px 2px rgba(255,255,255,0.98), 0 0 6px rgba(255,255,255,0.95), 0 0 12px rgba(255,255,255,0.75);
     --note-view-line-octave: rgba(100,116,139,0.22);
     --note-view-line-semitone: rgba(148,163,184,0.16);
     --note-view-outline-color: #0f172a;
+    --needle-reference-line: #000000;
+    --picker-graphic-fg: #000000;
+    --picker-graphic-shadow: 0 1px 3px rgba(255,255,255,0.8);
+    --edge-pitch-label-glow: 0 1px 2px rgba(255,255,255,0.95), 0 0 7px rgba(255,255,255,0.95), 0 0 13px rgba(255,255,255,0.82);
+    --palette-pitch-label-glow: 0 1px 2px rgba(255,255,255,0.98), 0 0 10px rgba(255,255,255,0.98), 0 0 16px rgba(255,255,255,0.9);
 
     --ui-overlay-backdrop: rgba(148,163,184,0.45);
     --ui-overlay-card-bg: rgba(255,255,255,0.9);
@@ -139,8 +149,8 @@
     --ui-panel-glass-bg: rgba(255,255,255,0.82);
     --ui-panel-glass-border: rgba(100,116,139,0.24);
 
-    --ui-scroll-fade-top: rgba(241,245,249,0.96);
-    --ui-scroll-fade-bottom: rgba(241,245,249,0.96);
+    --ui-scroll-fade-top: rgba(241,242,244,0.96);
+    --ui-scroll-fade-bottom: rgba(241,242,244,0.96);
 
     --ui-footer-text: #334155;
     --ui-text-muted-strong: #334155;
@@ -356,8 +366,8 @@
     justify-content: center;
     font-weight: 700;
     font-size: 0.8rem;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.6);
+    color: var(--picker-graphic-fg);
+    text-shadow: var(--edge-pitch-label-glow);
     writing-mode: vertical-rl;
     transform: none;
     text-orientation: mixed;
@@ -370,8 +380,8 @@
     left: 50%;
     transform: translateX(-50%);
     font-size: 1.3rem;
-    color: #fff;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    color: var(--picker-graphic-fg);
+    text-shadow: var(--picker-graphic-shadow);
     pointer-events: none;
     z-index: 3;
   }
@@ -406,7 +416,7 @@
     top: 50%;
     transform: translateY(-50%);
     height: 8px;
-    background: var(--grid-bg);
+    background: var(--needle-reference-line);
     opacity: 0.9;
     z-index: 1;
   }
@@ -568,15 +578,20 @@
   }
 
   .mini-btn .icon-micstate.playing {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   }
 
   .mini-btn .icon-micstate.paused {
-    font-size: 0.9rem;
+    font-size: 1.0rem;
   }
 
   .mini-btn .icon-reset {
     font-size: 1.24rem;
+  }
+
+  .mini-btn .icon-options {
+    font-size: 1.8rem;
+    line-height: 1;
   }
 
   .mini-btn .view-icon {
@@ -1000,20 +1015,47 @@
   }
 
   .a-ref-control {
+    width: 100%;
     gap: 0.5rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
   }
 
-  .a-ref-control select,
-  .a-ref-control input {
-    flex: 1 1 130px;
+  .a-ref-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-lite);
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .a-ref-control .a-ref-input {
+    flex: 0 0 auto;
+    width: 6.4ch;
+    min-width: 6.4ch;
+    text-align: right;
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
   }
 
   .a-ref-preset {
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    flex: 1 1 160px;
+    flex: 0 0 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+
+  .a-ref-preset #aRefSelect {
+    width: 6.2ch;
+    min-width: 6.2ch;
   }
 
   .preset-label {
@@ -1165,12 +1207,15 @@
     color: var(--text-lite);
     border: 1px solid var(--border-dim);
     border-radius: 999px;
-    padding: 0.4rem 1.1rem;
-    font-size: 0.75rem;
+    padding: clamp(0.34rem, 0.9vw, 0.4rem) clamp(0.7rem, 1.6vw, 1.1rem);
+    font-size: clamp(0.66rem, 1.1vw, 0.75rem);
     font-weight: 600;
+    line-height: 1.1;
     cursor: pointer;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .overlay-nav-btn {
@@ -1261,6 +1306,10 @@
     position: relative;
   }
 
+  .options-overlay-card {
+    width: min(800px, 100%);
+  }
+
   .options-overlay-header,
   .status-overlay-header {
     display: flex;
@@ -1311,8 +1360,42 @@
   .options-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem;
+    row-gap: 1.25rem;
+    column-gap: 1.5625rem;
   }
+
+  .options-section-label {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 0.1rem 0 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--ui-overlay-card-border);
+  }
+
+  .options-grid .option-field {
+    order: 100;
+  }
+
+  #optSectionCore { order: 0; }
+  #optSectionAdvanced { order: 7; }
+
+  #optMode { order: 1; }
+  #optRowsStart { order: 3; }
+  #optPerformancePitch { order: 2; }
+  #optTransposition { order: 4; }
+  #optStretchTuning { order: 5; }
+  #optAccidentals { order: 6; }
+
+  #optNoteViewStyle { order: 8; }
+  #optOnsetFilter { order: 9; }
+  #optVolumeSensitivity { order: 10; }
+  #optNeedleDirection { order: 11; }
+  #optHistory { order: 12; }
+  #optColorHold { order: 13; }
 
 .scroll-fade-y {
   flex: 1 1 auto;
@@ -1504,12 +1587,14 @@
   .option-field .opt-control-slider {
     width: 100%;
     justify-content: flex-start;
+    padding-left: 10px;
   }
 
   .option-field .opt-hint {
     font-size: 0.7rem;
     color: var(--text-dim);
     line-height: 1.4;
+    padding-left: 10px;
   }
 
   .option-field select {
@@ -1526,6 +1611,7 @@
     font-size: 0.7rem;
     color: var(--err-color);
     min-height: 0.9rem;
+    padding-left: 10px;
   }
 
   .opt-error:empty {
@@ -1545,12 +1631,15 @@
     color: var(--text-lite);
     border: 1px solid var(--border-dim);
     border-radius: 0.75rem;
-    padding: 0.45rem 1.4rem;
-    font-size: 0.8rem;
+    padding: clamp(0.38rem, 1vw, 0.45rem) clamp(0.95rem, 2vw, 1.4rem);
+    font-size: clamp(0.7rem, 1.2vw, 0.8rem);
     font-weight: 600;
+    line-height: 1.1;
     cursor: pointer;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     order: 1;
   }
 
@@ -1582,6 +1671,19 @@
     width: 50%;
     max-width: 50%;
     flex: 0 0 50%;
+  }
+
+  #optVolumeSensitivity .volume-wrap {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  #optVolumeSensitivity .slider-col,
+  #optVolumeSensitivity .rms-gauge {
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+    min-width: 0;
   }
 
   .option-field input[type="range"] {
@@ -1788,6 +1890,10 @@
     padding: 0 1.5rem 1.5rem;
   }
 
+  .palette-card {
+    width: min(800px, 100%);
+  }
+
   .palette-layout {
     display: flex;
     justify-content: center;
@@ -1830,8 +1936,8 @@
     justify-content: center;
     font-weight: 800;
     font-size: 1rem;
-    color: #fff;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.7);
+    color: var(--picker-graphic-fg);
+    text-shadow: var(--palette-pitch-label-glow);
     writing-mode: horizontal-tb;
     transform: none;
     letter-spacing: 0.12em;
@@ -1843,8 +1949,8 @@
     left: 50%;
     transform: translateX(-50%);
     font-size: 1.6rem;
-    color: #fff;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    color: var(--picker-graphic-fg);
+    text-shadow: var(--picker-graphic-shadow);
     pointer-events: none;
   }
   .palette-symbol-top {
@@ -1861,7 +1967,7 @@
     top: 50%;
     transform: translateY(-50%);
     height: 8px;
-    background: var(--grid-bg);
+    background: var(--needle-reference-line);
     opacity: 0.9;
     z-index: 1;
   }
@@ -1889,6 +1995,7 @@
     cursor: pointer;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
     min-height: 0;
+    min-width: 0;
   }
   .palette-stop:hover,
   .palette-stop:focus-visible {
@@ -1900,8 +2007,12 @@
     transform: translateY(1px);
   }
   .palette-stop-label {
-    font-size: 0.85rem;
+    font-size: clamp(0.72rem, 1.15vw, 0.85rem);
     font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
   .palette-chip {
     width: 32px;
@@ -1926,6 +2037,14 @@
     gap: 0.45rem;
   }
 
+  .theme-mode-wrap.two-up {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .select-replaced-hidden {
+    display: none;
+  }
+
   .theme-mode-item {
     min-width: 0;
   }
@@ -1946,13 +2065,16 @@
     color: var(--text-lite);
     border: 1px solid var(--border-dim);
     border-radius: 999px;
-    font-size: 0.75rem;
+    font-size: clamp(0.62rem, 1.35vw, 0.75rem);
     font-weight: 600;
+    line-height: 1.1;
     text-align: center;
-    padding: 0.42rem 0.65rem;
+    padding: clamp(0.34rem, 0.95vw, 0.42rem) clamp(0.46rem, 1.2vw, 0.65rem);
     cursor: pointer;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .theme-mode-radio:checked + .theme-mode-label {
@@ -2178,8 +2300,13 @@
     }
     .status-overlay-card,
     .options-overlay-card {
-      width: 100%;
       max-height: 80vh;
+    }
+    .status-overlay-card {
+      width: 100%;
+    }
+    .options-overlay-card {
+      width: min(800px, 100%);
     }
     .overlay-button-stack {
       flex-wrap: wrap;
@@ -2317,7 +2444,7 @@
     right: 0;
     top: 50%;
     height: 8px;
-    background: var(--grid-bg);
+    background: var(--needle-reference-line);
     transform: translateY(-50%);
     z-index: 0;
   }
@@ -2329,7 +2456,7 @@
     right: auto;
     top: 0;
     transform: translateX(-50%);
-    background: var(--grid-bg);
+    background: var(--needle-reference-line);
   }
 
   .grid-cell .note-label {
@@ -2504,6 +2631,24 @@
     font-size: 1.05rem;
   }
 
+  .overlay-quote-prefix {
+    display: block;
+    font-style: normal;
+    font-size: 1.02rem;
+    font-weight: 600;
+    margin-bottom: 0.22rem;
+  }
+
+  .overlay-quote-tip-body {
+    display: block;
+  }
+
+  .overlay-quote-line a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
   .overlay-quote-author {
     font-size: 1rem;
     margin-top: 0.35rem;
@@ -2607,7 +2752,7 @@
         <img class="view-icon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><text x='4' y='20' font-size='20' font-family='sans-serif'>♫</text></svg>" alt="Show note view" />
       </button>
       <button class="mini-btn" id="miniOptionsBtn" type="button" title="Open options">
-        <span>⚙</span>
+        <span class="icon-options">⚙</span>
       </button>
     </div>
 
@@ -2687,24 +2832,28 @@
         </div>
     <div class="options-overlay-body scroll-fade-y">
       <div class="options-grid">
-        <div class="option-field">
+        <p id="optSectionCore" class="options-section-label">Core Tuning</p>
+        <div class="option-field" id="optPerformancePitch">
           <div class="opt-label-row">
-            <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
+            <label class="opt-label" for="aRefSelect">Performance Pitch</label>
             <button class="info-btn" type="button" data-info-key="a4" aria-label="Learn about Performance Pitch (A4)">i</button>
           </div>
           <div class="opt-control a-ref-control">
-            <input
-              id="aRefInput"
-              class="a-ref-input"
-              type="number"
-              min="100"
-              max="1000"
-              step="1"
-              inputmode="decimal"
-              aria-label="Custom performance pitch in Hz"
-              placeholder="Custom Hz"
-              value="440"
-            />
+            <div class="a-ref-inline">
+              <span>A4=</span>
+              <input
+                id="aRefInput"
+                class="a-ref-input"
+                type="number"
+                min="100"
+                max="1000"
+                step="1"
+                inputmode="decimal"
+                aria-label="Custom performance pitch in Hz"
+                placeholder="Custom Hz"
+                value="440"
+              />
+            </div>
             <div class="a-ref-preset">
               <span class="preset-label" id="presetLabel">Presets:</span>
               <select id="aRefSelect" aria-labelledby="presetLabel">
@@ -2727,13 +2876,27 @@
           <p class="opt-error" id="aRefError" role="alert" aria-live="polite"></p>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optMode">
           <div class="opt-label-row">
-            <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
+            <label id="sensitivityLabel" class="opt-label" for="sensitivityModeMedium">Mode</label>
             <button class="info-btn" type="button" data-info-key="mode" aria-label="Learn about Mode options">i</button>
           </div>
           <div class="opt-control">
-            <select id="sensitivitySelect">
+            <div class="theme-mode-wrap" role="radiogroup" aria-label="Mode">
+              <div class="theme-mode-item">
+                <input id="sensitivityModeRelaxed" class="theme-mode-radio" type="radio" name="sensitivityMode" value="relaxed" />
+                <label class="theme-mode-label" for="sensitivityModeRelaxed" title="Vocal-friendly, forgiving dead zone and smoothing">Relaxed</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="sensitivityModeMedium" class="theme-mode-radio" type="radio" name="sensitivityMode" value="medium" />
+                <label class="theme-mode-label" for="sensitivityModeMedium" title="Balanced response and dead zone">Medium</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="sensitivityModeHard" class="theme-mode-radio" type="radio" name="sensitivityMode" value="hard" />
+                <label class="theme-mode-label" for="sensitivityModeHard" title="Fast response with smallest dead zone">Hard</label>
+              </div>
+            </div>
+            <select id="sensitivitySelect" class="select-replaced-hidden" aria-hidden="true">
               <option value="relaxed">Relaxed (Vocal - forgiving)</option>
               <option value="medium" selected>Medium (medium response)</option>
               <option value="hard">Hard (small dead zone, fast response)</option>
@@ -2741,20 +2904,31 @@
           </div>
         </div>
 
-        <div class="option-field">
+        <p id="optSectionAdvanced" class="options-section-label">Advanced</p>
+        <div class="option-field" id="optNoteViewStyle">
           <div class="opt-label-row">
-            <label class="opt-label" for="noteViewStyleSelect">Note View Style</label>
+            <label class="opt-label" for="noteViewStyleRibbons">Note View Style</label>
             <button class="info-btn" type="button" data-info-key="noteViewStyle" aria-label="Learn about Note View Style">i</button>
           </div>
           <div class="opt-control">
-            <select id="noteViewStyleSelect">
+            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Note View Style">
+              <div class="theme-mode-item">
+                <input id="noteViewStyleRibbons" class="theme-mode-radio" type="radio" name="noteViewStyleMode" value="ribbons" />
+                <label class="theme-mode-label" for="noteViewStyleRibbons" title="Shows intonation changes over time with colored bands">Ribbons</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="noteViewStyleBalloons" class="theme-mode-radio" type="radio" name="noteViewStyleMode" value="balloons" />
+                <label class="theme-mode-label" for="noteViewStyleBalloons" title="Shows average intonation with one color per note">Balloons</label>
+              </div>
+            </div>
+            <select id="noteViewStyleSelect" class="select-replaced-hidden" aria-hidden="true">
               <option value="ribbons" title="Shows intonation changes over time with colored bands">Ribbons (intonation over time)</option>
               <option value="balloons" title="Shows average intonation with single color">Balloons (average color)</option>
             </select>
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optOnsetFilter">
           <div class="opt-label-row">
             <label class="opt-label" for="attackSpeedSlider">Onset Filter (Pitch Stabilization)</label>
             <button class="info-btn" type="button" data-info-key="attackSpeed" aria-label="Learn about Onset Filter (Pitch Stabilization)">i</button>
@@ -2769,17 +2943,26 @@
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optAccidentals">
           <div class="opt-label-row">
-            <label class="opt-label" for="accidentalToggle">Accidentals</label>
+            <label class="opt-label" for="accidentalModeSharps">Accidentals</label>
             <button class="info-btn" type="button" data-info-key="accidentals" aria-label="Learn about Accidentals">i</button>
           </div>
           <div class="opt-control">
-            <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
+            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Accidentals">
+              <div class="theme-mode-item">
+                <input id="accidentalModeSharps" class="theme-mode-radio" type="radio" name="accidentalMode" value="sharps" />
+                <label class="theme-mode-label" for="accidentalModeSharps">Sharps</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="accidentalModeFlats" class="theme-mode-radio" type="radio" name="accidentalMode" value="flats" />
+                <label class="theme-mode-label" for="accidentalModeFlats">Flats</label>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optRowsStart">
           <div class="opt-label-row">
             <label class="opt-label" for="rowStartSelect">Rows start with note</label>
             <button class="info-btn" type="button" data-info-key="rowStart" aria-label="Learn about row start">i</button>
@@ -2789,7 +2972,7 @@
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optStretchTuning">
           <div class="opt-label-row">
             <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
             <button class="info-btn" type="button" data-info-key="stretch" aria-label="Learn about Stretch Tuning">i</button>
@@ -2804,20 +2987,30 @@
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optNeedleDirection">
           <div class="opt-label-row">
-            <label class="opt-label" for="needleDirSelect">Needle Direction</label>
+            <label class="opt-label" for="needleDirVertical">Needle Direction</label>
             <button class="info-btn" type="button" data-info-key="needleDirection" aria-label="Learn about Needle Direction">i</button>
           </div>
           <div class="opt-control">
-            <select id="needleDirSelect">
+            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Needle Direction">
+              <div class="theme-mode-item">
+                <input id="needleDirHorizontal" class="theme-mode-radio" type="radio" name="needleDirectionMode" value="horizontal" />
+                <label class="theme-mode-label" for="needleDirHorizontal">Horizontal</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="needleDirVertical" class="theme-mode-radio" type="radio" name="needleDirectionMode" value="vertical" />
+                <label class="theme-mode-label" for="needleDirVertical">Vertical</label>
+              </div>
+            </div>
+            <select id="needleDirSelect" class="select-replaced-hidden" aria-hidden="true">
               <option value="horizontal">Horizontal</option>
               <option value="vertical" selected>Vertical</option>
             </select>
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optTransposition">
           <div class="opt-label-row">
             <label class="opt-label" for="transpositionSelect">Transposition</label>
             <button class="info-btn" type="button" data-info-key="transposition" aria-label="Learn about Transposition">i</button>
@@ -2851,7 +3044,7 @@
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optHistory">
           <div class="opt-label-row">
             <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
             <button class="info-btn" type="button" data-info-key="history" aria-label="Learn about History memory">i</button>
@@ -2866,7 +3059,7 @@
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optColorHold">
           <div class="opt-label-row">
             <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
             <button class="info-btn" type="button" data-info-key="stainHold" aria-label="Learn about Color Hold Before Fade">i</button>
@@ -2883,7 +3076,7 @@
           </div>
         </div>
 
-        <div class="option-field">
+        <div class="option-field" id="optVolumeSensitivity">
           <div class="opt-label-row">
             <label class="opt-label" for="volThresh">Volume Sensitivity</label>
             <button class="info-btn" type="button" data-info-key="volume" aria-label="Learn about Volume Sensitivity">i</button>
@@ -3253,6 +3446,10 @@
   const themeModeDarkInput = document.getElementById("themeModeDark");
   const themeModeSystemInput = document.getElementById("themeModeSystem");
   const themeModeInputs = [themeModeLightInput, themeModeDarkInput, themeModeSystemInput].filter(Boolean);
+  const sensitivityModeInputs = Array.from(document.querySelectorAll('input[name="sensitivityMode"]'));
+  const noteViewStyleModeInputs = Array.from(document.querySelectorAll('input[name="noteViewStyleMode"]'));
+  const accidentalModeInputs = Array.from(document.querySelectorAll('input[name="accidentalMode"]'));
+  const needleDirectionModeInputs = Array.from(document.querySelectorAll('input[name="needleDirectionMode"]'));
   const optionsPaletteBtn = document.getElementById("optionsPaletteBtn");
   const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
@@ -3925,13 +4122,38 @@
     { quote: "Doubt kills more dreams than failure ever will.", author: "Suzy Kassem" },
     { quote: "If you spend too much time thinking about a thing, you'll never get it done.", author: "Bruce Lee" },
     { quote: "Well-arranged time is the surest mark of a well-arranged mind.", author: "Sir Isaac Pitman" },
-    { quote: "Step by step. I can't think of any other way of accomplishing anything.", author: "Michael Jordan" }
+    { quote: "Step by step. I can't think of any other way of accomplishing anything.", author: "Michael Jordan" },
+    { quote: "To play a wrong note is insignificant; to play without passion is inexcusable.", author: "Ludwig van Beethoven (attributed)" },
+    { quote: "Without craftsmanship, inspiration is a mere reed shaken in the wind.", author: "Johannes Brahms" },
+    { quote: "Music can name the unnameable and communicate the unknowable.", author: "Leonard Bernstein" },
+    { quote: "To send light into the darkness of men's hearts — such is the duty of the artist.", author: "Robert Schumann" },
+    { quote: "After silence, that which comes nearest to expressing the inexpressible is music.", author: "Aldous Huxley" },
+    { quote: "A painter paints pictures on canvas. But musicians paint their pictures on silence.", author: "Leopold Stokowski" },
+    { quote: "Music is your own experience, your thoughts, your wisdom. If you don't live it, it won't come out of your horn.", author: "Charlie Parker" },
+    { quote: "There is no top. There are always further heights to reach.", author: "Jascha Heifetz" },
+    { quote: "Do it again on the next verse, and people think you meant it.", author: "Chet Atkins" },
+    { quote: "A creative artist works on his next composition because he was not satisfied with his previous one.", author: "Dmitri Shostakovich" },
+    { quote: "To achieve great things, two things are needed: a plan, and not quite enough time.", author: "Leonard Bernstein" },
+    { quote: "Our sweetest songs are those that tell of saddest thought.", author: "Percy Bysshe Shelley" },
+    { quote: "Set \"Rows start with note\" to the lowest note on your instrument to maximize screen space.", tip: true },
+    { quote: "Try \"Relaxed\" mode for an easier experience, or \"Hard\" mode for a challenge!", tip: true },
+    { quote: "Click or tap the logo to switch to mini-UI mode; tap again to switch back.", tip: true },
+    { quote: "For the best experience, use landscape mode or a larger screen like a tablet or laptop!", tip: true },
+    { quote: "Use Tonemap to be deliberate about high leading tones and keeping major thirds tight — strict equal temperament rarely sounds good on its own!", tip: true },
+    { quoteHtml: "Use Tonemap to help tune <a href=\"https://en.wikipedia.org/wiki/Combination_tone\" target=\"_blank\" rel=\"noopener noreferrer\">difference tones</a> in double stops (also called differential, Tartini, or combination tones). Make sure the grid's range is low enough to pick them up!", tip: true },
+    { quote: "Stretch tuning (in Options) often produces a more ringing sound in upper registers and will blend better with a piano.", tip: true },
+    { quote: "Set your instrument's transposition in Options.", tip: true },
+    { quote: "Choose whether the tuning needle is vertical or horizontal in Options.", tip: true },
+    { quote: "If your attacks aren't being recorded cleanly, try adjusting the Onset Filter in Options.", tip: true },
+    { quote: "Block out background noise by adjusting the Volume Sensitivity filter in Options.", tip: true }
   ];
 
   let accidentalMode = "sharps";
 
   const STORAGE_KEY = "tonemap.live.settings";
   const QUOTE_INDEX_KEY = "tonemap.live.quoteIndex";
+  const QUOTE_DECK_KEY = "tonemap.live.quoteDeck";
+  const QUOTE_DECK_POS_KEY = "tonemap.live.quoteDeckPos";
   const MINI_UI_STATE_KEY = "tonemap.live.miniUIState";
 
   const HISTORY_DEFAULT = "short";
@@ -4264,7 +4486,7 @@
       title: "Note View Style",
       summary: "Chooses how notes are visualized in Note View.",
       detail: [
-        "• Ribbons: Shows intonation changes over time. Each note displays as color bands representing pitch accuracy at different moments (40-80ms resolution). Reveals vibrato, pitch bends, and intonation drift.",
+        "• Ribbons: Shows intonation changes over time. Each note displays as color bands representing pitch accuracy at different moments (16ms resolution). Reveals vibrato, pitch bends, and intonation drift.",
         "• Balloons: Shows overall average intonation. Each note displays as a single color representing the average pitch accuracy across its entire duration."
       ]
     },
@@ -4926,11 +5148,34 @@
   }
 
   function updateAccidentalToggleUI() {
-    if (!accidentalToggle) return;
-    accidentalToggle.dataset.mode = accidentalMode;
-    accidentalToggle.textContent = accidentalMode === "flats" ? "Flats" : "Sharps";
-    accidentalToggle.classList.toggle("active", accidentalMode === "flats");
-    accidentalToggle.setAttribute("aria-pressed", accidentalMode === "flats" ? "true" : "false");
+    if (accidentalToggle) {
+      accidentalToggle.dataset.mode = accidentalMode;
+      accidentalToggle.textContent = accidentalMode === "flats" ? "Flats" : "Sharps";
+      accidentalToggle.classList.toggle("active", accidentalMode === "flats");
+      accidentalToggle.setAttribute("aria-pressed", accidentalMode === "flats" ? "true" : "false");
+    }
+    for (const input of accidentalModeInputs) {
+      input.checked = input.value === accidentalMode;
+    }
+  }
+
+  function syncSegmentedOptionControls() {
+    const modeValue = sensitivitySelect?.value || currentSettings.sensitivity || "medium";
+    for (const input of sensitivityModeInputs) {
+      input.checked = input.value === modeValue;
+    }
+
+    const styleValue = noteViewStyleSelect?.value || currentSettings.noteViewStyle || NOTE_VIEW_STYLE_DEFAULT;
+    for (const input of noteViewStyleModeInputs) {
+      input.checked = input.value === styleValue;
+    }
+
+    const needleValue = needleDirSelect?.value || currentSettings.needleDirection || "vertical";
+    for (const input of needleDirectionModeInputs) {
+      input.checked = input.value === needleValue;
+    }
+
+    updateAccidentalToggleUI();
   }
 
   function formatAttackSpeedText(attackMs) {
@@ -5028,32 +5273,123 @@
     }
   }
 
-  function getNextOverlayQuote() {
-    if (!OVERLAY_QUOTES.length) return null;
-    let idx = 0;
+  function buildShuffledQuoteDeck(length) {
+    const deck = Array.from({ length }, (_, index) => index);
+    for (let i = deck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+  }
+
+  function readStoredQuoteDeck(expectedLength) {
     try {
-      const stored = parseInt(localStorage.getItem(QUOTE_INDEX_KEY) ?? "0", 10);
-      if (!Number.isNaN(stored) && stored >= 0) {
-        idx = stored % OVERLAY_QUOTES.length;
+      const rawDeck = localStorage.getItem(QUOTE_DECK_KEY);
+      const rawPos = localStorage.getItem(QUOTE_DECK_POS_KEY);
+      const parsedDeck = rawDeck ? JSON.parse(rawDeck) : null;
+      const parsedPos = parseInt(rawPos ?? "0", 10);
+
+      if (
+        Array.isArray(parsedDeck) &&
+        parsedDeck.length === expectedLength &&
+        parsedDeck.every(index => Number.isInteger(index) && index >= 0 && index < expectedLength) &&
+        Number.isInteger(parsedPos)
+      ) {
+        return {
+          deck: parsedDeck,
+          pos: Math.max(0, Math.min(parsedPos, expectedLength))
+        };
       }
     } catch (err) {
-      // ignore storage errors (e.g., private mode)
+      // ignore storage/parse failures and rebuild deck
     }
-    const nextIdx = (idx + 1) % OVERLAY_QUOTES.length;
+    return null;
+  }
+
+  function writeStoredQuoteDeck(deck, pos) {
     try {
-      localStorage.setItem(QUOTE_INDEX_KEY, String(nextIdx));
+      localStorage.setItem(QUOTE_DECK_KEY, JSON.stringify(deck));
+      localStorage.setItem(QUOTE_DECK_POS_KEY, String(pos));
+      localStorage.removeItem(QUOTE_INDEX_KEY);
     } catch (err) {
       // ignore write failures
     }
-    return OVERLAY_QUOTES[idx];
+  }
+
+  function getNextOverlayQuote() {
+    const total = OVERLAY_QUOTES.length;
+    if (!total) return null;
+
+    let stored = readStoredQuoteDeck(total);
+    if (!stored) {
+      const legacyIndex = (() => {
+        try {
+          const raw = parseInt(localStorage.getItem(QUOTE_INDEX_KEY) ?? "0", 10);
+          return Number.isInteger(raw) && raw >= 0 ? raw % total : 0;
+        } catch (err) {
+          return 0;
+        }
+      })();
+
+      const deck = buildShuffledQuoteDeck(total);
+      if (total > 1 && deck[0] === legacyIndex) {
+        [deck[0], deck[1]] = [deck[1], deck[0]];
+      }
+      stored = { deck, pos: 0 };
+    }
+
+    if (stored.pos >= total) {
+      const reshuffled = buildShuffledQuoteDeck(total);
+      if (total > 1 && reshuffled[0] === stored.deck[total - 1]) {
+        [reshuffled[0], reshuffled[1]] = [reshuffled[1], reshuffled[0]];
+      }
+      stored = { deck: reshuffled, pos: 0 };
+    }
+
+    const quoteIndex = stored.deck[stored.pos] ?? 0;
+    const nextPos = stored.pos + 1;
+    writeStoredQuoteDeck(stored.deck, nextPos);
+    return OVERLAY_QUOTES[quoteIndex] ?? null;
   }
 
   function setOverlayQuote() {
     if (!overlayQuoteText || !overlayQuoteAuthor) return;
     const q = getNextOverlayQuote();
     if (!q) return;
-    overlayQuoteText.textContent = q.quote;
-    overlayQuoteAuthor.textContent = `— ${q.author}`;
+    const isTip = q.tip === true;
+    const htmlQuote = typeof q.quoteHtml === "string" ? q.quoteHtml.trim() : "";
+
+    overlayQuoteText.innerHTML = "";
+
+    if (isTip) {
+      const prefixEl = document.createElement("span");
+      prefixEl.className = "overlay-quote-prefix";
+      prefixEl.textContent = "Usage tip:";
+      overlayQuoteText.appendChild(prefixEl);
+    }
+
+    if (htmlQuote) {
+      const bodyEl = document.createElement("span");
+      if (isTip) bodyEl.className = "overlay-quote-tip-body";
+      bodyEl.innerHTML = htmlQuote;
+      overlayQuoteText.appendChild(bodyEl);
+    } else if (isTip) {
+      const bodyEl = document.createElement("span");
+      bodyEl.className = "overlay-quote-tip-body";
+      bodyEl.textContent = q.quote ?? "";
+      overlayQuoteText.appendChild(bodyEl);
+    } else {
+      overlayQuoteText.textContent = q.quote ?? "";
+    }
+
+    const author = typeof q.author === "string" ? q.author.trim() : "";
+    if (author) {
+      overlayQuoteAuthor.style.display = "block";
+      overlayQuoteAuthor.textContent = `— ${author}`;
+    } else {
+      overlayQuoteAuthor.style.display = "none";
+      overlayQuoteAuthor.textContent = "";
+    }
   }
 
   function updateQuickState() {
@@ -5239,6 +5575,8 @@
     if (needleDirSelect) needleDirSelect.value = needleDirVal;
     if (originalNeedleDir !== needleDirVal) needsPersist = true;
     currentSettings.needleDirection = needleDirVal;
+
+    syncSegmentedOptionControls();
 
     const originalUiTheme = settings.uiTheme;
     const uiThemeVal = normalizeUiThemeSetting(originalUiTheme);
@@ -6358,6 +6696,25 @@
   function renderRibbonsNotes(ctx, mergedNotes, params) {
     const { windowStart, windowEnd, scrollLeft, containerHeight, lowestMidi, verticalSpacing, balloonRadius, outlineColor } = params;
 
+    function addRoundedRectPath(pathCtx, x, y, width, height, radius) {
+      const cornerRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
+      pathCtx.beginPath();
+      if (typeof pathCtx.roundRect === 'function') {
+        pathCtx.roundRect(x, y, width, height, cornerRadius);
+      } else {
+        pathCtx.moveTo(x + cornerRadius, y);
+        pathCtx.lineTo(x + width - cornerRadius, y);
+        pathCtx.arcTo(x + width, y, x + width, y + cornerRadius, cornerRadius);
+        pathCtx.lineTo(x + width, y + height - cornerRadius);
+        pathCtx.arcTo(x + width, y + height, x + width - cornerRadius, y + height, cornerRadius);
+        pathCtx.lineTo(x + cornerRadius, y + height);
+        pathCtx.arcTo(x, y + height, x, y + height - cornerRadius, cornerRadius);
+        pathCtx.lineTo(x, y + cornerRadius);
+        pathCtx.arcTo(x, y, x + cornerRadius, y, cornerRadius);
+        pathCtx.closePath();
+      }
+    }
+
     const leftMargin = Math.max(NOTE_VIEW_HORIZONTAL_MARGIN, NOTE_VIEW_BALLOON_PADDING + balloonRadius);
     let cumulativeX = leftMargin; // Track sequential horizontal position
     let previousNoteEndMs = null; // Track previous note end time for gap detection
@@ -6445,6 +6802,16 @@
       const horizontalInsetScale = (ribbonWidth - borderWidth) / ribbonWidth; // Scale to fit inset area
       const useGradient = relevantSegments.length <= 8;
 
+      const cornerRadius = Math.min(8, verticalRadius * 0.3);
+      const rectX = ribbonStartX;
+      const rectY = yPos - verticalRadius;
+      const rectWidth = ribbonWidth;
+      const rectHeight = verticalRadius * 2;
+
+      ctx.save();
+      addRoundedRectPath(ctx, rectX, rectY, rectWidth, rectHeight, cornerRadius);
+      ctx.clip();
+
       if (useGradient) {
         // Create gradient for smooth color transitions (short notes)
         const gradientStartX = ribbonStartX + bandInset;
@@ -6518,34 +6885,12 @@
         }
       }
 
+      ctx.restore();
+
       // Draw rounded rectangle border around entire note
       ctx.strokeStyle = outlineColor;
       ctx.lineWidth = 2;
-      ctx.beginPath();
-
-      // Use small corner radius for rounded rectangle
-      const cornerRadius = Math.min(8, verticalRadius * 0.3);
-      const rectX = ribbonStartX;
-      const rectY = yPos - verticalRadius;
-      const rectWidth = ribbonWidth;
-      const rectHeight = verticalRadius * 2;
-
-      // Draw rounded rectangle using roundRect if available, otherwise manual arcs
-      if (typeof ctx.roundRect === 'function') {
-        ctx.roundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius);
-      } else {
-        // Manual rounded rectangle path
-        ctx.moveTo(rectX + cornerRadius, rectY);
-        ctx.lineTo(rectX + rectWidth - cornerRadius, rectY);
-        ctx.arcTo(rectX + rectWidth, rectY, rectX + rectWidth, rectY + cornerRadius, cornerRadius);
-        ctx.lineTo(rectX + rectWidth, rectY + rectHeight - cornerRadius);
-        ctx.arcTo(rectX + rectWidth, rectY + rectHeight, rectX + rectWidth - cornerRadius, rectY + rectHeight, cornerRadius);
-        ctx.lineTo(rectX + cornerRadius, rectY + rectHeight);
-        ctx.arcTo(rectX, rectY + rectHeight, rectX, rectY + rectHeight - cornerRadius, cornerRadius);
-        ctx.lineTo(rectX, rectY + cornerRadius);
-        ctx.arcTo(rectX, rectY, rectX + cornerRadius, rectY, cornerRadius);
-        ctx.closePath();
-      }
+      addRoundedRectPath(ctx, rectX, rectY, rectWidth, rectHeight, cornerRadius);
       ctx.stroke();
 
       // Draw note name at center with subtle black glow for visibility
@@ -8112,7 +8457,10 @@
     aRefSelect.addEventListener("change", () => {
       const value = aRefSelect.value;
       if (value === A_REF_CUSTOM_VALUE) {
-        if (aRefInput) aRefInput.focus();
+        if (aRefInput) {
+          aRefInput.focus();
+          aRefInput.select?.();
+        }
         return;
       }
       const parsed = parseFloat(value);
@@ -8193,7 +8541,16 @@
     // Recompute colors with new mode without clearing segments (all modes use 40ms now)
     recomputeColorsOnModeChange();
     updateDebugPanel({});
+    syncSegmentedOptionControls();
   });
+
+  for (const input of sensitivityModeInputs) {
+    input.addEventListener("change", () => {
+      if (!input.checked || !sensitivitySelect) return;
+      sensitivitySelect.value = input.value;
+      sensitivitySelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
 
   if (noteViewStyleSelect) {
     noteViewStyleSelect.addEventListener("change", () => {
@@ -8203,6 +8560,15 @@
       if (noteViewActive) {
         renderNoteView();
       }
+      syncSegmentedOptionControls();
+    });
+  }
+
+  for (const input of noteViewStyleModeInputs) {
+    input.addEventListener("change", () => {
+      if (!input.checked || !noteViewStyleSelect) return;
+      noteViewStyleSelect.value = input.value;
+      noteViewStyleSelect.dispatchEvent(new Event("change", { bubbles: true }));
     });
   }
 
@@ -8228,11 +8594,27 @@
     });
   }
 
+  for (const input of accidentalModeInputs) {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      setAccidentalMode(input.value);
+    });
+  }
+
   if (needleDirSelect) {
     needleDirSelect.addEventListener("change", () => {
       currentSettings.needleDirection = needleDirSelect.value === "vertical" ? "vertical" : "horizontal";
       persistSettings(currentSettings);
       highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
+      syncSegmentedOptionControls();
+    });
+  }
+
+  for (const input of needleDirectionModeInputs) {
+    input.addEventListener("change", () => {
+      if (!input.checked || !needleDirSelect) return;
+      needleDirSelect.value = input.value;
+      needleDirSelect.dispatchEvent(new Event("change", { bubbles: true }));
     });
   }
 
