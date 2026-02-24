@@ -70,6 +70,10 @@
     --grid-text-off: #4b5563;
     --grid-text-seen: #d1d5db;
     --grid-text-on: #ffffff;
+    --grid-note-glow: 0 1px 2px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.75);
+    --note-view-line-octave: rgba(150,150,150,0.45);
+    --note-view-line-semitone: rgba(100,100,100,0.45);
+    --note-view-outline-color: #ffffff;
     --grid-active-border: 6px;
 
     --note-font-size: 2.4rem;
@@ -86,6 +90,8 @@
     --ui-overlay-card-border: rgba(148,163,184,0.25);
     --ui-overlay-header-bg: rgba(15,23,42,0.75);
     --ui-overlay-footer-bg: rgba(15,23,42,0.78);
+    --ui-overlay-scroll-fade-top: rgba(15,23,42,0.75);
+    --ui-overlay-scroll-fade-bottom: rgba(15,23,42,0.78);
     --ui-overlay-shadow: 0 22px 40px rgba(0,0,0,0.55);
 
     --ui-panel-glass-bg: rgba(15,23,42,0.65);
@@ -96,6 +102,9 @@
 
     --ui-footer-text: rgba(226,232,240,0.85);
     --ui-text-muted-strong: #cbd5e1;
+
+    --edge-controls-bg: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.8) 100%);
+    --edge-controls-shadow: -10px 0 16px rgba(0,0,0,0.55);
   }
 
   :root[data-ui-theme="light"] {
@@ -108,17 +117,23 @@
 
     --border-dim: #94a3b8;
 
-    --grid-bg: #e2e8f0;
-    --grid-line: #94a3b8;
+    --grid-bg: #f8fafc;
+    --grid-line: #0f172a;
     --grid-text-off: #64748b;
     --grid-text-seen: #334155;
     --grid-text-on: #0f172a;
+    --grid-note-glow: 0 1px 2px rgba(255,255,255,0.85), 0 0 3px rgba(255,255,255,0.75);
+    --note-view-line-octave: rgba(100,116,139,0.22);
+    --note-view-line-semitone: rgba(148,163,184,0.16);
+    --note-view-outline-color: #0f172a;
 
     --ui-overlay-backdrop: rgba(148,163,184,0.45);
     --ui-overlay-card-bg: rgba(255,255,255,0.9);
     --ui-overlay-card-border: rgba(100,116,139,0.35);
     --ui-overlay-header-bg: rgba(255,255,255,0.95);
     --ui-overlay-footer-bg: rgba(255,255,255,0.95);
+    --ui-overlay-scroll-fade-top: rgba(255,255,255,0.95);
+    --ui-overlay-scroll-fade-bottom: rgba(255,255,255,0.95);
     --ui-overlay-shadow: 0 18px 32px rgba(15,23,42,0.16);
 
     --ui-panel-glass-bg: rgba(255,255,255,0.82);
@@ -129,6 +144,9 @@
 
     --ui-footer-text: #334155;
     --ui-text-muted-strong: #334155;
+
+    --edge-controls-bg: linear-gradient(90deg, rgba(15,23,42,0) 0%, rgba(148,163,184,0.12) 45%, rgba(148,163,184,0.28) 100%);
+    --edge-controls-shadow: -4px 0 8px rgba(15,23,42,0.12);
   }
 
   *, *::before, *::after {
@@ -276,8 +294,8 @@
     align-items: start;
     align-content: start;
     padding: 2px;
-    background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 40%, rgba(0,0,0,0.8) 100%);
-    box-shadow: -10px 0 16px rgba(0,0,0,0.55);
+    background: var(--edge-controls-bg);
+    box-shadow: var(--edge-controls-shadow);
     border-left: 1px solid var(--grid-line);
     gap: 0.15rem;
     grid-template-areas:
@@ -837,7 +855,7 @@
     font-size: var(--note-font-size);
     font-weight: 600;
     line-height: 1;
-    color: #fff;
+    color: var(--text-lite);
     min-height: 1em;
     display: inline-flex;
     align-items: baseline;
@@ -1171,6 +1189,10 @@
     border-color: #fff;
   }
 
+  :root[data-ui-theme="light"] .options-close-btn {
+    border-color: var(--border-dim);
+  }
+
   .options-btn:hover,
   .options-btn:focus-visible,
   .status-btn:hover,
@@ -1378,13 +1400,13 @@
 
   .scroll-fade-y::before {
     top: 0;
-    background: linear-gradient(to bottom, var(--ui-scroll-fade-top), transparent);
+    background: linear-gradient(to bottom, var(--ui-overlay-scroll-fade-top), transparent);
     margin-bottom: calc(-1.6rem - 10px);
   }
 
   .scroll-fade-y::after {
     bottom: 0;
-    background: linear-gradient(to top, var(--ui-scroll-fade-bottom), transparent);
+    background: linear-gradient(to top, var(--ui-overlay-scroll-fade-bottom), transparent);
     margin-top: calc(-1.6rem - 10px);
   }
 
@@ -1400,7 +1422,7 @@
     left: 0;
     right: 0;
     height: calc(1.6rem + 10px);
-    background: linear-gradient(to top, var(--ui-scroll-fade-bottom), transparent);
+    background: linear-gradient(to top, var(--ui-overlay-scroll-fade-bottom), transparent);
     pointer-events: none;
     z-index: 3;
     opacity: 0;
@@ -1762,6 +1784,10 @@
   }
 
   /* Palette overlay */
+  .palette-card .options-overlay-body {
+    padding: 0 1.5rem 1.5rem;
+  }
+
   .palette-layout {
     display: flex;
     justify-content: center;
@@ -1894,17 +1920,91 @@
   }
 
   .theme-mode-wrap {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
     gap: 0.45rem;
-    flex-wrap: wrap;
   }
 
-  .theme-mode-btn {
-    flex: 1 1 30%;
+  .theme-mode-item {
     min-width: 0;
+  }
+
+  .theme-mode-radio {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+  }
+
+  .theme-mode-label {
+    display: block;
+    width: 100%;
+    appearance: none;
+    background: transparent;
+    color: var(--text-lite);
+    border: 1px solid var(--border-dim);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
     text-align: center;
     padding: 0.42rem 0.65rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .theme-mode-radio:checked + .theme-mode-label {
+    background-color: rgba(34,197,94,0.12);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  .theme-mode-label:hover,
+  .theme-mode-label:focus-visible,
+  .theme-mode-radio:focus-visible + .theme-mode-label {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    outline: none;
+  }
+
+  .palette-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+
+  .palette-grid .option-field {
+    min-width: 0;
+    background: var(--ui-overlay-card-bg);
+    border: 1px solid var(--ui-overlay-card-border);
+    border-radius: 0.85rem;
+    padding: 0.85rem;
+  }
+
+  .palette-grid .palette-layout {
+    padding: 0;
+    min-height: 0;
+  }
+
+  .palette-theme-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.65rem;
+  }
+
+  .palette-theme-hint {
+    margin: 0;
+    font-size: 0.74rem;
+    color: var(--text-dim);
+    line-height: 1.45;
+  }
+
+  .palette-chooser-panel {
+    gap: 0.55rem;
   }
 
   @media (max-aspect-ratio: 1/1) {
@@ -2163,6 +2263,12 @@
     .options-grid {
       grid-template-columns: 1fr;
     }
+    .palette-grid {
+      grid-template-columns: 1fr;
+    }
+    .palette-card .options-overlay-body {
+      padding: 0 1rem 1rem;
+    }
   }
 
   @media (min-aspect-ratio: 1/1) and (max-width: 640px) {
@@ -2233,7 +2339,7 @@
     gap: 0.05em;
     position: relative;
     z-index: 1;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.75);
+    text-shadow: var(--grid-note-glow);
   }
 
   .grid-cell .note-label sup {
@@ -2940,7 +3046,7 @@
 <div id="paletteOverlay" class="options-overlay" aria-hidden="true">
   <div class="options-overlay-card palette-card" role="dialog" aria-modal="true" aria-labelledby="paletteOverlayTitle">
     <div class="options-overlay-header">
-      <div class="options-overlay-title" id="paletteOverlayTitle">Grid Cell Colors</div>
+      <div class="options-overlay-title" id="paletteOverlayTitle">Colors</div>
       <div class="options-header-actions">
         <button id="paletteToOptionsBtn" class="status-btn overlay-nav-btn" type="button">Options</button>
         <button id="paletteResetBtn" class="reset-btn-secondary" type="button">Reset</button>
@@ -2948,19 +3054,34 @@
       </div>
     </div>
     <div class="options-overlay-body">
-      <div class="option-field">
-        <div class="opt-label-row">
-          <label class="opt-label" for="themeModeSystemBtn">UI Theme</label>
-        </div>
-        <div class="opt-control">
-          <div class="theme-mode-wrap" role="group" aria-label="UI theme mode">
-            <button id="themeModeLightBtn" class="toggle-btn theme-mode-btn" type="button" data-ui-theme-choice="light" aria-pressed="false">Light</button>
-            <button id="themeModeDarkBtn" class="toggle-btn theme-mode-btn" type="button" data-ui-theme-choice="dark" aria-pressed="false">Dark</button>
-            <button id="themeModeSystemBtn" class="toggle-btn theme-mode-btn" type="button" data-ui-theme-choice="system" aria-pressed="false">System</button>
+      <div class="palette-grid">
+        <div class="option-field palette-theme-panel">
+          <div class="opt-label-row">
+            <label class="opt-label" for="themeModeSystem">UI Theme</label>
           </div>
+          <div class="opt-control">
+            <div class="theme-mode-wrap" role="radiogroup" aria-label="UI theme mode">
+              <div class="theme-mode-item">
+                <input id="themeModeLight" class="theme-mode-radio" type="radio" name="themeMode" value="light" />
+                <label class="theme-mode-label" for="themeModeLight">Light</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="themeModeDark" class="theme-mode-radio" type="radio" name="themeMode" value="dark" />
+                <label class="theme-mode-label" for="themeModeDark">Dark</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="themeModeSystem" class="theme-mode-radio" type="radio" name="themeMode" value="system" />
+                <label class="theme-mode-label" for="themeModeSystem">System</label>
+              </div>
+            </div>
+          </div>
+          <p class="palette-theme-hint">Changes the app interface theme. Intonation colors are controlled separately.</p>
         </div>
-      </div>
-      <div class="palette-layout">
+        <div class="option-field palette-chooser-panel">
+          <div class="opt-label-row">
+            <label class="opt-label">Intonation Color Chooser</label>
+          </div>
+          <div class="palette-layout">
           <div class="palette-preview" id="palettePreview">
           <div class="palette-gradient" id="paletteGradientBox">
             <div class="pitch-label">PITCH</div>
@@ -2981,6 +3102,8 @@
               <span class="palette-stop-label">Flat</span>
               <span class="palette-chip" id="paletteFlatChip"></span>
             </button>
+          </div>
+        </div>
           </div>
         </div>
       </div>
@@ -3126,10 +3249,10 @@
   const paletteCenterInput = document.getElementById("paletteCenterInput");
   const paletteFlatInput   = document.getElementById("paletteFlatInput");
   const paletteGradientBox = document.getElementById("paletteGradientBox");
-  const themeModeLightBtn = document.getElementById("themeModeLightBtn");
-  const themeModeDarkBtn = document.getElementById("themeModeDarkBtn");
-  const themeModeSystemBtn = document.getElementById("themeModeSystemBtn");
-  const themeModeButtons = [themeModeLightBtn, themeModeDarkBtn, themeModeSystemBtn].filter(Boolean);
+  const themeModeLightInput = document.getElementById("themeModeLight");
+  const themeModeDarkInput = document.getElementById("themeModeDark");
+  const themeModeSystemInput = document.getElementById("themeModeSystem");
+  const themeModeInputs = [themeModeLightInput, themeModeDarkInput, themeModeSystemInput].filter(Boolean);
   const optionsPaletteBtn = document.getElementById("optionsPaletteBtn");
   const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
@@ -3499,6 +3622,8 @@
   function updateMiniViewIcon() {
     if (miniViewToggleBtn && miniViewToggleBtn.querySelector(".view-icon")) {
       const icon = miniViewToggleBtn.querySelector(".view-icon");
+      const uiTheme = document.documentElement?.dataset?.uiTheme || "dark";
+      const noteFill = uiTheme === "light" ? "%230f172a" : "white";
       if (noteViewActive) {
         // Note view is showing, display grid icon to toggle back to grid
         icon.src = "grid-icon.png";
@@ -3507,7 +3632,7 @@
       } else {
         // Grid is showing, display music note icon to toggle to note view
         // Use SVG data URI for music note
-        icon.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><text x="4" y="20" font-size="20" font-family="sans-serif">♫</text></svg>';
+        icon.src = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${noteFill}"><text x="4" y="20" font-size="20" font-family="sans-serif">♫</text></svg>`;
         icon.alt = "Show note view";
         icon.classList.remove("grid-mode");
       }
@@ -3951,6 +4076,14 @@
     if (!bgColor) bgColor = "#000000";
     noteViewRenderState.cachedBgColor = bgColor;
     return bgColor;
+  }
+
+  function getNoteViewThemeStyles() {
+    const styles = getComputedStyle(document.documentElement);
+    const octaveLine = styles.getPropertyValue("--note-view-line-octave").trim() || "rgba(150,150,150,0.45)";
+    const semitoneLine = styles.getPropertyValue("--note-view-line-semitone").trim() || "rgba(100,100,100,0.45)";
+    const outlineColor = styles.getPropertyValue("--note-view-outline-color").trim() || NOTE_VIEW_TEXT_COLOR;
+    return { octaveLine, semitoneLine, outlineColor };
   }
 
   function collectMergedNoteSegments() {
@@ -4610,11 +4743,63 @@
     };
   }
 
+  function parseCssColorToRgb(cssColor, fallback = { r: 0, g: 0, b: 0 }) {
+    const raw = String(cssColor || "").trim();
+    if (!raw) return fallback;
+
+    const hex6 = /^#?([0-9a-f]{6})$/i.exec(raw);
+    if (hex6) {
+      const val = hex6[1];
+      return {
+        r: parseInt(val.slice(0, 2), 16),
+        g: parseInt(val.slice(2, 4), 16),
+        b: parseInt(val.slice(4, 6), 16)
+      };
+    }
+
+    const hex3 = /^#?([0-9a-f]{3})$/i.exec(raw);
+    if (hex3) {
+      const val = hex3[1];
+      return {
+        r: parseInt(val.charAt(0) + val.charAt(0), 16),
+        g: parseInt(val.charAt(1) + val.charAt(1), 16),
+        b: parseInt(val.charAt(2) + val.charAt(2), 16)
+      };
+    }
+
+    const rgb = /^rgba?\(([^)]+)\)$/i.exec(raw);
+    if (rgb) {
+      const parts = rgb[1].split(",").map(p => p.trim());
+      if (parts.length >= 3) {
+        const r = Number(parts[0]);
+        const g = Number(parts[1]);
+        const b = Number(parts[2]);
+        if (Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) {
+          return {
+            r: Math.max(0, Math.min(255, Math.round(r))),
+            g: Math.max(0, Math.min(255, Math.round(g))),
+            b: Math.max(0, Math.min(255, Math.round(b)))
+          };
+        }
+      }
+    }
+
+    return fallback;
+  }
+
   let currentSettings = loadSettings();
   let currentPalette = normalizePalette(currentSettings.colorPalette || DEFAULT_PALETTE);
   let pendingPalette = normalizePalette(currentPalette);
   let pendingUiTheme = normalizeUiThemeSetting(currentSettings.uiTheme);
   let uiThemeMediaQuery = null;
+  let gridBackgroundRgbCache = null;
+
+  function getGridBackgroundRgb() {
+    if (gridBackgroundRgbCache) return gridBackgroundRgbCache;
+    const raw = getComputedStyle(document.documentElement).getPropertyValue("--grid-bg").trim();
+    gridBackgroundRgbCache = parseCssColorToRgb(raw || "#000000", { r: 0, g: 0, b: 0 });
+    return gridBackgroundRgbCache;
+  }
 
   function applyPaletteToDocument(pal) {
     const root = document.documentElement;
@@ -4667,10 +4852,8 @@
 
   function syncUiThemeUI(themeMode = pendingUiTheme) {
     const normalized = normalizeUiThemeSetting(themeMode);
-    themeModeButtons.forEach(btn => {
-      const isActive = btn.dataset.uiThemeChoice === normalized;
-      btn.classList.toggle("active", isActive);
-      btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+    themeModeInputs.forEach(inputEl => {
+      inputEl.checked = inputEl.value === normalized;
     });
   }
 
@@ -4681,6 +4864,8 @@
     root.dataset.uiThemeMode = normalized;
     root.dataset.uiTheme = resolved;
     noteViewRenderState.cachedBgColor = "";
+    gridBackgroundRgbCache = null;
+    updateMiniViewIcon();
     if (noteViewActive) {
       renderNoteView();
     }
@@ -5816,6 +6001,7 @@
   function updateCellDisplayColor(st, holdSeconds, nowTimeMs) {
     if (!st) return { r: 0, g: 0, b: 0 };
     const bias = st.biasRGB || { r: 0, g: 0, b: 0 };
+    const bg = getGridBackgroundRgb();
     const baseIntensity = st.baseIntensity ?? 0;
     let display = Math.max(0, Math.min(1, st.displayIntensity ?? 0));
     const lastUpdate = st.lastDisplayUpdateMs ?? nowTimeMs;
@@ -5878,9 +6064,9 @@
     st.lastDisplayUpdateMs = nowTimeMs;
 
     const finalColor = {
-      r: Math.round((bias.r ?? 0) * display),
-      g: Math.round((bias.g ?? 0) * display),
-      b: Math.round((bias.b ?? 0) * display),
+      r: Math.round(lerp(bg.r, bias.r ?? 0, display)),
+      g: Math.round(lerp(bg.g, bias.g ?? 0, display)),
+      b: Math.round(lerp(bg.b, bias.b ?? 0, display)),
     };
     st.colorRGB = finalColor;
     return finalColor;
@@ -6170,7 +6356,7 @@
   }
 
   function renderRibbonsNotes(ctx, mergedNotes, params) {
-    const { windowStart, windowEnd, scrollLeft, containerHeight, lowestMidi, verticalSpacing, balloonRadius } = params;
+    const { windowStart, windowEnd, scrollLeft, containerHeight, lowestMidi, verticalSpacing, balloonRadius, outlineColor } = params;
 
     const leftMargin = Math.max(NOTE_VIEW_HORIZONTAL_MARGIN, NOTE_VIEW_BALLOON_PADDING + balloonRadius);
     let cumulativeX = leftMargin; // Track sequential horizontal position
@@ -6333,7 +6519,7 @@
       }
 
       // Draw rounded rectangle border around entire note
-      ctx.strokeStyle = NOTE_VIEW_TEXT_COLOR;
+      ctx.strokeStyle = outlineColor;
       ctx.lineWidth = 2;
       ctx.beginPath();
 
@@ -6553,6 +6739,7 @@
     const windowEnd = Math.min(desiredWidthCss, scrollLeft + containerWidth + NOTE_VIEW_VIRTUAL_BUFFER_PX);
 
     // Pitch guide lines — drawn behind notes, one per semitone
+    const noteViewThemeStyles = getNoteViewThemeStyles();
     ctx.save();
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
@@ -6564,10 +6751,10 @@
       ctx.moveTo(0, lineY);
       ctx.lineTo(containerWidth, lineY);
       if (isC) {
-        ctx.strokeStyle = "rgba(150, 150, 150, 0.45)"; // thicker for octave starts
+        ctx.strokeStyle = noteViewThemeStyles.octaveLine; // thicker for octave starts
         ctx.lineWidth = 1.5;
       } else {
-        ctx.strokeStyle = "rgba(100, 100, 100, 0.45)"; // thinner for semitones
+        ctx.strokeStyle = noteViewThemeStyles.semitoneLine; // thinner for semitones
         ctx.lineWidth = 0.5;
       }
       ctx.stroke();
@@ -6584,7 +6771,8 @@
         containerHeight,
         lowestMidi,
         verticalSpacing,
-        balloonRadius
+        balloonRadius,
+        outlineColor: noteViewThemeStyles.outlineColor
       });
     } else {
       // Balloons mode - render with single average color
@@ -6609,7 +6797,7 @@
         ctx.ellipse(xPos, yPos, horizontalRadius, verticalRadius, 0, 0, Math.PI * 2);
         ctx.fillStyle = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
         ctx.fill();
-        ctx.strokeStyle = NOTE_VIEW_TEXT_COLOR;
+        ctx.strokeStyle = noteViewThemeStyles.outlineColor;
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -6672,7 +6860,12 @@
       const st = cellState[midi];
       if (!st) continue;
       const c = updateCellDisplayColor(st, holdSeconds, nowTime);
-      cell.style.backgroundColor = `rgb(${c.r},${c.g},${c.b})`;
+      const displayIntensity = st.displayIntensity ?? 0;
+      if (displayIntensity > 0.001) {
+        cell.style.backgroundColor = `rgb(${c.r},${c.g},${c.b})`;
+      } else {
+        cell.style.backgroundColor = "";
+      }
       if (st.visited) {
         cell.classList.add("visited");
       } else {
@@ -7538,7 +7731,7 @@
       const cell = midiToCellEl[midi];
       if (cell) {
         cell.classList.remove("visited");
-        cell.style.backgroundColor = "rgb(0,0,0)";
+        cell.style.backgroundColor = "";
       }
     }
     renderHeatmap();
@@ -7732,10 +7925,10 @@
     });
   }
 
-  if (themeModeButtons.length) {
-    themeModeButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        setPendingUiTheme(btn.dataset.uiThemeChoice);
+  if (themeModeInputs.length) {
+    themeModeInputs.forEach(inputEl => {
+      inputEl.addEventListener("change", () => {
+        if (inputEl.checked) setPendingUiTheme(inputEl.value);
       });
     });
   }
