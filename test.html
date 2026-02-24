@@ -4007,6 +4007,7 @@
     accumErrWeighted: 0,
     stretchCents: 0,
     minHoldMs: 0,
+    latched: false,
   };
 
   // Range warning hysteresis
@@ -4179,6 +4180,7 @@
 
   const ATTACK_SPEED_DEFAULT_MS = 0;
   const ATTACK_SPEED_MAX_MS = 100;
+  const OUT_OF_RANGE_ALERT_BASE_HOLD_MS = 35;
 
   // Note View Settings
   const NOTE_VIEW_MAX_BALLOONS = 900;        // Maximum number of balloons to render
@@ -4417,7 +4419,7 @@
     }
 
     // Respect note-specific minimum hold (e.g., 70ms for octave jumps)
-    const requiredMinHoldMs = activeNoteInfo.minHoldMs || 0;
+    const requiredMinHoldMs = activeNoteInfo.latched ? 0 : (activeNoteInfo.minHoldMs || 0);
     if (requiredMinHoldMs > 0 && previewDurMs < requiredMinHoldMs) {
       return null;
     }
@@ -6410,13 +6412,14 @@
     return finalColor;
   }
 
-  function beginActiveNote(midi, stretchCents = getStretchCents(midi), minHoldMs = 0) {
+  function beginActiveNote(midi, stretchCents = getStretchCents(midi), minHoldMs = 0, latched = false) {
     activeNoteInfo.midi = midi;
     activeNoteInfo.startTime = nowMs();
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
     activeNoteInfo.stretchCents = stretchCents ?? 0;
     activeNoteInfo.minHoldMs = Math.max(0, Number.isFinite(minHoldMs) ? minHoldMs : 0);
+    activeNoteInfo.latched = !!latched;
   }
 
   function accumulateActiveNoteFrame(errRatio, stretchCents, dtMs) {
@@ -6435,6 +6438,11 @@
     const holdMs = normalizeAttackSpeedSetting(currentSettings?.attackMs, currentSettings?.holdGate);
     currentSettings.attackMs = holdMs;
     return holdMs;
+  }
+
+  function getOutOfRangeHoldMs(onsetHoldMs = getCurrentMinHoldMs()) {
+    const safeOnset = Math.max(0, Number.isFinite(onsetHoldMs) ? onsetHoldMs : 0);
+    return Math.max(OUT_OF_RANGE_ALERT_BASE_HOLD_MS, safeOnset);
   }
 
   function getNoteViewEffectiveHoldMs(baseHoldMs, midi) {
@@ -6556,6 +6564,7 @@
     activeNoteInfo.accumErrWeighted = 0;
     activeNoteInfo.stretchCents = 0;
     activeNoteInfo.minHoldMs = 0;
+    activeNoteInfo.latched = false;
     relaxedNeedleCents = NaN;
     relaxedSmoothingActive = false;
     heldMidiForDisplay = null;
@@ -7834,16 +7843,17 @@
 
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
-        beginActiveNote(midi, stretchCents, noteHoldMs);
+        beginActiveNote(midi, stretchCents, noteHoldMs, false);
         // keep previous held display until new note meets attack-speed gate
       } else {
         accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
       }
 
       const heldForMs = nowT - currentMidiHoldStart;
-      if (heldForMs >= noteHoldMs) {
-        finalizeActiveSegment(noteHoldMs);
-        beginActiveNote(midi, stretchCents, noteHoldMs);
+      const gatingHoldMs = activeNoteInfo.latched ? 0 : noteHoldMs;
+      if (heldForMs >= gatingHoldMs) {
+        finalizeActiveSegment(gatingHoldMs);
+        beginActiveNote(midi, stretchCents, 0, true);
         currentMidiHoldStart = nowT;
         capturingNow = true;
         relaxedSmoothingActive = (mode === "relaxed");
@@ -7912,7 +7922,7 @@
       loudEnough,
       capturingNow,
       inDeadZoneNow,
-      minHold,
+      getOutOfRangeHoldMs(minHold),
       quietSignal
     );
 
@@ -7980,7 +7990,7 @@
       lastFrameTime = nowMs();
 
       updateDebugPanel({ freq: null, clarity: null, cents: null, rms: null });
-      updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
+      updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
       tick();
     } catch (err) {
       console.error(err);
@@ -8048,7 +8058,7 @@
     updateNoteReadoutText();
     updateRmsGauge(0, volumeThreshold);
 
-    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
     renderHeatmap();
   }
 
@@ -8513,7 +8523,7 @@
     rebuildRangeOptions({forceDefault: forceDefaultRange, desiredRange: currentSettings.range});
     buildGrid({ preserveStain });
     highlightGridCell(null, 0);
-    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
     renderHeatmap();
     updateEdgeKeyVisibility();
   }
@@ -8529,7 +8539,7 @@
     persistSettings(currentSettings);
     buildGrid({ preserveStain: true });
     highlightGridCell(null, 0);
-    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
+    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
     renderHeatmap();
     updateEdgeKeyVisibility();
   });
@@ -8695,7 +8705,7 @@
   dbgRange.textContent = RANGE_GATE_TEXT;
   dbgFft.textContent   = "2048";
   dbgSR.textContent    = "--";
-  updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
+  updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
   updateDebugPanel({});
 
   lastDisplayedMidi     = null;
