@@ -1,0 +1,8 @@
+name = "tonemap-pro-worker"
+main = "index.js"
+compatibility_date = "2024-11-01"
+
+[[kv_namespaces]]
+binding = "PRO_CONTENT"
+id = "25916307ce9d4005b0998afe806127e2"
+preview_id = "bd9e6294c23846f794e96bb3b8acc9d8"

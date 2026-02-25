@@ -1,2 +1,6 @@
+worker/node_modules/
+worker/.dev.vars
+.claude/
+.wrangler/
+worker/.wrangler/
 .DS_Store
-.claude/worktrees/
