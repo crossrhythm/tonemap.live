@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tonemap Pro — Upgrade Your Intonation Practice</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #475569;
+      --accent: rgb(34,197,94);
+      --accent-dim: rgba(34,197,94,0.12);
+      --green: rgb(34,197,94);
+      --star: #facc15;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* subtle grid texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 48px 0 16px;
+      text-align: center;
+    }
+
+    .logo-link {
+      display: inline-block;
+      margin-bottom: 32px;
+    }
+
+    .logo-img {
+      max-height: 52px;
+      width: auto;
+      display: block;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 400;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 520px;
+      margin: 0 auto 56px;
+    }
+
+    /* ── Price card ── */
+    .price-card {
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+      max-width: 380px;
+      margin: 0 auto 64px;
+      position: relative;
+      box-shadow: 0 0 40px rgba(34,197,94,0.08);
+    }
+
+    .badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #0f172a;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+
+    .plan-name {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .price {
+      font-family: 'DM Serif Display', serif;
+      font-size: 3.5rem;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .price sup {
+      font-size: 1.4rem;
+      vertical-align: super;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .price-period {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 28px;
+    }
+
+    .cta-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #0f172a;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .cta-btn:hover { opacity: 0.88; }
+
+    .cta-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    /* ── Feature comparison ── */
+    .comparison {
+      margin-bottom: 80px;
+    }
+
+    .comparison h2 {
+      font-family: 'DM Serif Display', serif;
+      font-weight: 400;
+      font-size: 1.7rem;
+      text-align: center;
+      margin-bottom: 36px;
+      color: #fff;
+    }
+
+    .tiers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .tiers { grid-template-columns: 1fr; }
+    }
+
+    .tier-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    .tier-card.pro-card {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, #1e293b 0%, #243147 100%);
+    }
+
+    .tier-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .pro-card .tier-label { color: var(--accent); }
+
+    .tier-price-line {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feature-list {
+      list-style: none;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 7px 0;
+      font-size: 0.92rem;
+    }
+
+    .feature-list li .icon {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .check { color: var(--green); }
+    .star  { color: var(--star); }
+    .dash  { color: var(--border); }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 18px 0 6px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    footer a {
+      color: var(--muted);
+      text-decoration: underline;
+    }
+
+    footer a:hover { color: var(--text); }
+
+    /* ── Ethos note ── */
+    .ethos-note {
+      text-align: center;
+      max-width: 580px;
+      margin: -24px auto 64px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.75;
+    }
+
+    .ethos-note a {
+      color: var(--muted);
+      text-decoration: underline;
+    }
+
+    .ethos-note a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <a href="/" class="logo-link">
+        <img src="tonemaplogo-ui.jpg" alt="Tonemap" class="logo-img">
+      </a>
+      <h1>Practice with <em>precision.</em><br>Discover your tendencies.<br>Hear the difference.</h1>
+      <p class="subtitle">Tonemap is a free, open-source intonation tool built by musicians for musicians. Pro is how it stays that way.</p>
+    </header>
+
+    <!-- Price card -->
+    <div class="price-card">
+      <div class="badge">Coming Soon</div>
+      <div class="plan-name">Tonemap Pro</div>
+      <div class="price"><sup>$</sup>9.99</div>
+      <div class="price-period">per year &nbsp;·&nbsp; cancel anytime</div>
+      <a href="/" class="cta-btn">Get Notified at Launch</a>
+      <div class="cta-note">Billed annually. Secure checkout via Lemon Squeezy.</div>
+    </div>
+
+    <!-- Ethos note -->
+    <p class="ethos-note">
+      Tonemap is a passion project built and maintained by <a href="https://pittsburghsymphony.org/biography/jeremy-black" target="_blank" rel="noopener">Jeremy Black</a> through <a href="https://www.eastendviolinstudio.com" target="_blank" rel="noopener">East End Violin Studio, Inc.</a>.
+      The source code is <a href="https://github.com/crossrhythm/tonemap.live" target="_blank" rel="noopener">open on GitHub</a> —
+      inspect it, fork it, or self-host it if you'd like.
+      Pro exists to cover hosting and support continued development,
+      not to hobble the free tool.
+    </p>
+
+    <!-- Feature comparison -->
+    <section class="comparison">
+      <h2>Free vs. Pro</h2>
+      <div class="tiers">
+
+        <!-- Free -->
+        <div class="tier-card">
+          <div class="tier-label">Free</div>
+          <div class="tier-price-line">Always free — no account required</div>
+          <ul class="feature-list">
+            <div class="section-label">Core features</div>
+            <li><span class="icon check">✓</span> Real-time pitch detection</li>
+            <li><span class="icon check">✓</span> Color-grid intonation visualization</li>
+            <li><span class="icon check">✓</span> Cents & needle display</li>
+            <li><span class="icon check">✓</span> Short scrolling history</li>
+
+            <div class="section-label">Tuning</div>
+            <li><span class="icon check">✓</span> A4 = 440 and 442 Hz reference</li>
+            <li><span class="icon check">✓</span> Concert pitch (C)</li>
+            <li><span class="icon check">✓</span> Common transpositions (Bb, Eb)</li>
+            <li><span class="icon check">✓</span> Sharps / flats toggle</li>
+
+            <div class="section-label">Note View</div>
+            <li><span class="icon check">✓</span> Individual note ribbons</li>
+            <li><span class="icon dash">–</span> Scrollable note history</li>
+          </ul>
+        </div>
+
+        <!-- Pro -->
+        <div class="tier-card pro-card">
+          <div class="tier-label">Pro</div>
+          <div class="tier-price-line">$9.99 / year</div>
+          <ul class="feature-list">
+            <div class="section-label">Everything in Free, plus:</div>
+            <li><span class="icon star">★</span> Extended history (30 sec / unlimited)</li>
+            <li><span class="icon star">★</span> Scrollable Note View history</li>
+
+            <div class="section-label">Tuning</div>
+            <li><span class="icon star">★</span> Custom A4 reference (441, 442, 443…)</li>
+            <li><span class="icon star">★</span> Historical pitches (415, 432 Hz)</li>
+            <li><span class="icon star">★</span> Full transposition range (all keys)</li>
+            <li><span class="icon star">★</span> Stretch tuning (Railsback curves)</li>
+
+            <div class="section-label">Analysis</div>
+            <li><span class="icon star">★</span> Hard mode (tight dead zone, fast response)</li>
+            <li><span class="icon star">★</span> Extended color hold / no-fade mode</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <footer>
+      <p>
+        &copy; 2026 Tonemap &nbsp;·&nbsp;
+        <a href="/terms.html">Terms &amp; Conditions</a> &nbsp;·&nbsp;
+        <a href="/">Back to Tonemap</a>
+      </p>
+    </footer>
+
+  </div>
+</body>
+</html>

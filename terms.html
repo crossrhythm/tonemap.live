@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms &amp; Conditions — Tonemap</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #475569;
+      --accent: rgb(34,197,94);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      padding: 48px 0 48px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .logo-link {
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+
+    .logo-img {
+      max-height: 44px;
+      width: auto;
+      display: block;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .updated {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    section { margin-bottom: 44px; }
+
+    h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    p { color: var(--text); margin-bottom: 12px; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0 48px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    footer a { color: var(--muted); text-decoration: underline; }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <a href="/" class="logo-link">
+        <img src="tonemaplogo-ui.jpg" alt="Tonemap" class="logo-img">
+      </a>
+      <h1>Terms &amp; Conditions</h1>
+      <div class="updated">Last updated: February 2026</div>
+    </header>
+
+    <section>
+      <h2>1. Overview</h2>
+      <p>These Terms and Conditions govern your use of Tonemap ("the Service"), a web-based intonation visualization tool for musicians available at tonemap.live. By using the Service, you agree to these terms.</p>
+      <p>Tonemap is an independent, open-source project, designed by musicians for musicians. The source code is <a href="https://github.com/crossrhythm/tonemap.live">publicly available</a>, the core tool is free to use, and a paid Pro tier exists solely to support its continued development.</p>
+    </section>
+
+    <section>
+      <h2>2. Free Tier</h2>
+      <p>Tonemap's core features are available free of charge with no account required. The free tier provides real-time pitch detection, color-grid visualization, Note View, and basic tuning options as described on the <a href="/pro.html">pricing page</a>.</p>
+    </section>
+
+    <section>
+      <h2>3. Tonemap Pro Subscription</h2>
+      <p>Tonemap Pro is an optional paid subscription available at $9.99 USD per year, providing access to extended features as listed on the <a href="/pro.html">pricing page</a>. A Pro subscription is how Tonemap stays independent: no advertising, no outside funding, no selling of user data. If you find the tool useful, Pro is the way to support it.</p>
+      <p>Subscriptions are billed annually and renew automatically unless cancelled. You may cancel at any time through your account portal or by contacting us. Cancellation takes effect at the end of the current billing period — you retain Pro access until then.</p>
+      <p>Payments are processed securely by Lemon Squeezy. Tonemap does not store your payment information.</p>
+    </section>
+
+    <section>
+      <h2>4. Refund Policy</h2>
+      <p>If you are unsatisfied with your Tonemap Pro subscription, contact us within 30 days of purchase for a full refund. Requests after 30 days are considered on a case-by-case basis. To request a refund, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
+    </section>
+
+    <section>
+      <h2>5. Use of the Service</h2>
+      <p>Tonemap is provided for personal, educational, and professional music practice purposes. You may not redistribute or replicate the Service as your own product. You are responsible for ensuring your device and browser meet the requirements to use the Service (a modern browser with microphone access).</p>
+    </section>
+
+    <section>
+      <h2>6. Privacy &amp; Data</h2>
+      <p>Tonemap processes audio input locally in your browser using the Web Audio API. Audio data is never transmitted to or stored on our servers.</p>
+      <p>Basic, anonymized page-view statistics may be collected to understand how the tool is being used. No personally identifiable information is collected from free-tier users, and no data is sold or shared with third parties. Pro subscribers provide an email address and payment information solely for billing purposes; this is handled by Lemon Squeezy in accordance with their <a href="https://www.lemonsqueezy.com/privacy" target="_blank" rel="noopener">privacy policy</a>.</p>
+    </section>
+
+    <section>
+      <h2>7. Open Source License</h2>
+      <p>The Tonemap client-side source code is released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">MIT License</a>. You are free to use, copy, modify, merge, publish, distribute, sublicense, or sell copies of the software, subject to the following condition: the above copyright notice and this permission notice must be included in all copies or substantial portions of the software.</p>
+      <p>The MIT License applies to the software code itself. It does not grant any rights to the Tonemap name, logo, or tonemap.live domain, and does not entitle anyone to a Tonemap Pro subscription without purchase. The code being open is intentional: you can read exactly how Tonemap handles your microphone input and verify that nothing leaves your device.</p>
+    </section>
+
+    <section>
+      <h2>8. Trademark</h2>
+      <p>Tonemap&#8482; is a trademark with a pending registration. All rights reserved. Use of the Tonemap name or mark in connection with any product, service, or domain requires express written permission.</p>
+    </section>
+
+    <section>
+      <h2>9. Disclaimer of Warranties</h2>
+      <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+      <p>Pitch detection accuracy depends on your device, microphone, and acoustic environment. We do not guarantee specific intonation analysis results.</p>
+    </section>
+
+    <section>
+      <h2>10. Limitation of Liability</h2>
+      <p>To the maximum extent permitted by applicable law, Tonemap and its creator shall not be liable for any indirect, incidental, or consequential damages arising from your use of or inability to use the Service.</p>
+    </section>
+
+    <section>
+      <h2>11. Changes to These Terms</h2>
+      <p>We may update these terms from time to time. Continued use of the Service after changes are posted constitutes your acceptance of the revised terms. The date at the top of this page indicates when the terms were last updated.</p>
+    </section>
+
+    <section>
+      <h2>12. Contact</h2>
+      <p>Questions about these terms or your subscription can be directed to <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
+    </section>
+
+    <footer>
+      <p>
+        &copy; 2026 Tonemap&#8482; &nbsp;·&nbsp;
+        <a href="/pro.html">Pricing</a> &nbsp;·&nbsp;
+        <a href="/">Back to Tonemap</a>
+      </p>
+    </footer>
+
+  </div>
+</body>
+</html>
