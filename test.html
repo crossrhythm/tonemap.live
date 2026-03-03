@@ -1300,6 +1300,19 @@
   box-shadow: 0 0 0 0.3rem rgba(250,204,21,0.12);
 }
 
+.options-btn.action-anim {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  box-shadow: 0 0 0 0.18rem rgba(34,197,94,0.2);
+  animation: sidebar-action-pop 220ms ease;
+}
+
+@keyframes sidebar-action-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
 .toggle-btn.active {
   background-color: rgba(34,197,94,0.12);
   border-color: var(--accent-green);
@@ -5013,6 +5026,9 @@
       detail: [
         "• Space: Start/stop microphone.",
         "• R: Reset heatmap.",
+        "• O: Toggle Options.",
+        "• F: Toggle Full Screen / Window.",
+        "• C: Open Colors.",
         "• G: Show Grid View.",
         "• N: Show Note View (Ribbons).",
         "• B: Show Note View (Balloons).",
@@ -9106,6 +9122,20 @@
     resetHeatmapOnly();
   }
 
+  function triggerSidebarActionButtonAnimation(btn) {
+    if (!btn) return;
+    btn.classList.remove("action-anim");
+    void btn.offsetWidth;
+    btn.classList.add("action-anim");
+    if (btn._actionAnimTimeoutId) {
+      window.clearTimeout(btn._actionAnimTimeoutId);
+    }
+    btn._actionAnimTimeoutId = window.setTimeout(() => {
+      btn.classList.remove("action-anim");
+      btn._actionAnimTimeoutId = null;
+    }, 260);
+  }
+
   micBtn.addEventListener("click", handleMicToggle);
   overlayPlayBtn.addEventListener("click", handleMicToggle);
 
@@ -9264,6 +9294,7 @@
 
   if (optionsToggleBtn && optionsOverlay) {
     optionsToggleBtn.addEventListener("click", () => {
+      triggerSidebarActionButtonAnimation(optionsToggleBtn);
       if (optionsOverlay.classList.contains("open")) {
         closeOptionsOverlay();
       } else {
@@ -9274,6 +9305,7 @@
 
   if (focusModeBtn) {
     focusModeBtn.addEventListener("click", () => {
+      triggerSidebarActionButtonAnimation(focusModeBtn);
       toggleFocusMode();
     });
   }
@@ -9286,6 +9318,7 @@
 
   if (noteViewToggleBtn && noteViewContainer && noteGrid) {
     noteViewToggleBtn.addEventListener("click", () => {
+      triggerSidebarActionButtonAnimation(noteViewToggleBtn);
       noteViewActive = !noteViewActive;
       ensureNoteViewRangeState({ persist: false });
       ensureGridCoversNoteViewRange();
@@ -9445,14 +9478,74 @@
     }
   }
 
+  function toggleOptionsOverlayFromShortcut() {
+    if (!optionsOverlay) return;
+    if (optionsOverlay.classList.contains("open")) {
+      closeOptionsOverlay();
+      return;
+    }
+    if (paletteOverlay?.classList.contains("open")) {
+      closePaletteOverlay({ apply: false });
+    }
+    openOptionsOverlay();
+  }
+
+  function togglePaletteOverlayFromShortcut() {
+    if (!paletteOverlay) return;
+    if (paletteOverlay.classList.contains("open")) {
+      closePaletteOverlay({ apply: false });
+      return;
+    }
+    if (optionsOverlay?.classList.contains("open")) {
+      closeOptionsOverlay();
+    }
+    openPaletteOverlay();
+  }
+
+  function isGlobalShortcutEvent(event, key) {
+    if (key === "o" || key === "f" || key === "c") return true;
+    if (key === "r" || key === "g" || key === "n" || key === "b" || key === "v") return true;
+    if (event.code === "Space") return true;
+    if (event.code === "BracketRight" || event.code === "BracketLeft") return true;
+    if (event.code === "Quote" || event.code === "Semicolon") return true;
+    if (event.code === "ArrowLeft" || event.code === "ArrowRight") return true;
+    return false;
+  }
+
   document.addEventListener("keydown", event => {
     if (event.defaultPrevented) return;
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    if (isEditableTarget(event.target)) return;
-    if (isInteractiveTarget(event.target)) return;
-    if (isAnyOverlayOpen()) return;
 
     const key = (event.key || "").toLowerCase();
+
+    if (isEditableTarget(event.target)) return;
+    if (isInteractiveTarget(event.target) && !isGlobalShortcutEvent(event, key)) return;
+
+    if (key === "o") {
+      event.preventDefault();
+      triggerSidebarActionButtonAnimation(optionsToggleBtn);
+      toggleOptionsOverlayFromShortcut();
+      return;
+    }
+
+    if (key === "f") {
+      event.preventDefault();
+      triggerSidebarActionButtonAnimation(focusModeBtn);
+      focusModeBtn?.click();
+      return;
+    }
+
+    if (key === "c") {
+      event.preventDefault();
+      togglePaletteOverlayFromShortcut();
+      return;
+    }
+
+    if (event.code === "Quote") {
+      event.preventDefault();
+    }
+
+    if (isAnyOverlayOpen()) return;
 
     if (event.code === "Space") {
       event.preventDefault();
@@ -9486,6 +9579,7 @@
 
     if (key === "v") {
       event.preventDefault();
+      triggerSidebarActionButtonAnimation(noteViewToggleBtn);
       cycleViewMode();
       return;
     }
@@ -9532,6 +9626,16 @@
 
   document.addEventListener("keyup", event => {
     setEdgeKeyActive(event.code, false);
+  });
+
+  document.addEventListener("keypress", event => {
+    if (event.defaultPrevented) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (isEditableTarget(event.target)) return;
+    if (isInteractiveTarget(event.target)) return;
+    if (event.code === "Quote") {
+      event.preventDefault();
+    }
   });
 
   window.addEventListener("blur", () => {

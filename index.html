@@ -499,6 +499,48 @@
     font-weight: 700;
   }
 
+  /* Safari 26.4 echo fix row */
+  .safari-fix-row {
+    display: none;
+    padding: 0.5rem 0.75rem;
+    margin: 0.5rem 0;
+    background: rgba(250, 204, 21, 0.08);
+    border: 1px solid rgba(250, 204, 21, 0.25);
+    border-radius: 0.35rem;
+    font-size: 0.85rem;
+  }
+
+  .safari-fix-inline {
+    margin: 0;
+    color: var(--text-lite);
+    line-height: 1.3;
+  }
+
+  .safari-fix-inline input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 0.45rem;
+  }
+
+  .safari-fix-inline label {
+    display: inline;
+    color: var(--text-lite);
+    font-size: inherit;
+    white-space: normal;
+    text-align: left;
+    justify-content: initial;
+    padding: 0;
+    vertical-align: middle;
+  }
+
+  .safari-fix-inline .info-btn {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 0.35rem;
+  }
+
   /* Buttons:
      - rectangular (~5:3 ratio)
      - per-icon sizing for balance
@@ -1986,6 +2028,15 @@
             <div id="quickLine2">Key=C • Easy Mode</div>
           </div>
         </div>
+
+        <div class="safari-fix-row" id="safariFixRow">
+          <p class="safari-fix-inline">
+            <input type="checkbox" id="safariEchoFixCheckbox" />
+            <label for="safariEchoFixCheckbox">Safari 26.4 echo bug fix</label>
+            <button class="info-btn" type="button" data-info-key="safariEchoFix" aria-label="Learn about Safari 26.4 echo cancellation fix">i</button>
+          </p>
+        </div>
+
         <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, please buy me a coffee! ☕️
 </a></div>
         <div class="footer-line">© 2025 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a></div>
@@ -2527,6 +2578,8 @@
   const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
   const rowStartSelect = document.getElementById("rowStartSelect");
+  const safariEchoFixCheckbox = document.getElementById("safariEchoFixCheckbox");
+  const safariFixRow = document.getElementById("safariFixRow");
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -2551,6 +2604,48 @@
   const dbgStreak     = document.getElementById("dbgStreak");
   const dbgCumulativeTime = document.getElementById("dbgCumulativeTime");
   const resetUsageBtn = document.getElementById("resetUsageBtn");
+
+  // Safari version detection and echo fix state
+  let isSafari264Beta = false;
+  let safariEchoFixEnabled = false;
+  let safariEchoFixRestartInFlight = false;
+
+  function detectSafari264Beta() {
+    const ua = navigator.userAgent;
+    if (!/^((?!chrome|android).)*safari/i.test(ua)) {
+      return false;
+    }
+    const versionMatch = ua.match(/Version\/(\d+)\.(\d+)/);
+    if (!versionMatch) return false;
+    const major = parseInt(versionMatch[1], 10);
+    const minor = parseInt(versionMatch[2], 10);
+    return major === 26 && minor === 4;
+  }
+
+  isSafari264Beta = detectSafari264Beta();
+  if (isSafari264Beta && safariFixRow) {
+    safariFixRow.style.display = "block";
+    console.log("[Tonemap] Safari 26.4 detected - echo fix option available");
+  }
+
+  if (safariEchoFixCheckbox) {
+    safariEchoFixCheckbox.addEventListener("change", async (e) => {
+      safariEchoFixEnabled = !!e.target.checked;
+      console.log("[Tonemap] Safari echo fix:", safariEchoFixEnabled ? "enabled" : "disabled");
+
+      if (!running) return;
+      if (safariEchoFixRestartInFlight) return;
+
+      safariEchoFixRestartInFlight = true;
+      try {
+        console.log("[Tonemap] Restarting mic to apply Safari echo fix setting");
+        stopMic();
+        await startMic();
+      } finally {
+        safariEchoFixRestartInFlight = false;
+      }
+    });
+  }
 
   function openOptionsOverlay() {
     if (!optionsOverlay) return;
@@ -3207,6 +3302,16 @@
         "• Green: actively updating the grid (signal above threshold).",
         "• Red: hearing a signal but it's softer than the threshold.",
         "• Gray: quiet/idle."
+      ]
+    },
+    safariEchoFix: {
+      title: "Safari 26.4 Echo Bug Fix",
+      summary: "Workaround for a Safari 26.4 issue where pitch can read sharp right after starting the microphone.",
+      detail: [
+        "The issue appears when echo cancellation is off: startup frames can be briefly time-stretched and read high.",
+        "Enabling this option sets echoCancellation=true to avoid the startup bias.",
+        "Trade-off: echo cancellation can alter the raw signal path and may affect some subtle pitch content.",
+        "If you notice startup sharpness in Safari 26.4, enable this option; otherwise leave it off."
       ]
     }
   };
@@ -5675,13 +5780,15 @@
 
   async function startMic() {
     try {
+      const useEchoCancellation = safariEchoFixEnabled;
+
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
 
       micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: false,
+          echoCancellation: useEchoCancellation,
           noiseSuppression: false,
           autoGainControl: false
         }
