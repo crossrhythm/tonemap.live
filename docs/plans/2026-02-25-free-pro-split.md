@@ -22,7 +22,6 @@
 | Accidentals | ✓ | ✓ |
 | History | Short (1s), Medium (3s) | Long (30s), Unlimited |
 | Color Hold | 30s fixed (no dropdown) | 5s, 15s, 2min, 5min, No Fade |
-| Hold Gate toggle | — (hidden, Pro only) | ✓ |
 | Upgrade CTA | "Upgrade to ★ Pro" (replaces coffee link) | — |
 
 **Security approach:** Remove JS constants for discrete Pro features (`HARD_*`, `RAILSBACK_ANCHORS`, `interpolateRailsbackCents`); restrict UI option lists for continuous parameters.
@@ -55,7 +54,6 @@ Line numbers in `free.html` match `index.html` initially and drift as edits accu
 |---|---|---|
 | `aRefInput` + `aRefSelect` | ~1958–1988 | A4 preset control |
 | `sensitivitySelect` | ~1999–2004 | Mode select |
-| `holdGateToggle` | ~2007–2015 | Hold Gate button |
 | `rowStartSelect` | ~2027–2035 | Rows start with |
 | `stretchSelect` | ~2043–2048 | Stretch tuning |
 | `transpositionSelect` | ~2071–2095 | Transposition |
@@ -64,7 +62,6 @@ Line numbers in `free.html` match `index.html` initially and drift as edits accu
 | Buy me a coffee link | ~1915 | Footer CTA |
 | `const rowStartSelect` (JS) | ~2455 | DOM ref |
 | `const sensitivitySelect` (JS) | ~2398 | DOM ref |
-| `const holdGateToggle` (JS) | ~2403 | DOM ref |
 | `HARD_DEADZONE_RATIO` (JS) | ~2665–2669 | Hard mode constants |
 | `RAILSBACK_ANCHORS` (JS) | ~2672–2682 | Stretch anchor table |
 | `HISTORY_WINDOWS` (JS) | ~3016–3021 | History window sizes |
@@ -222,7 +219,6 @@ Find the `</style>` tag that closes the main style block. Add the following just
         <li>Long and Unlimited pitch history</li>
         <li>Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
         <li>Rows start with any note</li>
-        <li>Hold Gate toggle</li>
       </ul>
       <p class="pro-modal-support">Your subscription supports ongoing development of Tonemap.</p>
       <a id="proModalCTA" class="pro-modal-btn" href="PLACEHOLDER_LS_CHECKOUT_URL" target="_blank" rel="noreferrer">
@@ -418,63 +414,7 @@ git commit -m "feat(free): gate Hard mode — remove HARD_* constants, restrict 
 
 ---
 
-## Task 6: Gate "Hold Gate" toggle — Pro only
-
-### Step 1: Replace holdGateToggle HTML (~lines 2007–2015)
-
-Find:
-```html
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label">Hold Gate</label>
-            <button class="info-btn" type="button" data-info-key="holdGate" aria-label="Learn about Hold Gate">i</button>
-          </div>
-          <div class="opt-control">
-            <button id="holdGateToggle" class="toggle-btn" type="button">Hold: On</button>
-          </div>
-        </div>
-```
-
-Replace with:
-```html
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label">Hold Gate</label>
-            <span class="pro-badge">★ Pro</span>
-          </div>
-          <div class="opt-control">
-            <button class="toggle-btn pro-gated-btn" type="button" disabled>Hold Gate</button>
-          </div>
-        </div>
-```
-
-### Step 2: Stub holdGateToggle JS reference (~line 2403)
-
-Find:
-```javascript
-  const holdGateToggle    = document.getElementById("holdGateToggle");
-```
-
-Replace with:
-```javascript
-  const holdGateToggle    = null; // Pro feature — removed in free tier
-```
-
-Hold gate behavior defaults to "off" (HOLD_GATE_DEFAULT = false). With `holdGateToggle = null`, the `updateHoldGateToggleUI()` function no-ops safely.
-
-### Step 3: Verify in browser
-- Options → Hold Gate shows grayed-out button with ★ Pro badge
-- Hold gate behavior is always-off (the default)
-
-### Step 4: Commit
-```bash
-git add free.html
-git commit -m "feat(free): gate Hold Gate toggle — Pro only"
-```
-
----
-
-## Task 7: Gate "Stretch Tuning" — remove Medium/Full options + rewrite stretch functions
+## Task 6: Gate "Stretch Tuning" — remove Medium/Full options + rewrite stretch functions
 
 **Context:** `interpolateRailsbackCents` uses `RAILSBACK_ANCHORS` for full Railsback interpolation. In the free tier, "minimal" mode only needs the above-A4 portion of the curve. We remove `RAILSBACK_ANCHORS` and `interpolateRailsbackCents` entirely, replacing `getStretchCents` with a self-contained minimal-only implementation.
 
@@ -578,7 +518,7 @@ git commit -m "feat(free): gate stretch tuning — remove RAILSBACK_ANCHORS, sim
 
 ---
 
-## Task 8: Gate "Performance Pitch" — restrict A4 presets to 440/441/442
+## Task 7: Gate "Performance Pitch" — restrict A4 presets to 440/441/442
 
 ### Step 1: Replace aRefSelect options (~lines 1973–1987)
 
@@ -681,7 +621,7 @@ git commit -m "feat(free): gate A4 presets — restrict to 440/441/442, hide cus
 
 ---
 
-## Task 9: Gate "Transposition" — restrict to Concert C only
+## Task 8: Gate "Transposition" — restrict to Concert C only
 
 ### Step 1: Replace transpositionSelect options (~lines 2071–2095)
 
@@ -724,7 +664,7 @@ git commit -m "feat(free): gate transposition — restrict to Concert C, all key
 
 ---
 
-## Task 10: Gate "History" — remove Long and Unlimited options
+## Task 9: Gate "History" — remove Long and Unlimited options
 
 ### Step 1: Remove Long and Unlimited from historySelect (~lines 2105–2110)
 
@@ -786,7 +726,7 @@ git commit -m "feat(free): gate history — remove long/unlimited options (Pro o
 
 ---
 
-## Task 11: Gate "Color Hold" — lock to 30s static display
+## Task 10: Gate "Color Hold" — lock to 30s static display
 
 Free tier gets exactly 30 seconds, no dropdown. Keep a hidden `<select id="stainHoldSelect">` with only the 30s option so existing JS references continue working without changes.
 
@@ -870,7 +810,7 @@ git commit -m "feat(free): gate color hold — lock to 30s fixed, full options a
 
 ---
 
-## Task 12: Fill in the Lemon Squeezy checkout URL
+## Task 11: Fill in the Lemon Squeezy checkout URL
 
 ### Step 1: Get your LS checkout URL
 Log in to app.lemonsqueezy.com → your Tonemap Pro product → "Share" or "Buy" link.
@@ -895,7 +835,7 @@ git commit -m "feat(free): add real LS checkout URL to upgrade modal"
 
 ---
 
-## Task 13: Configure Lemon Squeezy post-purchase redirect
+## Task 12: Configure Lemon Squeezy post-purchase redirect
 
 ### Step 1: Log in to app.lemonsqueezy.com → your Tonemap Pro product
 
@@ -914,7 +854,7 @@ The Worker's activation page (`/activate?key=...`) reads the `key` query param a
 
 ---
 
-## Task 14: Wire Worker routes to tonemap.live in `wrangler.toml`
+## Task 13: Wire Worker routes to tonemap.live in `wrangler.toml`
 
 **⚠️ xattr warning:** Edit `wrangler.toml` from your terminal, not via Claude Code's Edit tool.
 
@@ -969,7 +909,7 @@ git commit -m "feat: wire worker routes to tonemap.live/activate and /pro"
 
 ---
 
-## Task 15: Swap `free.html` → `index.html` (production deployment)
+## Task 14: Swap `free.html` → `index.html` (production deployment)
 
 Do this only after `free.html` is fully tested and working end-to-end.
 
@@ -1000,12 +940,11 @@ Wait for Pages deployment (~1 min), then verify tonemap.live loads with gated Pr
 
 ---
 
-## Task 16: End-to-end test
+## Task 15: End-to-end test
 
 ### Free tier (tonemap.live)
 - [ ] Hard Mode absent from Options → Mode dropdown; ★ Pro badge present
 - [ ] Rows start with note shows grayed-out Pro placeholder
-- [ ] Hold Gate shows grayed-out Pro placeholder
 - [ ] Stretch Tuning shows None + Minimal only; ★ Pro badge present
 - [ ] A4 presets show only 440/441/442; custom input hidden; ★ Pro badge present
 - [ ] Transposition shows C only; ★ Pro badge present
@@ -1037,7 +976,6 @@ Wait for Pages deployment (~1 min), then verify tonemap.live loads with gated Pr
 - [ ] Full A4 range + custom input
 - [ ] Long + Unlimited history options
 - [ ] Full Color Hold options
-- [ ] Hold Gate toggle works
 - [ ] Rows start with any note works
 - [ ] Full Railsback stretch options work
 

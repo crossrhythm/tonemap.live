@@ -9,6 +9,8 @@
 const COOKIE_NAME    = 'tm_pro';
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 const LS_VALIDATE    = 'https://api.lemonsqueezy.com/v1/licenses/validate';
+const REVALIDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+const REVALIDATE_GRACE_MS    = 6 * 60 * 60 * 1000;
 
 export default {
   async fetch(request, env) {
@@ -28,6 +30,10 @@ export default {
 };
 
 async function handleActivate(request, env) {
+  if (!env.HMAC_SECRET) {
+    return jsonError('Server misconfigured — missing HMAC secret', 500);
+  }
+
   let licenseKey;
   const contentType = request.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
@@ -43,37 +49,16 @@ async function handleActivate(request, env) {
   }
   licenseKey = licenseKey.trim();
 
-  let lsData;
-  try {
-    const lsRes = await fetch(LS_VALIDATE, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify({
-        license_key: licenseKey,
-        instance_name: 'tonemap.live',
-      }),
-    });
-    lsData = await lsRes.json();
-  } catch (err) {
+  const check = await validateLicenseKey(licenseKey);
+  if (check.networkError) {
     return jsonError('Could not reach license server — try again', 502);
   }
-
-  if (!lsData.valid) {
-    return jsonError(lsData.error || 'Invalid license key', 401);
+  if (!check.valid) {
+    return jsonError(check.error || 'Invalid license key', 401);
   }
 
-  const token = await createToken(licenseKey, env.HMAC_SECRET);
-  const cookie = [
-    `${COOKIE_NAME}=${token}`,
-    'Path=/',
-    `Max-Age=${COOKIE_MAX_AGE}`,
-    'HttpOnly',
-    'Secure',
-    'SameSite=Lax',
-  ].join('; ');
+  const token = await createToken(licenseKey, Date.now(), env.HMAC_SECRET);
+  const cookie = buildAuthCookie(token);
 
   return new Response(null, {
     status: 302,
@@ -146,9 +131,45 @@ async function handleActivatePage(request, env) {
 }
 
 async function handlePro(request, env) {
+  if (!env.HMAC_SECRET) {
+    return new Response('Pro content not available — contact support.', { status: 503 });
+  }
+
   const token = getCookie(request, COOKIE_NAME);
-  if (!token || !(await verifyToken(token, env.HMAC_SECRET))) {
+  const auth = token ? await verifyToken(token, env.HMAC_SECRET) : null;
+  if (!auth) {
     return new Response(null, { status: 302, headers: { Location: '/activate' } });
+  }
+
+  let refreshedCookie = null;
+  const ageMs = Date.now() - auth.lastValidatedAt;
+  if (ageMs >= REVALIDATE_INTERVAL_MS) {
+    const recheck = await validateLicenseKey(auth.licenseKey);
+
+    if (!recheck.networkError && !recheck.valid) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: '/activate',
+          'Set-Cookie': clearAuthCookie(),
+        },
+      });
+    }
+
+    if (!recheck.networkError && recheck.valid) {
+      const nextToken = await createToken(auth.licenseKey, Date.now(), env.HMAC_SECRET);
+      refreshedCookie = buildAuthCookie(nextToken);
+    }
+
+    if (recheck.networkError && ageMs > (REVALIDATE_INTERVAL_MS + REVALIDATE_GRACE_MS)) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: '/activate',
+          'Set-Cookie': clearAuthCookie(),
+        },
+      });
+    }
   }
 
   const proHtml = await env.PRO_CONTENT.get('pro-app.html');
@@ -156,9 +177,42 @@ async function handlePro(request, env) {
     return new Response('Pro content not available — contact support.', { status: 503 });
   }
 
+  const headers = { 'Content-Type': 'text/html; charset=utf-8' };
+  if (refreshedCookie) {
+    headers['Set-Cookie'] = refreshedCookie;
+  }
+
   return new Response(proHtml, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    headers,
   });
+}
+
+async function validateLicenseKey(licenseKey) {
+  try {
+    const lsRes = await fetch(LS_VALIDATE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        license_key: licenseKey,
+        instance_name: 'tonemap.live',
+      }),
+    });
+    const data = await lsRes.json().catch(() => ({}));
+    return {
+      valid: Boolean(data?.valid),
+      error: data?.error || null,
+      networkError: false,
+    };
+  } catch {
+    return {
+      valid: false,
+      error: 'Could not reach license server — try again',
+      networkError: true,
+    };
+  }
 }
 
 async function importKey(secret) {
@@ -171,24 +225,68 @@ async function importKey(secret) {
   );
 }
 
-async function createToken(licenseKey, secret) {
-  const key  = await importKey(secret);
-  const sig  = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(licenseKey));
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
+async function signMessage(message, secret) {
+  const key = await importKey(secret);
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+  return btoa(String.fromCharCode(...new Uint8Array(sig)));
+}
+
+async function createToken(licenseKey, lastValidatedAt, secret) {
   const keyB64 = btoa(licenseKey);
-  return `${keyB64}.${sigB64}`;
+  const ts = `${Math.floor(lastValidatedAt)}`;
+  const sigB64 = await signMessage(`${keyB64}.${ts}`, secret);
+  return `${keyB64}.${ts}.${sigB64}`;
 }
 
 async function verifyToken(token, secret) {
   try {
-    const [keyB64] = token.split('.');
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [keyB64, ts, sigB64] = parts;
+    const lastValidatedAt = Number(ts);
+    if (!Number.isFinite(lastValidatedAt)) return null;
+
+    const expectedSig = await signMessage(`${keyB64}.${ts}`, secret);
+    if (!timingSafeEqual(expectedSig, sigB64)) return null;
+
     const licenseKey = atob(keyB64);
-    const expected   = await createToken(licenseKey, secret);
-    if (expected.length !== token.length) return false;
-    let diff = 0;
-    for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ token.charCodeAt(i);
-    return diff === 0;
-  } catch { return false; }
+    if (!licenseKey) return null;
+    return { licenseKey, lastValidatedAt };
+  } catch {
+    return null;
+  }
+}
+
+function timingSafeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+function buildAuthCookie(token) {
+  return [
+    `${COOKIE_NAME}=${token}`,
+    'Path=/',
+    `Max-Age=${COOKIE_MAX_AGE}`,
+    'HttpOnly',
+    'Secure',
+    'SameSite=Lax',
+  ].join('; ');
+}
+
+function clearAuthCookie() {
+  return [
+    `${COOKIE_NAME}=`,
+    'Path=/',
+    'Max-Age=0',
+    'HttpOnly',
+    'Secure',
+    'SameSite=Lax',
+  ].join('; ');
 }
 
 function getCookie(request, name) {

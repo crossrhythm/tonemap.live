@@ -1,53 +1,12 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.3 (update window.APP_VERSION below when bumping release) -->
-<!-- STATUS: Production version deployed to https://tonemap.live/ -->
-<!-- Update this file only after testing changes in test.html -->
-<!-- Licensed under the MIT License; see LICENSE. -->
+<!-- Version: 1.26 (update window.APP_VERSION below when bumping release) -->
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tonemap — Real-Time Intonation Visualizer for Musicians</title>
-<meta name="description" content="Tonemap is a free real-time intonation visualizer for musicians. See your pitch tendencies mapped live in your browser — no app download required." />
-<link rel="canonical" href="https://tonemap.live/" />
+<title>Tonemap.Live</title>
 <link rel="icon" href="tonemapicon.png" type="image/png" />
-<meta property="og:url" content="https://tonemap.live/" />
-<meta property="og:title" content="Tonemap.Live" />
-<meta property="og:description" content="Real-time pitch and intonation visualization for musicians. Free, browser-based, no download required." />
-<meta property="og:type" content="website" />
-<meta property="og:image" content="https://tonemap.live/tonemaplogo-fb.jpg" />
-<meta property="og:image:type" content="image/jpeg" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Tonemap.Live" />
-<meta name="twitter:description" content="Real-time pitch and intonation visualization for musicians. Free, browser-based, no download required." />
-<meta name="twitter:image" content="https://tonemap.live/tonemaplogo-fb.jpg" />
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "Tonemap.Live",
-  "url": "https://tonemap.live/",
-  "description": "Real-time pitch and intonation visualization for musicians. Free, browser-based, no download required.",
-  "applicationCategory": "MusicApplication",
-  "operatingSystem": "Web",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
-  },
-  "featureList": [
-    "Real-time pitch detection",
-    "Intonation tendency visualization",
-    "Instrument transposition",
-    "Adjustable A4 reference pitch",
-    "Stretch tuning",
-    "Works on iOS, Android, and desktop"
-  ]
-}
-</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
 
@@ -812,11 +771,6 @@
     box-shadow: 0 0 12px rgba(34,197,94,0.9);
     border-color: rgba(16,94,47,1);
   }
-  .led.red {
-    background-color: rgba(239,68,68,1);
-    box-shadow: 0 0 12px rgba(239,68,68,0.9);
-    border-color: rgba(127,29,29,1);
-  }
   .led.gray {
     background-color: rgba(107,114,128,1);
     box-shadow: 0 0 8px rgba(0,0,0,0.9);
@@ -1085,111 +1039,6 @@
 
   .option-field input[type="range"] {
     width: 100%;
-  }
-
-  .opt-label-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.4rem;
-    width: 100%;
-  }
-
-  .info-btn {
-    appearance: none;
-    background: rgba(148,163,184,0.15);
-    color: var(--text-lite);
-    border: 1px solid rgba(148,163,184,0.55);
-    border-radius: 999px;
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
-    min-height: 22px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    line-height: 1;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-  }
-
-  .info-btn:hover,
-  .info-btn:focus-visible {
-    border-color: var(--accent-green);
-    color: var(--accent-green);
-    outline: none;
-  }
-
-  .info-btn:active {
-    background-color: rgba(34,197,94,0.12);
-  }
-
-  .option-info-overlay {
-    position: fixed;
-    inset: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1.25rem;
-    background: rgba(15,23,42,0.65);
-    backdrop-filter: blur(6px);
-    z-index: 1400;
-  }
-
-  .option-info-overlay.open {
-    display: flex;
-  }
-
-  .option-info-card {
-    width: min(520px, 100%);
-    background: rgba(15,23,42,0.9);
-    border: 1px solid rgba(148,163,184,0.4);
-    border-radius: 1rem;
-    box-shadow: 0 22px 42px rgba(0,0,0,0.55);
-    padding: 1.25rem 1.35rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .option-info-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .option-info-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-lite);
-  }
-
-  .option-info-body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-  }
-
-  .option-info-summary {
-    margin: 0;
-    font-size: 0.9rem;
-    color: #e2e8f0;
-    font-weight: 600;
-    line-height: 1.4;
-  }
-
-  .option-info-detail {
-    margin: 0;
-    font-size: 0.82rem;
-    color: var(--panel-text-lite);
-    line-height: 1.5;
-  }
-
-  .info-close-btn {
-    padding: 0.3rem 0.9rem;
   }
 
   .status-section {
@@ -1586,80 +1435,6 @@
     transition: background-color 0.1s linear;
   }
 
-  .grid-cell.range-row-add-top {
-    animation: row-add-top 220ms ease-out;
-    z-index: 3;
-  }
-
-  .grid-cell.range-row-add-bottom {
-    animation: row-add-bottom 220ms ease-out;
-    z-index: 3;
-  }
-
-  .grid-row-removal-ghost {
-    position: absolute;
-    left: 0;
-    right: 0;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    pointer-events: none;
-    z-index: 9;
-  }
-
-  .grid-row-removal-ghost.top {
-    top: 0;
-    animation: row-remove-top 220ms ease-in forwards;
-  }
-
-  .grid-row-removal-ghost.bottom {
-    bottom: 0;
-    animation: row-remove-bottom 220ms ease-in forwards;
-  }
-
-  @keyframes row-add-top {
-    from {
-      opacity: 0;
-      transform: translateY(-22%);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes row-add-bottom {
-    from {
-      opacity: 0;
-      transform: translateY(22%);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes row-remove-top {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-28%);
-    }
-  }
-
-  @keyframes row-remove-bottom {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(28%);
-    }
-  }
-
   .grid-cell.visited {
     color: var(--grid-text-on);
   }
@@ -1882,18 +1657,11 @@
   }
 
 </style>
-
-<!-- Privacy-friendly analytics by Plausible -->
-<script async src="https://plausible.io/js/pa-X-Sn7Z904imPZY1JcRi2W.js"></script>
-<script>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-  plausible.init()
-</script>
 </head>
 <body>
 
 <script>
-  window.APP_VERSION = "1.3";
+  window.APP_VERSION = "1.26";
 </script>
 
 <div class="page">
@@ -1988,7 +1756,7 @@
         </div>
         <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, please buy me a coffee! ☕️
 </a></div>
-        <div class="footer-line">© 2025 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a></div>
+        <div class="footer-line">© 2025, <a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> &nbsp;| &nbsp;<a href="mailto:contact@eastendviolinstudio.com">contact@eastendviolinstudio.com</a></div>
       </div>
 
     </div> <!-- /.right-scroll -->
@@ -2022,221 +1790,162 @@
             <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close options overlay">Apply ✕</button>
           </div>
         </div>
-    <div class="options-overlay-body">
-      <div class="options-grid">
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
-            <button class="info-btn" type="button" data-info-key="a4" aria-label="Learn about Performance Pitch (A4)">i</button>
+        <div class="options-overlay-body">
+          <div class="options-grid">
+      <div class="option-field">
+        <label class="opt-label" for="aRefSelect">Performance Pitch (A4)</label>
+        <div class="opt-control a-ref-control">
+          <input
+            id="aRefInput"
+            class="a-ref-input"
+            type="number"
+            min="100"
+            max="1000"
+            step="1"
+            inputmode="decimal"
+            aria-label="Custom performance pitch in Hz"
+            placeholder="Custom Hz"
+            value="440"
+          />
+          <div class="a-ref-preset">
+            <span class="preset-label" id="presetLabel">Presets:</span>
+            <select id="aRefSelect" aria-labelledby="presetLabel">
+              <option value="392">392</option>
+              <option value="415">415</option>
+              <option value="430">430</option>
+              <option value="432">432</option>
+              <option value="438">438</option>
+              <option value="440" selected>440</option>
+              <option value="441">441</option>
+              <option value="442">442</option>
+              <option value="443">443</option>
+              <option value="444">444</option>
+              <option value="466">466</option>
+              <option value="470">470</option>
+              <option value="custom">Custom</option>
+            </select>
           </div>
-          <div class="opt-control a-ref-control">
-            <input
-              id="aRefInput"
-              class="a-ref-input"
-              type="number"
-              min="100"
-              max="1000"
-              step="1"
-              inputmode="decimal"
-              aria-label="Custom performance pitch in Hz"
-              placeholder="Custom Hz"
-              value="440"
-            />
-            <div class="a-ref-preset">
-              <span class="preset-label" id="presetLabel">Presets:</span>
-              <select id="aRefSelect" aria-labelledby="presetLabel">
-                <option value="392">392</option>
-                <option value="415">415</option>
-                <option value="430">430</option>
-                <option value="432">432</option>
-                <option value="438">438</option>
-                <option value="440" selected>440</option>
-                <option value="441">441</option>
-                <option value="442">442</option>
-                <option value="443">443</option>
-                <option value="444">444</option>
-                <option value="466">466</option>
-                <option value="470">470</option>
-                <option value="custom">Custom</option>
-              </select>
+        </div>
+        <p class="opt-error" id="aRefError" role="alert" aria-live="polite"></p>
+      </div>
+
+      <div class="option-field">
+        <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
+        <div class="opt-control">
+          <select id="sensitivitySelect">
+            <option value="relaxed">Relaxed (Vocal - forgiving)</option>
+            <option value="medium" selected>Medium (no damping, medium response)</option>
+            <option value="hard">Hard (no dead zone, fast response)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="option-field">
+        <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
+        <div class="opt-control">
+          <select id="stretchSelect">
+            <option value="none">None (Equal Temperament)</option>
+            <option value="minimal" selected>Minimal (¼ Railsback above A4)</option>
+            <option value="medium">Medium (½ Railsback above A4)</option>
+            <option value="full">Full (Railsback)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="option-field">
+        <label class="opt-label" for="accidentalToggle">Accidentals</label>
+        <div class="opt-control">
+          <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
+        </div>
+      </div>
+      <div class="option-field">
+        <label class="opt-label" for="needleDirSelect">Needle Direction</label>
+        <div class="opt-control">
+          <select id="needleDirSelect">
+            <option value="horizontal">Horizontal</option>
+            <option value="vertical" selected>Vertical</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="option-field">
+        <label class="opt-label" for="transpositionSelect">Transposition</label>
+        <div class="opt-control">
+          <select id="transpositionSelect">
+            <option value="11">B (+11)</option>
+            <option value="10">B♭ (+10)</option>
+            <option value="9">A (+9)</option>
+            <option value="8">A♭ (+8)</option>
+            <option value="7">G (+7)</option>
+            <option value="6">G♭ (+6)</option>
+            <option value="5">F (+5) English Horn, Horn in F</option>
+            <option value="4">E (+4)</option>
+            <option value="3">E♭ (+3) Alto Sax, Baritone Sax, Eb Clarinet</option>
+            <option value="2">D (+2)</option>
+            <option value="1">D♭ (+1)</option>
+            <option value="0" selected>C (+0) Concert (Flute, Oboe, Violin, Voice, etc.)</option>
+            <option value="-1">B (−1)</option>
+            <option value="-2">B♭ (−2) Bb Trumpet & Clarinet, Sop. & Tenor Sax, Bass Clarinet</option>
+            <option value="-3">A (−3) Clarinet in A</option>
+            <option value="-4">A♭ (−4)</option>
+            <option value="-5">G (−5) Alto Flute</option>
+            <option value="-6">G♭ (−6)</option>
+            <option value="-7">F (−7)</option>
+            <option value="-8">E (−8)</option>
+            <option value="-9">E♭ (−9)</option>
+            <option value="-10">D (−10)</option>
+            <option value="-11">D♭ (−11)</option>
+          </select>
+        </div>
+      </div>
+
+
+
+      <div class="option-field">
+        <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
+        <div class="opt-control">
+          <select id="historySelect">
+            <option value="short" selected>Short (1 second)</option>
+            <option value="medium">Medium (3 seconds)</option>
+            <option value="long">Long (30 seconds)</option>
+            <option value="unlimited">Unlimited</option>
+          </select>
+        </div>
+      </div>
+      <div class="option-field">
+        <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
+        <div class="opt-control">
+          <select id="stainHoldSelect">
+            <option value="5">5 seconds</option>
+            <option value="15">15 seconds</option>
+            <option value="30" selected>30 seconds</option>
+            <option value="120">2 minutes</option>
+            <option value="300">5 minutes</option>
+            <option value="unlimited">No fade</option>
+          </select>
+        </div>
+      </div>
+
+
+
+      <div class="option-field">
+        <label class="opt-label" for="volThresh">Volume Sensitivity</label>
+        <div class="opt-control opt-control-slider">
+          <div class="volume-wrap">
+            <div class="slider-col">
+              <input id="volThresh" type="range" min="0" max="0.75" step="0.01" />
             </div>
-          </div>
-          <p class="opt-error" id="aRefError" role="alert" aria-live="polite"></p>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label id="sensitivityLabel" class="opt-label" for="sensitivitySelect">Mode</label>
-            <button class="info-btn" type="button" data-info-key="mode" aria-label="Learn about Mode options">i</button>
-          </div>
-          <div class="opt-control">
-            <select id="sensitivitySelect">
-              <option value="relaxed">Relaxed (Vocal - forgiving)</option>
-              <option value="medium" selected>Medium (medium response)</option>
-              <option value="hard">Hard (small dead zone, fast response)</option>
-            </select>
+            <div id="led" class="led gray"></div>
           </div>
         </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label">Hold Gate</label>
-            <button class="info-btn" type="button" data-info-key="holdGate" aria-label="Learn about Hold Gate">i</button>
-          </div>
-          <div class="opt-control">
-            <button id="holdGateToggle" class="toggle-btn" type="button">Hold: On</button>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label" for="accidentalToggle">Accidentals</label>
-            <button class="info-btn" type="button" data-info-key="accidentals" aria-label="Learn about Accidentals">i</button>
-          </div>
-          <div class="opt-control">
-            <button id="accidentalToggle" class="toggle-btn" type="button" data-mode="sharps">Sharps</button>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label" for="rowStartSelect">Rows start with note</label>
-            <button class="info-btn" type="button" data-info-key="rowStart" aria-label="Learn about row start">i</button>
-          </div>
-          <div class="opt-control">
-            <select id="rowStartSelect"></select>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
-            <button class="info-btn" type="button" data-info-key="stretch" aria-label="Learn about Stretch Tuning">i</button>
-          </div>
-          <div class="opt-control">
-            <select id="stretchSelect">
-              <option value="none">None (Equal Temperament)</option>
-              <option value="minimal" selected>Minimal (¼ Railsback above A4)</option>
-              <option value="medium">Medium (½ Railsback above A4)</option>
-              <option value="full">Full (Railsback)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label" for="needleDirSelect">Needle Direction</label>
-            <button class="info-btn" type="button" data-info-key="needleDirection" aria-label="Learn about Needle Direction">i</button>
-          </div>
-          <div class="opt-control">
-            <select id="needleDirSelect">
-              <option value="horizontal">Horizontal</option>
-              <option value="vertical" selected>Vertical</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label" for="transpositionSelect">Transposition</label>
-            <button class="info-btn" type="button" data-info-key="transposition" aria-label="Learn about Transposition">i</button>
-          </div>
-          <div class="opt-control">
-            <select id="transpositionSelect">
-              <option value="11">B (+11)</option>
-              <option value="10">B♭ (+10)</option>
-              <option value="9">A (+9)</option>
-              <option value="8">A♭ (+8)</option>
-              <option value="7">G (+7)</option>
-              <option value="6">G♭ (+6)</option>
-              <option value="5">F (+5) English Horn, Horn in F</option>
-              <option value="4">E (+4)</option>
-              <option value="3">E♭ (+3) Alto Sax, Baritone Sax, Eb Clarinet</option>
-              <option value="2">D (+2)</option>
-              <option value="1">D♭ (+1)</option>
-              <option value="0" selected>C (+0) Concert (Flute, Oboe, Violin, Voice, etc.)</option>
-              <option value="-1">B (−1)</option>
-              <option value="-2">B♭ (−2) Bb Trumpet & Clarinet, Sop. & Tenor Sax, Bass Clarinet</option>
-              <option value="-3">A (−3) Clarinet in A</option>
-              <option value="-4">A♭ (−4)</option>
-              <option value="-5">G (−5) Alto Flute</option>
-              <option value="-6">G♭ (−6)</option>
-              <option value="-7">F (−7)</option>
-              <option value="-8">E (−8)</option>
-              <option value="-9">E♭ (−9) Alto Sax, Baritone Sax, Eb Clarinet</option>
-              <option value="-10">D (−10)</option>
-              <option value="-11">D♭ (−11)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
-            <button class="info-btn" type="button" data-info-key="history" aria-label="Learn about History memory">i</button>
-          </div>
-          <div class="opt-control">
-            <select id="historySelect">
-              <option value="short" selected>Short (1 second)</option>
-              <option value="medium">Medium (3 seconds)</option>
-              <option value="long">Long (30 seconds)</option>
-              <option value="unlimited">Unlimited</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
-            <button class="info-btn" type="button" data-info-key="stainHold" aria-label="Learn about Color Hold Before Fade">i</button>
-          </div>
-          <div class="opt-control">
-            <select id="stainHoldSelect">
-              <option value="5">5 seconds</option>
-              <option value="15">15 seconds</option>
-              <option value="30" selected>30 seconds</option>
-              <option value="120">2 minutes</option>
-              <option value="300">5 minutes</option>
-              <option value="unlimited">No fade</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="option-field">
-          <div class="opt-label-row">
-            <label class="opt-label" for="volThresh">Volume Sensitivity</label>
-            <button class="info-btn" type="button" data-info-key="volume" aria-label="Learn about Volume Sensitivity">i</button>
-          </div>
-          <div class="opt-control opt-control-slider">
-            <div class="volume-wrap">
-              <div class="slider-col">
-                <input id="volThresh" type="range" min="0" max="0.9" step="0.01" />
-              </div>
-              <div id="led" class="led gray"></div>
-            </div>
-          </div>
-        </div>
+      </div>
 
       </div>
-    </div>
       <div class="options-overlay-footer">
         <div class="overlay-button-stack">
           <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<div id="optionInfoOverlay" class="option-info-overlay" aria-hidden="true">
-  <div class="option-info-card" role="dialog" aria-modal="true" aria-labelledby="optionInfoTitle">
-    <div class="option-info-header">
-      <div class="option-info-title" id="optionInfoTitle"></div>
-      <button id="optionInfoCloseBtn" class="options-close-btn info-close-btn" type="button" aria-label="Close option info">Close ✕</button>
-    </div>
-    <div class="option-info-body">
-      <p id="optionInfoSummary" class="option-info-summary"></p>
-      <div id="optionInfoDetail" class="option-info-detail"></div>
     </div>
   </div>
 </div>
@@ -2402,7 +2111,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.3";
+  const APP_VERSION = window.APP_VERSION || "1.26";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -2474,7 +2183,6 @@
   const stainHoldSelect   = document.getElementById("stainHoldSelect");
   const stretchSelect     = document.getElementById("stretchSelect");
   const accidentalToggle  = document.getElementById("accidentalToggle");
-  const holdGateToggle    = document.getElementById("holdGateToggle");
   const needleDirSelect   = document.getElementById("needleDirSelect");
   const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
 
@@ -2494,12 +2202,6 @@
   const optionsToggleBtn = document.getElementById("optionsToggleBtn");
   const optionsOverlay   = document.getElementById("optionsOverlay");
   const optionsCloseBtn  = document.getElementById("optionsCloseBtn");
-  const optionInfoOverlay = document.getElementById("optionInfoOverlay");
-  const optionInfoTitle = document.getElementById("optionInfoTitle");
-  const optionInfoSummary = document.getElementById("optionInfoSummary");
-  const optionInfoDetail = document.getElementById("optionInfoDetail");
-  const optionInfoCloseBtn = document.getElementById("optionInfoCloseBtn");
-  const optionInfoButtons = Array.from(document.querySelectorAll("[data-info-key]"));
   const statusToggleBtn = document.getElementById("statusToggleBtn");
   const statusOverlay   = document.getElementById("statusOverlay");
   const statusCloseBtn  = document.getElementById("statusCloseBtn");
@@ -2526,7 +2228,6 @@
   const optionsPaletteBtn = document.getElementById("optionsPaletteBtn");
   const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
-  const rowStartSelect = document.getElementById("rowStartSelect");
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -2566,7 +2267,6 @@
   function closeOptionsOverlay() {
     if (!optionsOverlay) return;
     if (!optionsOverlay.classList.contains("open")) return;
-    closeOptionInfo();
     optionsOverlay.classList.remove("open");
     optionsOverlay.setAttribute("aria-hidden", "true");
     document.removeEventListener("keydown", onOptionsOverlayKeyDown);
@@ -2578,58 +2278,6 @@
   function onOptionsOverlayKeyDown(event) {
     if (event.key === "Escape") {
       closeOptionsOverlay();
-    }
-  }
-
-  function openOptionInfo(key) {
-    if (!optionInfoOverlay) return;
-    const info = OPTION_INFO_CONTENT[key];
-    if (!info) return;
-    if (optionInfoTitle) optionInfoTitle.textContent = info.title;
-    if (optionInfoSummary) {
-      optionInfoSummary.innerHTML = info.summary ?? "";
-    }
-    if (optionInfoDetail) {
-      optionInfoDetail.innerHTML = "";
-      if (Array.isArray(info.detail)) {
-        info.detail.forEach(item => {
-          const p = document.createElement("p");
-          p.style.margin = "0 0 0.2rem 0";
-          p.style.padding = "0";
-          if (item && typeof item === "object" && typeof item.html === "string") {
-            p.innerHTML = item.html;
-          } else {
-            p.textContent = typeof item === "string" ? item : "";
-          }
-          optionInfoDetail.appendChild(p);
-        });
-      } else {
-        if (info.detail && typeof info.detail === "object" && typeof info.detail.html === "string") {
-          optionInfoDetail.innerHTML = info.detail.html;
-        } else {
-          optionInfoDetail.textContent = info.detail ?? "";
-        }
-      }
-    }
-    optionInfoOverlay.classList.add("open");
-    optionInfoOverlay.setAttribute("aria-hidden", "false");
-    document.addEventListener("keydown", onOptionInfoKeyDown);
-    if (optionInfoCloseBtn) {
-      optionInfoCloseBtn.focus();
-    }
-  }
-
-  function closeOptionInfo() {
-    if (!optionInfoOverlay) return;
-    if (!optionInfoOverlay.classList.contains("open")) return;
-    optionInfoOverlay.classList.remove("open");
-    optionInfoOverlay.setAttribute("aria-hidden", "true");
-    document.removeEventListener("keydown", onOptionInfoKeyDown);
-  }
-
-  function onOptionInfoKeyDown(event) {
-    if (event.key === "Escape") {
-      closeOptionInfo();
     }
   }
 
@@ -2727,20 +2375,18 @@
 
   // Modes
   const RELAXED_DEADZONE_RATIO = 0.003;  // 0.3%
-  const RELAXED_MIN_HOLD_MS = 80;
-  const RELAXED_ERR_SCALE = 0.7; // 50% less sensitive stain/color
-  const RELAXED_NEEDLE_TAU_MS = 350; // EMA time constant for needle damping (vocal-friendly)
+  const RELAXED_MIN_HOLD_MS = 150;
+  const RELAXED_ERR_SCALE = 0.5; // 50% less sensitive stain/color
+  const RELAXED_NEEDLE_TAU_MS = 400; // EMA time constant for needle damping (vocal-friendly)
 
   const MEDIUM_DEADZONE_RATIO = 0.0023; // ~0.23%
-  const MEDIUM_MIN_HOLD_MS = 80;
+  const MEDIUM_MIN_HOLD_MS = 100;
   const MEDIUM_ERR_SCALE = 0.7;
-  const MEDIUM_NEEDLE_TAU_MS = 80;
 
   // Hard mode softened but still tighter than Medium
   const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 2; // ~0.12%
-  const HARD_MIN_HOLD_MS = 40;
+  const HARD_MIN_HOLD_MS = 50;
   const HARD_ERR_SCALE = 0.9;
-  const HARD_NEEDLE_TAU_MS = 30;
 
   // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
   const RAILSBACK_ANCHORS = [
@@ -2756,44 +2402,40 @@
   ];
 
   // time to reach full brightness in the cell heatmap
-  const FULL_CONF_MS = 500;
+  const FULL_CONF_MS = 1000;
   const STAIN_MIN_FRACTION = 0.25;
   const STAIN_FADE_SECONDS = 10;
-  const STAIN_FADE_IN_MS = 125;
+  const STAIN_FADE_IN_MS = 250;
 
   // LED smoothing
-  const LED_STATE = Object.freeze({
-    GRAY: "gray",
-    GREEN: "green",
-    RED: "red"
-  });
-  let ledTargetState = LED_STATE.GRAY;
+  let ledTargetGreen = false;
   let ledLastSwitchTime = performance.now();
   const LED_OFF_DELAY_MS = 500; // hold green ~0.5s before fading gray
-  const LED_QUIET_RATIO = 0.5; // fraction of threshold that still counts as "heard"
-  const LED_MIN_FLOOR = 1e-5;
 
-  function applyLEDVisual(state = ledTargetState) {
-    if (!ledEl) return;
-    ledEl.classList.toggle("green", state === LED_STATE.GREEN);
-    ledEl.classList.toggle("red", state === LED_STATE.RED);
-    ledEl.classList.toggle("gray", state === LED_STATE.GRAY);
+  function applyLEDVisual() {
+    if (ledTargetGreen) {
+      ledEl.classList.add("green");
+      ledEl.classList.remove("gray");
+    } else {
+      ledEl.classList.add("gray");
+      ledEl.classList.remove("green");
+    }
   }
 
-  function updateLEDSticky(nextState) {
+  function updateLEDSticky(wantsGreen) {
     const t = performance.now();
 
-    if (nextState === LED_STATE.GREEN || nextState === LED_STATE.RED) {
-      ledTargetState = nextState;
+    if (wantsGreen) {
+      // immediately show green, reset timer
+      ledTargetGreen = true;
       ledLastSwitchTime = t;
       applyLEDVisual();
-      return;
-    }
-
-    // only fade to gray if quiet for long enough
-    if (t - ledLastSwitchTime > LED_OFF_DELAY_MS) {
-      ledTargetState = LED_STATE.GRAY;
-      applyLEDVisual();
+    } else {
+      // only fade to gray if quiet for long enough
+      if (t - ledLastSwitchTime > LED_OFF_DELAY_MS) {
+        ledTargetGreen = false;
+        applyLEDVisual();
+      }
     }
   }
 
@@ -2898,8 +2540,6 @@
   let easterEggRunning = false;
   let easterEggRestoreTimer = null;
   let easterEggSavedStyles = null;
-  const GRID_ROW_ANIM_MS = 220;
-  let pendingGridRowTransition = null;
   const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
 
   function generateCellColors(count) {
@@ -3106,29 +2746,25 @@
     "unlimited": Infinity
   });
 
-  const HOLD_GATE_DEFAULT = false;
-
   const DEFAULT_SETTINGS = {
     a4: 440,
     sensitivity: "medium",
     stretch: "none",
     accidentalMode: "sharps",
     transposition: "0",
-    rowStart: "0",
     lowNote: "C3",
     history: HISTORY_DEFAULT,
     stainHold: STAIN_HOLD_DEFAULT,
     needleDirection: "horizontal",
     range: null, // computed default
     minVol: 0.1,
-    colorPalette: null,
-    holdGate: HOLD_GATE_DEFAULT
+    colorPalette: null
   };
 
   const DEFAULT_PALETTE = {
-    sharp: { r: 255, g: 170, b: 0 },   // #FFAA00
+    sharp: { r: 249, g: 115, b: 22 },
     center: { r: 34, g: 197, b: 94 },
-    flat: { r: 0, g: 86, b: 214 }       // #0056D6
+    flat: { r: 147, g: 51, b: 234 }
   };
 
   const A_REF_PRESET_VALUES = Object.freeze(["392","415","430","432","438","440","441","442","443","444","466","470"]);
@@ -3136,80 +2772,6 @@
   const A_REF_MIN = 100;
   const A_REF_MAX = 1000;
   const A_REF_ERROR_MESSAGE = "Please enter a value between 100 and 1000 (e.g., 440).";
-
-  const OPTION_INFO_CONTENT = {
-    a4: {
-      title: "Performance Pitch (A4)",
-      summary: "Sets the reference frequency so all targets shift up or down from this A4 anchor.",
-      detail: "Use 440 for modern pitch; pick 415, 430, 442, etc. to match an ensemble or recording."
-    },
-    mode: {
-      title: "Mode",
-      summary: "Chooses how forgiving the tuner is before it paints the grid.  Dead zones are a margin of error that paints the cell as 'in-tune.'",
-      detail: [
-        "• Relaxed: ~10 cents dead zone, 350ms needle smoothing. If on, Hold Gate = 80ms.",
-        "• Medium: ~8 cents dead zone, 120ms smoothing. If on, Hold Gate = 80ms.",
-        "• Hard: ~4 cents dead zone, 30ms smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily. If on, Hold Gate = 40ms."
-      ]
-    },
-    holdGate: {
-      title: "Hold Gate",
-      summary: "Waits for the pitch to settle briefly before coloring a cell.",
-      detail: "When on, stain waits a short mode-based hold before logging: ~80ms (relaxed/medium), ~40ms (hard)."
-    },
-    accidentals: {
-      title: "Accidentals",
-      summary: "Switches note labels between sharps and flats.",
-      detail: "Match the display to your key signature."
-    },
-    rowStart: {
-      title: "Rows start with note",
-      summary: "Changes the note that starts each row.",
-      detail: "Align rows with open strings, valve patterns, or scale degrees to match your preferences."
-    },
-    stretch: {
-      title: "Stretch Tuning",
-      summary: 'Applies a <a href="https://en.wikipedia.org/wiki/Piano_acoustics" target="_blank" rel="noreferrer">Railsback-style stretch</a> to the target pitches. Notes above A4 are pushed increasingly sharp as they ascend. Low notes are also pushed increasingly flat when Full Railsback is selected.',
-      detail: [
-        "• None: Equal temperament; no stretch applied.",
-        "• Minimal: ≈ ¼ Railsback above A4 (lows untouched, highs gently raised).",
-        "• Medium: ≈ ½ Railsback above A4 (lows untouched, moderate raise of highs).",
-        "• Full: Typical piano-style Railsback across the range (lows lower, highs higher)."
-      ]
-    },
-    needleDirection: {
-      title: "Needle Direction",
-      summary: "Sets whether the pitch needle moves horizontally or vertically.",
-      detail: "Horizontal may feel more natural to string players, vertical to wind players.  Vertical will show glisses as continual motion."
-    },
-    transposition: {
-      title: "Transposition",
-      summary: "Offsets concert pitch so the grid shows the written note for your instrument.",
-      detail: "Select your transposition to practice from written parts without mental shifting; leave at C for concert instruments, choose Bb/Eb/F, etc. for winds and brass."
-    },
-    history: {
-      title: "History (per-pitch memory)",
-      summary: "Controls the per-pitch memory of each cell - how much time, on that pitch, affects the color of the cell before it is no longer tracked.",
-      detail: "Short (1s) for rapid drills; Medium (3s) for phrases; Long (30s) for passages; Unlimited builds a running heatmap until you reset."
-    },
-    stainHold: {
-      title: "Color Hold Before Fade",
-      summary: "Delays how soon a colored cell starts fading after a hit.",
-      detail: "No fade keeps colors locked until you reset. Fade begins after the hold, then decays based on your history window."
-    },
-    volume: {
-      title: "Volume Sensitivity",
-      summary: "Sets the input level required before the tuner reacts.",
-      detail: [
-        "Move slider to the right to decrease sensitivity and block out room noise or extraneous sounds; move left to increase sensitivity.",
-        "At maximum setting, the threshold is about 0.50 RMS (roughly half of full-scale input amplitude).",
-        "LED states:",
-        "• Green: actively updating the grid (signal above threshold).",
-        "• Red: hearing a signal but it's softer than the threshold.",
-        "• Gray: quiet/idle."
-      ]
-    }
-  };
 
   const USAGE_STORAGE_KEY = "tonemap.live.usage";
   const USAGE_LOCK_KEY = "tonemap.live.usage.lock";
@@ -3234,32 +2796,18 @@
   let lastUsageUiUpdateMs = 0;
   let pendingMilestone = false;
 
-  function normalizeHoldGateSetting(raw) {
-    return raw === false ? false : true;
-  }
-
-  function defaultSettingsWithHoldGate() {
-    return {
-      ...DEFAULT_SETTINGS,
-      holdGate: normalizeHoldGateSetting(DEFAULT_SETTINGS.holdGate)
-    };
-  }
-
   function loadSettings() {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      const defaults = defaultSettingsWithHoldGate();
-      if (!raw) return defaults;
+      if (!raw) return { ...DEFAULT_SETTINGS };
       const parsed = JSON.parse(raw);
       if (parsed && parsed.range != null) {
         parsed.range = String(parsed.range);
       }
-      const merged = { ...defaults, ...parsed };
-      merged.holdGate = normalizeHoldGateSetting(parsed?.holdGate ?? merged.holdGate);
-      return merged;
+      return { ...DEFAULT_SETTINGS, ...parsed };
     } catch (err) {
       console.warn("Failed to load settings, using defaults", err);
-      return defaultSettingsWithHoldGate();
+      return { ...DEFAULT_SETTINGS };
     }
   }
 
@@ -3691,14 +3239,6 @@
     accidentalToggle.setAttribute("aria-pressed", accidentalMode === "flats" ? "true" : "false");
   }
 
-  function updateHoldGateToggleUI() {
-    if (!holdGateToggle) return;
-    const enabled = isHoldGateEnabled();
-    holdGateToggle.classList.toggle("active", enabled);
-    holdGateToggle.setAttribute("aria-pressed", enabled ? "true" : "false");
-    holdGateToggle.textContent = `Hold: ${enabled ? "On" : "Off"}`;
-  }
-
   function updateGridLabelsForAccidentals() {
     for (const midi in midiToCellEl) {
       const cell = midiToCellEl[midi];
@@ -3878,11 +3418,6 @@
     if (originalSensitivity !== sensitivityVal) needsPersist = true;
     currentSettings.sensitivity = sensitivityVal;
 
-    const originalHoldGate = settings.holdGate;
-    const normalizedHoldGate = normalizeHoldGateSetting(originalHoldGate);
-    if (originalHoldGate !== normalizedHoldGate) needsPersist = true;
-    currentSettings.holdGate = normalizedHoldGate;
-
     const originalStretch = settings.stretch;
     const stretchVal = (originalStretch === "minimal" || originalStretch === "medium" || originalStretch === "full") ? originalStretch : "none";
     if (stretchSelect) stretchSelect.value = stretchVal;
@@ -3901,19 +3436,14 @@
     if (originalStainHold !== stainHoldVal) needsPersist = true;
     currentSettings.stainHold = stainHoldVal;
 
-    const originalRowStart = settings.rowStart;
-    let rowStartVal = parseInt(originalRowStart, 10);
-    if (!Number.isFinite(rowStartVal) || rowStartVal < 0 || rowStartVal > 11) {
-      rowStartVal = parseInt(DEFAULT_SETTINGS.rowStart, 10) || 0;
-    }
-    rebuildRowStartSelectOptions(rowStartVal);
-    if (rowStartSelect) rowStartSelect.value = String(rowStartVal);
-    if (String(originalRowStart) !== String(rowStartVal)) needsPersist = true;
-    currentSettings.rowStart = String(rowStartVal);
-
     const originalLowNote = settings.lowNote;
-    const chosenLowNote = rebuildLowNoteSelectOptions(rowStartVal, originalLowNote);
-    if (originalLowNote !== chosenLowNote) needsPersist = true;
+    let lowNoteVal = originalLowNote;
+    if (!lowNoteSelect || !lowNoteSelect.querySelector(`option[value="${lowNoteVal}"]`)) {
+      lowNoteVal = DEFAULT_SETTINGS.lowNote;
+    }
+    if (lowNoteSelect) lowNoteSelect.value = lowNoteVal;
+    if (originalLowNote !== lowNoteVal) needsPersist = true;
+    currentSettings.lowNote = lowNoteVal;
 
     const originalMinVol = settings.minVol;
     let minVolVal = originalMinVol;
@@ -3921,7 +3451,7 @@
       const parsed = parseFloat(minVolVal);
       minVolVal = Number.isFinite(parsed) ? parsed : DEFAULT_SETTINGS.minVol;
     }
-    minVolVal = Math.min(Math.max(minVolVal, 0), 0.9);
+    minVolVal = Math.min(Math.max(minVolVal, 0), 1);
     if (minVolVal !== originalMinVol) needsPersist = true;
     currentSettings.minVol = minVolVal;
     if (volThreshEl) {
@@ -3968,8 +3498,6 @@
       needsPersist = true;
     }
     currentSettings.transposition = transposeVal;
-
-    updateHoldGateToggleUI();
 
     if (needsPersist) {
       persistSettings(currentSettings);
@@ -4020,20 +3548,10 @@
     accidentalMode = nextMode;
     currentSettings.accidentalMode = nextMode;
     if (!skipPersist) persistSettings(currentSettings);
-    rebuildRowStartSelectOptions();
-    rebuildLowNoteSelectOptions();
     updateAccidentalToggleUI();
     updateGridLabelsForAccidentals();
     updateNoteReadoutText();
     highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
-  }
-
-  function toggleHoldGate() {
-    const enabled = !isHoldGateEnabled();
-    currentSettings.holdGate = enabled;
-    persistSettings(currentSettings);
-    updateHoldGateToggleUI();
-    updateDebugPanel({});
   }
 
   /**********************
@@ -4056,57 +3574,16 @@
     const anchors = RAILSBACK_ANCHORS;
     if (anchors.length === 0) return 0;
     if (midi <= anchors[0].midi) return anchors[0].cents;
-    if (midi >= anchors[anchors.length - 1].midi) {
-      return anchors[anchors.length - 1].cents;
-    }
-
-    // Monotone cubic interpolation (PCHIP-like) over anchors
-    const n = anchors.length;
-    const xs = anchors.map(a => a.midi);
-    const ys = anchors.map(a => a.cents);
-
-    const h = new Array(n - 1);
-    const delta = new Array(n - 1);
-    for (let i = 0; i < n - 1; i++) {
-      h[i] = xs[i + 1] - xs[i];
-      delta[i] = (ys[i + 1] - ys[i]) / h[i];
-    }
-
-    const m = new Array(n);
-    m[0] = delta[0];
-    m[n - 1] = delta[n - 2];
-    for (let i = 1; i < n - 1; i++) {
-      if (delta[i - 1] * delta[i] <= 0) {
-        m[i] = 0;
-      } else {
-        m[i] = (delta[i - 1] * h[i] + delta[i] * h[i - 1]) / (h[i - 1] + h[i]);
+    for (let i = 0; i < anchors.length - 1; i++) {
+      const a = anchors[i];
+      const b = anchors[i + 1];
+      if (midi >= a.midi && midi <= b.midi) {
+        const span = b.midi - a.midi;
+        const t = span === 0 ? 0 : (midi - a.midi) / span;
+        return a.cents + (b.cents - a.cents) * t;
       }
     }
-
-    for (let i = 0; i < n - 1; i++) {
-      if (delta[i] === 0) {
-        m[i] = 0;
-        m[i + 1] = 0;
-      }
-    }
-
-    function evalHermite(i, xVal) {
-      const t = (xVal - xs[i]) / h[i];
-      const t2 = t * t;
-      const t3 = t2 * t;
-      const h00 = (2 * t3) - (3 * t2) + 1;
-      const h10 = t3 - (2 * t2) + t;
-      const h01 = (-2 * t3) + (3 * t2);
-      const h11 = t3 - t2;
-      return h00 * ys[i] + h10 * h[i] * m[i] + h01 * ys[i + 1] + h11 * h[i] * m[i + 1];
-    }
-
-    for (let i = 0; i < n - 1; i++) {
-      if (midi >= xs[i] && midi <= xs[i + 1]) {
-        return evalHermite(i, midi);
-      }
-    }
-    return ys[ys.length - 1];
+    return anchors[anchors.length - 1].cents;
   }
 
   function getStretchCents(midi) {
@@ -4185,18 +3662,20 @@
     dbgFft.textContent     = "2048";
     updateQuickState();
 
-    const mode = resolveMode(sensitivitySelect ? sensitivitySelect.value : "medium");
+    const mode = sensitivitySelect.value;
     if (mode === "relaxed") {
         dbgSens.textContent     = "Relaxed";
         dbgDeadZone.textContent = "~0.30%";
+        dbgHold.textContent     = "0.15 s";
     } else if (mode === "medium") {
         dbgSens.textContent     = "Medium";
         dbgDeadZone.textContent = "~0.23%";
+        dbgHold.textContent     = "0.10 s";
     } else {
         dbgSens.textContent     = "Hard";
         dbgDeadZone.textContent = "~0.12%";
+        dbgHold.textContent     = "0.05 s";
     }
-    dbgHold.textContent = formatHoldGateText(mode);
 
     if (dbgStretch) {
       let stretchLabel = "None (Equal Temperament)";
@@ -4316,60 +3795,6 @@
     return baseForOct + idx;
   }
 
-  function getCurrentRowStartIdx() {
-    const idx = parseInt(currentSettings.rowStart ?? "0", 10);
-    if (!Number.isFinite(idx)) return 0;
-    return ((idx % 12) + 12) % 12;
-  }
-
-  function rebuildRowStartSelectOptions(selectedIdx = getCurrentRowStartIdx()) {
-    if (!rowStartSelect) return;
-    const names = getNoteNamesForMode(accidentalMode);
-    const prevVal = rowStartSelect.value ?? String(selectedIdx);
-    rowStartSelect.innerHTML = "";
-    [...names].reverse().forEach((name, revIdx) => {
-      const idx = names.length - 1 - revIdx;
-      const opt = document.createElement("option");
-      opt.value = String(idx);
-      opt.textContent = name;
-      rowStartSelect.appendChild(opt);
-    });
-    const chosen = rowStartSelect.querySelector(`option[value="${prevVal}"]`) ? prevVal : String(selectedIdx);
-    rowStartSelect.value = chosen;
-    currentSettings.rowStart = chosen;
-  }
-
-  function rebuildLowNoteSelectOptions(rowStartIdx = getCurrentRowStartIdx(), desiredVal = null) {
-    if (!lowNoteSelect) return null;
-    const displayNames = getNoteNamesForMode(accidentalMode);
-    const displayBase = displayNames[rowStartIdx] ?? NOTE_NAMES_SHARP[rowStartIdx];
-    const valueBase = NOTE_NAMES_SHARP[rowStartIdx];
-    const maxTopMidi = noteNameToMidiC("C8");
-    const prevVal = desiredVal || lowNoteSelect.value;
-    const prevOctaveMatch = /(\d+)$/.exec(prevVal || "");
-    const sameOctaveVal = prevOctaveMatch ? `${valueBase}${prevOctaveMatch[1]}` : null;
-    lowNoteSelect.innerHTML = "";
-    for (let oct = 0; oct <= 8; oct++) {
-      const midiVal = noteNameToMidiC(`${valueBase}${oct}`);
-      if (midiVal > maxTopMidi) break;
-      const opt = document.createElement("option");
-      opt.value = `${valueBase}${oct}`;
-      opt.textContent = `${displayBase}${oct}`;
-      lowNoteSelect.appendChild(opt);
-    }
-    let chosen = prevVal;
-    if (!lowNoteSelect.querySelector(`option[value="${chosen}"]`)) {
-      if (sameOctaveVal && lowNoteSelect.querySelector(`option[value="${sameOctaveVal}"]`)) {
-        chosen = sameOctaveVal;
-      } else {
-        chosen = lowNoteSelect.options[0]?.value || `${valueBase}0`;
-      }
-    }
-    lowNoteSelect.value = chosen;
-    currentSettings.lowNote = chosen;
-    return chosen;
-  }
-
   function rebuildRangeOptions({forceDefault=false, desiredRange=null} = {}) {
     const lowNoteName = lowNoteSelect.value;
     const { minOctaves, maxOctaves } = getRangeLimitsForLow(lowNoteName);
@@ -4412,57 +3837,7 @@
     }
   }
 
-  function queueGridRowTransition(edge, action) {
-    if (!noteGrid) return;
-    if ((edge !== "top" && edge !== "bottom") || (action !== "add" && action !== "remove")) {
-      pendingGridRowTransition = null;
-      return;
-    }
-    pendingGridRowTransition = { edge, action };
-  }
-
-  function injectRowRemovalGhost(transition) {
-    if (!noteGrid || !transition || transition.action !== "remove") return;
-    const cells = Array.from(noteGrid.children).filter(el => el.classList?.contains("grid-cell"));
-    if (cells.length < 12) return;
-
-    const oldRows = Math.max(1, Math.floor(cells.length / 12));
-    const rowCells = transition.edge === "top" ? cells.slice(0, 12) : cells.slice(cells.length - 12);
-    const existingGhosts = noteGrid.querySelectorAll(".grid-row-removal-ghost");
-    existingGhosts.forEach(ghost => ghost.remove());
-
-    const ghost = document.createElement("div");
-    ghost.className = `grid-row-removal-ghost ${transition.edge}`;
-    ghost.style.height = `${100 / oldRows}%`;
-
-    for (const cell of rowCells) {
-      const clone = cell.cloneNode(true);
-      clone.classList.remove("active", "range-row-add-top", "range-row-add-bottom");
-      ghost.appendChild(clone);
-    }
-
-    noteGrid.appendChild(ghost);
-    window.setTimeout(() => ghost.remove(), GRID_ROW_ANIM_MS + 80);
-  }
-
-  function animateInsertedRow(transition) {
-    if (!noteGrid || !transition || transition.action !== "add") return;
-    const cells = Array.from(noteGrid.children).filter(el => el.classList?.contains("grid-cell"));
-    if (cells.length < 12) return;
-    const target = transition.edge === "top" ? cells.slice(0, 12) : cells.slice(cells.length - 12);
-    const className = transition.edge === "top" ? "range-row-add-top" : "range-row-add-bottom";
-
-    for (const cell of target) {
-      cell.classList.add(className);
-    }
-    window.setTimeout(() => {
-      for (const cell of target) {
-        cell.classList.remove(className);
-      }
-    }, GRID_ROW_ANIM_MS + 40);
-  }
-
-  function buildGrid({ preserveStain = true, rowTransition = null } = {}) {
+  function buildGrid({ preserveStain = true } = {}) {
     const lowNoteName = lowNoteSelect.value;
     const numOct      = parseInt(rangeSelect.value, 10);
 
@@ -4489,7 +3864,6 @@
       resetMasterCellState();
     }
 
-    injectRowRemovalGhost(rowTransition);
     noteGrid.innerHTML = "";
     midiToCellEl = {};
     const nextCellState = {};
@@ -4526,7 +3900,6 @@
       }
     }
 
-    animateInsertedRow(rowTransition);
     cellState = nextCellState;
   }
 
@@ -4591,7 +3964,6 @@
     let nextRange = currentRange + deltaOctaves;
     nextRange = Math.max(minOctaves, Math.min(maxOctaves, nextRange));
     if (nextRange === currentRange) return;
-    queueGridRowTransition("top", deltaOctaves > 0 ? "add" : "remove");
     rangeSelect.value = String(nextRange);
     rangeSelect.dispatchEvent(new Event("change"));
   }
@@ -4605,7 +3977,6 @@
       if (currentRange <= minOctaves) return;
       const nextHigher = getAdjacentLowNote(1);
       if (!nextHigher) return;
-      queueGridRowTransition("bottom", "remove");
       applyRangeAndLow(currentRange - 1, nextHigher);
     } else if (stepOctaves < 0) {
       const nextLower = getAdjacentLowNote(-1);
@@ -4613,7 +3984,6 @@
       const desiredRange = currentRange + 1;
       const { maxOctaves } = getRangeLimitsForLow(nextLower);
       if (desiredRange > maxOctaves) return;
-      queueGridRowTransition("bottom", "add");
       applyRangeAndLow(desiredRange, nextLower);
     }
   }
@@ -4838,41 +4208,15 @@
     activeNoteInfo.stretchCents = stretchCents ?? activeNoteInfo.stretchCents ?? 0;
   }
 
-  function resolveMode(modeRaw) {
-    if (modeRaw === "relaxed") return "relaxed";
-    if (modeRaw === "hard") return "hard";
-    return "medium";
-  }
-
-  function isHoldGateEnabled() {
-    const enabled = normalizeHoldGateSetting(currentSettings?.holdGate);
-    currentSettings.holdGate = enabled;
-    return enabled;
-  }
-
-  function getMinHoldMsForMode(mode = sensitivitySelect?.value ?? currentSettings?.sensitivity ?? "medium") {
-    const resolved = resolveMode(mode);
-    const base = resolved === "relaxed"
-      ? RELAXED_MIN_HOLD_MS
-      : resolved === "medium"
-        ? MEDIUM_MIN_HOLD_MS
-        : HARD_MIN_HOLD_MS;
-    return isHoldGateEnabled() ? base : 0;
-  }
-
   function getCurrentMinHoldMs() {
-    const mode = sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium";
-    return getMinHoldMsForMode(mode);
-  }
-
-  function formatHoldGateText(mode = sensitivitySelect?.value ?? currentSettings?.sensitivity ?? "medium") {
-    const holdMs = getMinHoldMsForMode(mode);
-    if (holdMs <= 0) return "Off";
-    return `${(holdMs / 1000).toFixed(2)} s`;
+    const mode = sensitivitySelect.value;
+    if (mode === "relaxed") return RELAXED_MIN_HOLD_MS;
+    if (mode === "medium") return MEDIUM_MIN_HOLD_MS;
+    return HARD_MIN_HOLD_MS;
   }
 
   function getCurrentDeadzoneRatio() {
-    const mode = resolveMode(sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium");
+    const mode = sensitivitySelect.value;
     if (mode === "relaxed") return RELAXED_DEADZONE_RATIO;
     if (mode === "medium") return MEDIUM_DEADZONE_RATIO;
     return HARD_DEADZONE_RATIO;
@@ -5047,88 +4391,6 @@
     return { overlay, pieces };
   }
 
-  function launchMiniConfettiBurst({ pieces = 14, duration = 2400, gravity = 1100, onFinish } = {}) {
-    if (!noteGrid) return null;
-    const cells = Object.values(midiToCellEl || {});
-    if (!cells.length) return null;
-    const cell = cells[Math.floor(Math.random() * cells.length)];
-    const gridRect = noteGrid.getBoundingClientRect();
-    const rect = cell.getBoundingClientRect();
-    if (!gridRect.width || !gridRect.height) return null;
-
-    const overlay = document.createElement("div");
-    overlay.className = "confetti-overlay";
-    const palette = generateCellColors(8);
-    const burstPieces = [];
-
-    for (let i = 0; i < pieces; i++) {
-      const startX = (rect.left - gridRect.left) + Math.random() * rect.width;
-      const startY = (rect.top - gridRect.top) + Math.random() * rect.height;
-      const pieceEl = document.createElement("div");
-      pieceEl.className = "confetti-piece";
-      const w = 6 + Math.random() * 6;
-      const h = 8 + Math.random() * 8;
-      pieceEl.style.width = `${w}px`;
-      pieceEl.style.height = `${h}px`;
-      pieceEl.style.backgroundColor = palette[i % palette.length];
-      pieceEl.style.borderRadius = `${1 + Math.random() * 2}px`;
-
-      const angle = (-Math.PI / 2) + (Math.random() * 0.9 - 0.45);
-      const speed = 360 + Math.random() * 300;
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-      const rot = Math.random() * 360;
-      const rotVel = (Math.random() * 540 - 270);
-
-      const piece = { el: pieceEl, x: startX, y: startY, vx, vy, rot, rotVel };
-      pieceEl.style.transform = `translate(${piece.x}px, ${piece.y}px) rotate(${piece.rot}deg)`;
-      overlay.appendChild(pieceEl);
-      burstPieces.push(piece);
-    }
-
-    noteGrid.appendChild(overlay);
-
-    const fadeStart = duration * 0.4;
-    let lastT = null;
-    const startT = performance.now();
-    let rafId = null;
-    let finished = false;
-
-    function cleanup(callFinish = true) {
-      if (finished) return;
-      finished = true;
-      if (rafId != null) cancelAnimationFrame(rafId);
-      if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-      if (callFinish && typeof onFinish === "function") onFinish();
-    }
-
-    function step(ts) {
-      if (lastT == null) lastT = ts;
-      const dt = (ts - lastT) / 1000;
-      lastT = ts;
-      const elapsed = ts - startT;
-
-      burstPieces.forEach(p => {
-        p.vy += gravity * dt;
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        p.rot += p.rotVel * dt;
-        const opacity = elapsed > fadeStart ? Math.max(0, 1 - (elapsed - fadeStart) / (duration - fadeStart)) : 1;
-        p.el.style.opacity = opacity;
-        p.el.style.transform = `translate(${p.x}px, ${p.y}px) rotate(${p.rot}deg)`;
-      });
-
-      if (elapsed < duration) {
-        rafId = requestAnimationFrame(step);
-      } else {
-        cleanup(true);
-      }
-    }
-
-    rafId = requestAnimationFrame(step);
-    return () => cleanup(false);
-  }
-
   function restoreEasterEggCells({ fadeIn = true } = {}) {
     if (!easterEggSavedStyles) return;
 
@@ -5239,46 +4501,8 @@
     // show stats modal first, centered over grid
     let statsModalClosed = false;
     let animationDone = false;
-    const activeMiniBursts = new Set();
-    let trailingConfettiTimer = null;
-    let trailingConfettiStop = false;
-
-    const stopTrailingConfetti = () => {
-      trailingConfettiStop = true;
-      if (trailingConfettiTimer != null) {
-        clearTimeout(trailingConfettiTimer);
-        trailingConfettiTimer = null;
-      }
-      activeMiniBursts.forEach(cleanup => {
-        try { cleanup(); } catch { /* ignore */ }
-      });
-      activeMiniBursts.clear();
-    };
-
-    const scheduleTrailingConfetti = () => {
-      if (trailingConfettiStop) return;
-      const delay = 250 + Math.random() * 750;
-      trailingConfettiTimer = window.setTimeout(() => {
-        if (trailingConfettiStop) return;
-        if (document.hidden) {
-          scheduleTrailingConfetti();
-          return;
-        }
-        const cleanup = launchMiniConfettiBurst({
-          pieces: 14,
-          duration: 2400,
-          onFinish: () => activeMiniBursts.delete(cleanup)
-        });
-        if (typeof cleanup === "function") {
-          activeMiniBursts.add(cleanup);
-        }
-        scheduleTrailingConfetti();
-      }, delay);
-    };
-
     const finishIfReady = () => {
       if (statsModalClosed && animationDone) {
-        stopTrailingConfetti();
         restoreEasterEggCells({ fadeIn: true });
         suppressHeatmapRender = false;
         renderHeatmap();
@@ -5290,14 +4514,12 @@
       parent: noteGrid,
       onClose: () => {
         statsModalClosed = true;
-        stopTrailingConfetti();
         finishIfReady();
       }
     });
 
     const { overlay, pieces } = buildConfettiPiecesForCells(colors);
     if (overlay) noteGrid.appendChild(overlay);
-    scheduleTrailingConfetti();
 
     const gravity = 1200; // px/s^2 (slower fall)
     const duration = 2800;
@@ -5431,7 +4653,7 @@
   /**********************
    * RANGE / STATUS MESSAGING
    **********************/
-  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = MEDIUM_MIN_HOLD_MS, quietSignalNow = false) {
+  function updateRangeAlertsAndStatusPanel(activeMidi, runningNow, loudEnoughNow, capturingNow, inDeadZoneNow, outOfRangeHoldMs = MEDIUM_MIN_HOLD_MS) {
     const t = nowMs();
     let belowNow = false;
     let aboveNow = false;
@@ -5501,12 +4723,7 @@
 
     updateEdgeControlStates({ rangeAlert: highRecent, lowAlert: lowRecent });
 
-    const ledState = capturingNow
-      ? LED_STATE.GREEN
-      : quietSignalNow
-        ? LED_STATE.RED
-        : LED_STATE.GRAY;
-    updateLEDSticky(ledState);
+    updateLEDSticky(capturingNow);
     setDeadZoneHighlight(inDeadZoneNow);
   }
 
@@ -5536,7 +4753,6 @@
     lastFrameTime = nowT;
 
     const loudEnough = rms >= volumeThreshold;
-    const quietSignal = !loudEnough && rms >= Math.max(volumeThreshold * LED_QUIET_RATIO, LED_MIN_FLOOR);
     const pitchValid =
       clarity > 0.8 &&
       pitch > MIN_FREQ &&
@@ -5561,27 +4777,20 @@
       noteDetectedThisFrame = true;
 
       let displayCents = cents;
-      const tauMs = mode === "relaxed"
-        ? RELAXED_NEEDLE_TAU_MS
-        : mode === "medium"
-          ? MEDIUM_NEEDLE_TAU_MS
-          : HARD_NEEDLE_TAU_MS;
-      if (tauMs > 0) {
+      if (mode === "relaxed") {
         if (!relaxedSmoothingActive) {
           relaxedNeedleCents = cents;
           relaxedNeedleLastMs = nowT;
-          relaxedSmoothingActive = true;
         } else {
           if (!Number.isFinite(relaxedNeedleCents)) {
             relaxedNeedleCents = cents;
           }
-          const alpha = 1 - Math.exp(-dtMs / tauMs);
+          const alpha = 1 - Math.exp(-dtMs / RELAXED_NEEDLE_TAU_MS);
           relaxedNeedleCents = relaxedNeedleCents + (cents - relaxedNeedleCents) * alpha;
         }
         displayCents = relaxedNeedleCents;
       } else {
         relaxedNeedleCents = cents;
-        relaxedSmoothingActive = false;
       }
     const absErr = Math.abs(errRatio);
     inDeadZoneNow = (absErr <= deadZoneRatio);
@@ -5663,8 +4872,7 @@
       loudEnough,
       capturingNow,
       inDeadZoneNow,
-      minHold,
-      quietSignal
+      minHold
     );
 
     handleUsageTick({ noteDetected: noteDetectedThisFrame, nowT: nowT });
@@ -5793,7 +5001,7 @@
     updateNoteReadoutText();
 
     // reset LED state
-    ledTargetState = LED_STATE.GRAY;
+    ledTargetGreen = false;
     ledLastSwitchTime = performance.now();
     applyLEDVisual();
   }
@@ -5852,19 +5060,6 @@
   if (noteGrid) {
     noteGrid.addEventListener("click", handleGridCellClick);
     noteGrid.addEventListener("touchend", handleGridCellClick, { passive: true });
-  }
-
-  if (rowStartSelect) {
-    rowStartSelect.addEventListener("change", () => {
-      const val = parseInt(rowStartSelect.value, 10);
-      const idx = Number.isFinite(val) ? ((val % 12) + 12) % 12 : 0;
-      currentSettings.rowStart = String(idx);
-      const chosenLow = rebuildLowNoteSelectOptions(idx);
-      currentSettings.lowNote = chosenLow || currentSettings.lowNote;
-      persistSettings(currentSettings);
-      rebuildRangeOptions({ forceDefault: false });
-      buildGrid({ preserveStain: true });
-    });
   }
 
   if (rangeGrowBtn) {
@@ -6005,30 +5200,6 @@
     });
   }
 
-  if (optionInfoButtons.length) {
-    optionInfoButtons.forEach(btn => {
-      btn.addEventListener("click", event => {
-        event.stopPropagation();
-        const key = btn.dataset.infoKey;
-        openOptionInfo(key);
-      });
-    });
-  }
-
-  if (optionInfoCloseBtn) {
-    optionInfoCloseBtn.addEventListener("click", () => {
-      closeOptionInfo();
-    });
-  }
-
-  if (optionInfoOverlay) {
-    optionInfoOverlay.addEventListener("click", event => {
-      if (event.target === optionInfoOverlay) {
-        closeOptionInfo();
-      }
-    });
-  }
-
   if (statusToggleBtn && statusOverlay) {
     statusToggleBtn.addEventListener("click", () => {
       if (statusOverlay.classList.contains("open")) {
@@ -6075,7 +5246,7 @@
   volThreshEl.addEventListener("input", () => {
     const val = parseFloat(volThreshEl.value);
     if (!isNaN(val)) {
-      const clamped = Math.max(0, Math.min(0.9, val));
+      const clamped = Math.max(0, Math.min(0.75, val));
       volumeThreshold = sliderToThreshold(clamped);
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       currentSettings.minVol = clamped;
@@ -6087,15 +5258,13 @@
   A4 = currentSettings.a4;
   dbgARef.textContent = `${A4}`;
   volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
-  if (volThreshEl) volThreshEl.value = String(Math.min(0.9, currentSettings.minVol ?? 0.1));
+  if (volThreshEl) volThreshEl.value = String(Math.min(0.75, currentSettings.minVol ?? 0.1));
   dbgThresh.textContent = volumeThreshold.toExponential(2);
   initUsageTracking();
 
   function rebuildAll({forceDefaultRange=false, preserveStain=true} = {}) {
-    const rowTransition = pendingGridRowTransition;
-    pendingGridRowTransition = null;
     rebuildRangeOptions({forceDefault: forceDefaultRange, desiredRange: currentSettings.range});
-    buildGrid({ preserveStain, rowTransition });
+    buildGrid({ preserveStain });
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
@@ -6109,11 +5278,9 @@
   });
 
   rangeSelect.addEventListener("change", () => {
-    const rowTransition = pendingGridRowTransition;
-    pendingGridRowTransition = null;
     currentSettings.range = rangeSelect.value;
     persistSettings(currentSettings);
-    buildGrid({ preserveStain: true, rowTransition });
+    buildGrid({ preserveStain: true });
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getCurrentMinHoldMs());
     renderHeatmap();
@@ -6144,10 +5311,6 @@
     });
   }
 
-  if (holdGateToggle) {
-    holdGateToggle.addEventListener("click", () => toggleHoldGate());
-  }
-
   if (accidentalToggle) {
     accidentalToggle.addEventListener("click", () => {
       const nextMode = accidentalMode === "sharps" ? "flats" : "sharps";
@@ -6165,7 +5328,7 @@
 
   if (resetSettingsBtn) {
     resetSettingsBtn.addEventListener("click", () => {
-      currentSettings = defaultSettingsWithHoldGate();
+      currentSettings = { ...DEFAULT_SETTINGS };
       persistSettings(currentSettings);
       applySettingsToUI(currentSettings);
       currentPalette = normalizePalette(DEFAULT_PALETTE);
@@ -6175,7 +5338,7 @@
       A4 = currentSettings.a4;
       dbgARef.textContent = `${A4}`;
       volumeThreshold = sliderToThreshold(currentSettings.minVol);
-      if (volThreshEl) volThreshEl.value = String(Math.min(0.9, currentSettings.minVol));
+      if (volThreshEl) volThreshEl.value = String(Math.min(0.75, currentSettings.minVol));
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       finalizeActiveSegment();
       clearActiveNote();
@@ -6249,5 +5412,5 @@
   updateNoteReadoutText();
 
 </script>
-<!-- Cloudflare Pages Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "198a64163a1e49898770050d15ecd4c4"}'></script><!-- Cloudflare Pages Analytics --></body>
+</body>
 </html>

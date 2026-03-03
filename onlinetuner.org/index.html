@@ -1,0 +1,1068 @@
+
+<!doctype html>
+<html lang="en">
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+        <link rel="stylesheet" type="text/css" href="https://onlinetuner.org/elements/style.css" />
+        <link rel="icon" type="image/png" href="https://onlinetuner.org/medias/2023/07/icon-online-tuner.png" />
+
+        <title>Online Tuner: Tune Your Instrument Online | OnlineTuner.org</title>
+        <meta name="description" content="OnlineTuner.org provides the most reliable online tuner on the market to tune your instruments directly from your web browser." />
+
+        <!-- Facebook !-->
+        <meta property="og:title" content="Online Tuner: Tune Your Instrument Online | OnlineTuner.org" />
+        <meta property="og:url" content="https://onlinetuner.org/" />
+        <meta property="og:image" content="https://onlinetuner.org/medias/thmb/2023/08/thumbnail-fb-icon-online-tuner.png" />
+
+        <!-- Twitter !-->
+        <meta name="twitter:title" content="Online Tuner: Tune Your Instrument Online | OnlineTuner.org" />
+        <meta name="twitter:description" content="OnlineTuner.org provides the most reliable online tuner on the market to tune your instruments directly from your web browser." />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://onlinetuner.org/medias/thmb/2023/08/thumbnail-tw-icon-online-tuner.png" />
+
+        
+        <script type="text/javascript" charset="utf-8" src="/cms/custom-scripts.js"></script>
+
+        <style id="custom-css">html {
+    background: rgb(255,248,236);
+    background: -moz-linear-gradient(0deg, rgba(255,248,236,1) 0%, rgba(245,245,245,1) 30%, rgba(245,245,245,1) 70%, rgba(255,248,236,1) 100%);
+    background: -webkit-linear-gradient(0deg, rgba(255,248,236,1) 0%, rgba(245,245,245,1) 30%, rgba(245,245,245,1) 70%, rgba(255,248,236,1) 100%);
+    background: linear-gradient(0deg, rgba(255,248,236,1) 0%, rgba(245,245,245,1) 30%, rgba(245,245,245,1) 70%, rgba(255,248,236,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#fff8ec",endColorstr="#fff8ec",GradientType=1);
+}
+
+body {
+    font-family:Helvetica, sans-serif;
+    font-weight:300;
+    background-color:white;
+    box-shadow:0 0 3px #ccc;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight:bold;
+}
+
+.menu-button {
+    display:flex;
+    align-items:center;
+    text-decoration:none;
+    padding:4px 8px;
+    border-radius: 8px;
+    background: rgb(241,241,241);
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+}
+
+.menu-button.no-flex {
+    display:block;
+}
+
+.menu-button.footer-button {
+    display:inline-block;
+}
+
+.menu-button:hover {
+    border-radius: 24px;
+    background: rgb(255,231,188);
+    transition:1s ease-in-out;   
+}
+
+/* ADS */
+.bonjour a {
+    display:inline-block!important;
+}
+
+/* SIDE MENU */
+@media (min-width:993px) {
+
+    #main-navigation {
+        position:fixed;
+        width: 300px;
+        height:100%;
+        top: 0;
+        left:0;
+        background-color:white;
+        margin-left:0!important;
+        border-right:1px solid #ccc;
+        overflow:auto;
+    }
+    
+    #main-navigation.fixed {
+        position:fixed;
+        width: 300px;
+        height:100%;
+        top: 0;
+        left:0;
+        margin-left:0!important;
+    }
+    
+    #cookie-consent-message, #cookie-consent-form {
+        left:-300px;
+    }
+    
+    body {
+        margin-left:0;
+        margin-right:0;
+        margin-top:0px!important;
+    }
+    
+    body > * {
+        margin-left:300px;
+    }
+    
+    .shadow-bottom {
+        box-shadow:none!important;
+    }
+    
+}
+
+body > .bsa_fixed-leaderboard {
+    margin-left:0!important;
+}
+
+/* SIDE MENU */
+@media (min-width:1200px) {
+
+    #main-navigation {
+        position:fixed;
+        width: 300px;
+        height:100%;
+        top: 0;
+        left:calc((100% - 1200px) / 2);
+        background-color:white;
+        margin-left:0!important;
+    }
+    
+    #main-navigation.fixed {
+        position:fixed;
+        width: 300px;
+        height:100%;
+        top: 0;
+        left:calc((100% - 1200px) / 2);
+        margin-left:0!important;
+    }
+    
+    #cookie-consent-message, #cookie-consent-form {
+        left:-300px;
+    }
+    
+    body {
+        margin-left:calc((100% - 1200px) / 2);
+        margin-right:calc((100% - 1200px) / 2);
+        margin-top:0px!important;
+    }
+    
+    body > * {
+        margin-left:300px;
+    }
+    
+    .shadow-bottom {
+        box-shadow:none!important;
+    }
+    
+}
+
+.instrument-tuner .thumbnail {
+    max-height:100%;
+}
+
+/* Modal */
+.modal {
+    margin:0;
+}
+
+/* Colors */
+.blue {
+    background-color: #596894!important;
+    color:#fff!important;
+}
+.text-blue {
+    color:#596894!important;
+}
+.orange {
+    background-color: #d29518!important;
+    color:#fff!important;
+}
+.green {
+    background-color: #167638!important;
+    color:#fff!important;
+}
+.red {
+    background-color: #c74747!important;
+    color:#fff!important;
+}</style><script>// MATOMO
+var _paq = window._paq = window._paq || [];
+/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+_paq.push(['trackPageView']);
+_paq.push(['enableLinkTracking']);
+(function() {
+var u="//onlinetuner.org/analytics/";
+_paq.push(['setTrackerUrl', u+'matomo.php']);
+_paq.push(['setSiteId', '1']);
+_paq.push(['disableCookies', '1']);
+var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+})();</script><script type="text/javascript">
+	(function(){
+		var bsa_optimize=document.createElement('script');
+		bsa_optimize.type='text/javascript';
+		bsa_optimize.async=true;
+		bsa_optimize.src='https://cdn4.buysellads.net/pub/onlinetuner.js?'+(new Date()-new Date()%600000);
+		(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(bsa_optimize);
+	})();
+</script>
+    </head>
+
+    <body>
+
+    <style>#itm5{height:40px;}#ijv8u{height:30px;}#i9lvk{height:30px;}#imnci{height:30px;}#i8hp1{height:30px;}#i86ze{margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;}#ixrek{padding-top:4px;padding-right:16px;padding-bottom:4px;padding-left:16px;}#iacfn{height:30px;}#i0q4t{height:30px;}#ipueq{height:40px;padding-top:4px;padding-right:4px;padding-bottom:4px;padding-left:4px;background-color:rgb(241, 241, 241);}#ie3k{padding-top:4px;padding-right:0px;padding-bottom:4px;padding-left:0px;}#im3a{font-size:15px;}#if9x{font-size:11px;}#i8gq6{width:60px;}#iqvj{width:30px;}#ii72u{width:30px;}#ibcs5{width:30px;}#i4lgn{width:30px;}#izorh{width:30px;}#ijndr{width:30px;}</style><nav id="main-navigation"><div id="main-menu" class="hide-medium hide-small"><div class="row center padding"><a href="/" title="OnlineTuner.org's home page" class="row block menu-button padding no-flex"><div class="row padding"><img src="https://onlinetuner.org/medias/2023/07/icon-online-tuner.png" height="40" width="40" id="itm5" alt="Logo of OnlineTuner.org" class="image show-inline-block cell-middle"></div><div class="show-inline-block padding-small cell-middle"><b>ONLINETUNER.ORG
+        </b><p class="margin-0 no-margin small">Tune your instrument online for free
+          <br></p></div></a></div><div id="ixrek" class="row"><hr id="i86ze"></div><div class="row padding"><a href="/guitar-tuner" title="Online Guitar Tuner" class="menu-button"><img src="https://onlinetuner.org/medias/2023/10/electric-guitar.svg" height="30" width="30" alt="Guitar" id="i8hp1" class="cell-middle show-inline-block margin-right"><p class="show-inline-block cell-middle no-margin">Online Guitar Tuner</p></a></div><div class="row padding"><a href="/bass-tuner" title="Online Bass Tuner" class="menu-button"><img src="https://onlinetuner.org/medias/2023/10/bass-guitar.svg" height="30" width="30" alt="Bass" id="imnci" class="cell-middle show-inline-block margin-right"><p class="show-inline-block cell-middle no-margin">Online Bass Tuner</p></a></div><div class="row padding"><a href="/ukulele-tuner" title="Online Ukulele Tuner" class="menu-button"><img src="https://onlinetuner.org/medias/2023/10/ukulele.svg" height="30" width="30" id="ijv8u" alt="Ukulele" class="cell-middle show-inline-block margin-right"><p class="show-inline-block cell-middle no-margin">Online Ukulele Tuner</p></a></div><div class="row padding"><a href="/banjo-tuner" title="Online Banjo Tuner" class="menu-button"><img src="https://onlinetuner.org/medias/2023/10/banjo.svg" height="30" width="30" alt="Banjo" id="iacfn" class="cell-middle show-inline-block margin-right"><p class="show-inline-block cell-middle no-margin">Online Banjo Tuner</p></a></div><div class="row padding"><a href="/violin-tuner" title="Online Violin Tuner" class="menu-button"><img src="https://onlinetuner.org/medias/2023/10/violin.svg" height="30" width="30" id="i9lvk" alt="Violin" class="cell-middle show-inline-block margin-right"><p class="show-inline-block cell-middle no-margin">Online Violin Tuner</p></a></div><hr class="no-margin"><div class="row padding"><a href="https://metronome-online.org" title="An Online Metronome" class="menu-button"><img src="https://metronome-online.org/medias/2025/09/logo-metronome-online.png" height="30" width="30" alt="Violin" id="i0q4t" class="cell-middle show-inline-block margin-right"><p class="show-inline-block cell-middle no-margin">Online Metronome</p></a></div></div><div id="mobile-menu" class="hide-large"><div id="ie3k" class="cell-row smart-margins white border-bottom"><div class="cell l10 m10 s10"><a href="/" title="OnlineTuner.org's home page" class="show-inline-block no-decoration"><img src="https://onlinetuner.org/medias/2023/07/icon-online-tuner.png" height="60" width="60" alt="Logo of OnlineTuner.org" id="i8gq6" class="image show-inline-block cell-middle"><div class="show-inline-block padding-small cell-middle hover-opacity"><b id="im3a">ONLINETUNER.ORG
+      </b><p id="if9x" class="margin-0 no-margin">Tune your instrument online for free
+        <br></p></div></a></div><div class="cell right-align m10 l10 s10"><img src="https://onlinetuner.org/medias/2023/08/menu-toggle.svg" height="40" width="40" id="ipueq" alt="Button to toggle OnlineTuner.org's menu" class="image menu-toggle round"></div></div></div><div id="mobile-toggle-menu" class="hide"><div class="padding-large row white"><div class="row padding-large center"><a href="/guitar-tuner" title="An online guitar tuner" class="show-inline-block no-decoration"><img src="https://onlinetuner.org/medias/2023/10/electric-guitar.svg" height="30" width="30" alt="An electric guitar" id="iqvj" class="image margin-right"><p class="show-inline-block cell-middle no-margin">Online Guitar Tuner</p></a></div><div class="row padding-large center"><a href="/bass-tuner" title="An online bass tuner" class="show-inline-block no-decoration"><img src="https://onlinetuner.org/medias/2023/10/bass-guitar.svg" height="30" width="30" alt="A bass" id="ii72u" class="image margin-right"><p class="show-inline-block cell-middle no-margin">Online Bass Tuner</p></a></div><div class="row padding-large center"><a href="/ukulele-tuner" title="An online ukulele tuner" class="show-inline-block no-decoration"><img src="https://onlinetuner.org/medias/2023/10/ukulele.svg" height="30" width="30" alt="A ukulele" id="ibcs5" class="image margin-right"><p class="show-inline-block cell-middle no-margin">Online Ukulele Tuner</p></a></div><div class="row padding-large center"><a href="/banjo-tuner" title="An online banjo tuner" class="show-inline-block no-decoration"><img src="https://onlinetuner.org/medias/2023/10/banjo.svg" height="30" width="30" alt="A banjo" id="i4lgn" class="image margin-right"><p class="show-inline-block cell-middle no-margin">Online Banjo Tuner</p></a></div><div class="row padding-large center"><a href="/violin-tuner" title="An online violin tuner" class="show-inline-block no-decoration"><img src="https://onlinetuner.org/medias/2023/10/violin.svg" height="30" width="30" alt="A violin" id="izorh" class="image margin-right"><p class="show-inline-block cell-middle no-margin">Online Violin Tuner</p></a></div><hr class="no-margin"><div class="row padding-large center"><a href="https://metronome-online.org" title="An Online Metronome" class="show-inline-block no-decoration"><img src="https://metronome-online.org/medias/2025/09/logo-metronome-online.png" height="30" width="30" alt="A violin" id="ijndr" class="image margin-right"><p class="show-inline-block cell-middle no-margin">Online Metronome</p></a></div></div></div></nav><div id="content-wrapper"><style>#i7zf{width:120px;}#ipryl{background-color:rgb(241, 241, 241);}#iqk39{box-sizing:inherit;margin-top:0px;}#i2jbwl{width:60px;}#ifqao6{width:60px;}#ig484l{width:60px;}#islydi{width:60px;}#ido96{width:170px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(181, 5, 5);border-right-color:rgb(181, 5, 5);border-bottom-color:rgb(181, 5, 5);border-left-color:rgb(181, 5, 5);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;}#i0ao8{font-size:16px;}#iqnlh{font-size:16px;}#i5bi8{width:170px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(90, 53, 11);border-right-color:rgb(90, 53, 11);border-bottom-color:rgb(90, 53, 11);border-left-color:rgb(90, 53, 11);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;}#i2s2m{font-size:16px;}#ipnuj{width:170px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(170, 127, 0);border-right-color:rgb(170, 127, 0);border-bottom-color:rgb(170, 127, 0);border-left-color:rgb(170, 127, 0);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;}#iwpas{font-size:16px;}#ii8e6{width:170px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(103, 211, 157);border-right-color:rgb(103, 211, 157);border-bottom-color:rgb(103, 211, 157);border-left-color:rgb(103, 211, 157);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;}#iy6vi{font-size:16px;}#iratt{width:170px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(90, 53, 11);border-right-color:rgb(90, 53, 11);border-bottom-color:rgb(90, 53, 11);border-left-color:rgb(90, 53, 11);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;}#iio5n{font-size:16px;}#im2a1{width:170px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(90, 53, 11);border-right-color:rgb(90, 53, 11);border-bottom-color:rgb(90, 53, 11);border-left-color:rgb(90, 53, 11);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;}#ijfn8{font-size:16px;}#ib817{width:170px;margin-top:0px;margin-right:0px;margin-bottom:8px;margin-left:0px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(237, 199, 7);border-right-color:rgb(237, 199, 7);border-bottom-color:rgb(237, 199, 7);border-left-color:rgb(237, 199, 7);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;}#i437e{font-size:16px;}#i3uji{width:170px;margin-top:0px;margin-right:0px;margin-bottom:8px;margin-left:0px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(237, 199, 7);border-right-color:rgb(237, 199, 7);border-bottom-color:rgb(237, 199, 7);border-left-color:rgb(237, 199, 7);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;}#il6ml{font-size:16px;}#ioosm{width:170px;margin-top:0px;margin-right:0px;margin-bottom:8px;margin-left:0px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(170, 170, 170);border-right-color:rgb(170, 170, 170);border-bottom-color:rgb(170, 170, 170);border-left-color:rgb(170, 170, 170);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;}#ik5hb{font-size:16px;}#izyhk{width:170px;margin-top:0px;margin-right:0px;margin-bottom:8px;margin-left:0px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(63, 63, 63);border-right-color:rgb(63, 63, 63);border-bottom-color:rgb(63, 63, 63);border-left-color:rgb(63, 63, 63);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;}#iu3ne{font-size:16px;}#ije0p{width:170px;margin-top:0px;margin-right:0px;margin-bottom:8px;margin-left:0px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(63, 63, 63);border-right-color:rgb(63, 63, 63);border-bottom-color:rgb(63, 63, 63);border-left-color:rgb(63, 63, 63);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;}#i81dv{font-size:16px;}#izn82{width:170px;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(124, 73, 6);border-right-color:rgb(124, 73, 6);border-bottom-color:rgb(124, 73, 6);border-left-color:rgb(124, 73, 6);border-image-source:none;border-image-slice:100%;border-image-width:1;border-image-outset:0;border-image-repeat:stretch;}#iqikts{width:60px;}#i005xp{font-size:16px;}#i3vgpo{width:170px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(90, 53, 11);border-right-color:rgb(90, 53, 11);border-bottom-color:rgb(90, 53, 11);border-left-color:rgb(90, 53, 11);border-image-source:initial;border-image-slice:initial;border-image-width:initial;border-image-outset:initial;border-image-repeat:initial;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;}#i41ij9{font-size:16px;}#idz3sz{width:170px;border-top-width:4px;border-right-width:4px;border-bottom-width:4px;border-left-width:4px;border-top-style:solid;border-right-style:solid;border-bottom-style:solid;border-left-style:solid;border-top-color:rgb(255, 192, 57);border-right-color:rgb(255, 192, 57);border-bottom-color:rgb(255, 192, 57);border-left-color:rgb(255, 192, 57);border-image-source:none;border-image-slice:100%;border-image-width:1;border-image-outset:0;border-image-repeat:stretch;margin-top:0px;margin-right:8px;margin-bottom:8px;margin-left:0px;}</style><div class="row">
+    
+    <div class="row center padding"><img src="https://onlinetuner.org/medias/2023/07/icon-online-tuner.png" height="120" width="120" id="i7zf" alt="Logo of OnlineTuner.org" class="image reveal flip-horizontal active"><h1>Online Tuner: Tune Your Instrument Online With OnlineTuner.org<br></h1><p class="left-align">OnlineTuner.org provides you with a high-precision and easy to use online tuner that lets you tune your instrument online hassle-free. Nothing else is needed than your computer, smartphone or tablet's internal microphone. We get the note frequency from your instrument and let you know whether you should tune it down or up according to the desired note. OnlineTuner.org offers a tuning settings optimized for a wide range of instruments - mainly string instruments. We are also proud to be the most accurate online tuner on the market.</p>
+<style>#app-stores img {height:40px;width:auto;border-radius: 12px;user-select: none;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;}#wait-play{position:absolute;left:0;top:0;width:100%;height:100%;background-color:#fff;opacity:.8;z-index:3}#wait{z-index:4;font-weight:700;color:#b61a1a}#play{z-index:4;font-weight:700;color:#167638}#install-app-button{display:inline-block;position:absolute;padding:4px 8px;border-radius:8px;background:#f1f1f1;cursor:pointer;-ms-user-select:none;-moz-user-select:none;-webkit-user-select:none;user-select:none;z-index:6;left:0}#install-app-button:hover{transition:1s;border-radius:24px;background:#ffe7bc;transition:1s ease-in-out}#tuner-container input[type=number]{padding:2px 4px;outline:0!important;border:0!important;display:inline-block!important;width:auto!important;text-align:center}#tuner-container input[type=range]{text-align:center;margin:8px 0}#tuner-container.meter-tuner #meter-tuner{display:block}#tuner-container.meter-tuner #slider-tuner,#tuner-container #slider-tuner{display:none!important}#tuner-container.slider-tuner #meter-tuner{display:none!important}#tuner-container.slider-tuner #slider-tuner{display:block!important}.switch{display:inline-block;position:relative;width:40px;height:16px;cursor:pointer;overflow:hidden;transition:all .5s}.switch input + span{position:absolute;top:0;bottom:0;left:0;right:0;background:#99b4df;border-radius:20px;transition:all .5s}.switch input + span:before{content:"";display:inline-block;position:absolute;top:50%;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;transform:translateY(-50%);transition:all .5s}.switch input:checked + span{background:#596894}.switch input:checked + span:before{left:26px}#tuner-container h2{margin-top:0}#tuner{height:10px;width:400px;max-width:100%;border-radius:10px;position:relative;background:#d3d3d3;vertical-align:middle;border-radius:50px;z-index:1}#tune-up,#tune-down,#string-information{opacity:0;transition:.1s ease-in-out;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);color:#b61a1a}#in-tune{transition:.1s ease-in-out;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);color:#167638}#pitch-ball{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);display:inline-block;width:30px;height:30px;margin:0;border-radius:50%;background:#fff;background:-moz-radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);background:-webkit-radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#b1b1b1",GradientType=1);z-index:2}#cursor{height:35px;width:35px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);border:2px dashed #000;border-radius:50%;z-index:2}#desired-note,#user-note,#note-left,#note-right{transition:.1s ease-in-out;vertical-align:middle;font-weight:700}#current-note{font-size:45px;font-weight:700;color:#167638;line-height:1}#current-string{font-size:12px;color:#167638;line-height:1;min-height:16px}#note-left{position:absolute;left:calc(50% - 220px);top:84px;z-index:2}#note-right{position:absolute;right:calc(50% - 220px);top:84px;z-index:2}#click-on-a-note{display:inline-block;outline:0;border:none;cursor:pointer;line-height:1.2rem;font-weight:900;padding:8px 14px 9px;border-radius:4px;margin:4px;transition:all 75ms ease-in-out}#click-on-a-note.show{display:inline-block!important}.custom-button{display:inline-block;outline:0;border:none;cursor:pointer;line-height:1.2rem;font-weight:900;background:#596894;padding:8px 14px 9px;border-radius:4px;margin:4px;color:#fff;transition:all 75ms ease-in-out}.custom-button.green{background-color:#167638!important}.custom-button.red{background-color:#c74747!important}.custom-button.show{display:inline-block!important}.slider{-webkit-appearance:none;appearance:none;width:100%;height:5px;padding:0;background:#d3d3d3;outline:none;opacity:.7;-webkit-transition:.2s;transition:opacity .2s}.slider:hover{opacity:1}.slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:25px;height:25px;background:#fff;background:-moz-radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);background:-webkit-radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#b1b1b1",GradientType=1);cursor:pointer;border-radius:50%}.slider::-moz-range-thumb{width:25px;height:25px;background:#fff;background:-moz-radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);background:-webkit-radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#b1b1b1",GradientType=1);cursor:pointer;border-radius:50%}#meter-super-container{height:250px;width:100%;overflow:hidden;display:block;text-align:center;position:relative}#meter-container{height:400px;width:400px;overflow:hidden;background-color:#fff;position:relative;display:inline-block}@media (max-width:600px){#meter-super-container{height:187px;width:100%}#meter-container{height:300px;width:300px}#note-left{position:absolute;left:calc(50% - 170px);top:70px;z-index:2}#note-right{position:absolute;right:calc(50% - 170px);top:70px;z-index:2}}.base-circle{height:100%;width:100%;border-radius:50%;border:4px solid #000;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);box-sizing:border-box}.green-circle{height:100%;width:100%;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);box-sizing:border-box;background-color:#167638}.circle-0-9{height:90%;width:90%;border-radius:50%;background-color:#fff;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);box-sizing:border-box}.middle-dot{height:8%;width:8%;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);box-sizing:border-box;background:#fff;background:-moz-radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);background:-webkit-radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(238,238,238,1) 60%,rgba(177,177,177,1) 100%);filter:progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#b1b1b1",GradientType=1)}.white-bar{background-color:#fff;height:200px;width:200%;box-sizing:border-box;position:absolute;top:50%;left:-50%}#needle{width:4px;background:#000;height:50%;position:absolute;top:0;left:calc(50% - 2px);border-radius:100% 100% 0 0;transition:.1s ease-out}.strong-mark{width:2px;background:#000;height:50%;position:absolute;top:0;left:calc(50% - 1px)}.transform-top-center{transform-origin:top center}.transform-bottom-center{transform-origin:bottom center}.rotate-180{-webkit-transform:rotate(-180deg);-moz-transform:rotate(-180deg);transform:rotate(-180deg)}.rotate-170{-webkit-transform:rotate(-170deg);-moz-transform:rotate(-170deg);transform:rotate(-170deg)}.rotate-160{-webkit-transform:rotate(-160deg);-moz-transform:rotate(-160deg);transform:rotate(-160deg)}.rotate-150{-webkit-transform:rotate(-150deg);-moz-transform:rotate(-150deg);transform:rotate(-150deg)}.rotate-140{-webkit-transform:rotate(-140deg);-moz-transform:rotate(-140deg);transform:rotate(-140deg)}.rotate-130{-webkit-transform:rotate(-130deg);-moz-transform:rotate(-130deg);transform:rotate(-130deg)}.rotate-120{-webkit-transform:rotate(-120deg);-moz-transform:rotate(-120deg);transform:rotate(-120deg)}.rotate-110{-webkit-transform:rotate(-110deg);-moz-transform:rotate(-110deg);transform:rotate(-110deg)}.rotate-100{-webkit-transform:rotate(-100deg);-moz-transform:rotate(-100deg);transform:rotate(-100deg)}.rotate-90{-webkit-transform:rotate(-90deg);-moz-transform:rotate(-90deg);transform:rotate(-90deg)}.rotate-86{-webkit-transform:rotate(-86deg);-moz-transform:rotate(-86deg);transform:rotate(-86deg)}.rotate-80{-webkit-transform:rotate(-80deg);-moz-transform:rotate(-80deg);transform:rotate(-80deg)}.rotate-70{-webkit-transform:rotate(-70deg);-moz-transform:rotate(-70deg);transform:rotate(-70deg)}.rotate-60{-webkit-transform:rotate(-60deg);-moz-transform:rotate(-60deg);transform:rotate(-60deg)}.rotate-50{-webkit-transform:rotate(-50deg);-moz-transform:rotate(-50deg);transform:rotate(-50deg)}.rotate-40{-webkit-transform:rotate(-40deg);-moz-transform:rotate(-40deg);transform:rotate(-40deg)}.rotate-30{-webkit-transform:rotate(-30deg);-moz-transform:rotate(-30deg);transform:rotate(-30deg)}.rotate-20{-webkit-transform:rotate(-20deg);-moz-transform:rotate(-20deg);transform:rotate(-20deg)}.rotate-10{-webkit-transform:rotate(-10deg);-moz-transform:rotate(-10deg);transform:rotate(-10deg)}.rotate0{-webkit-transform:rotate(0deg);-moz-transform:rotate(0deg);transform:rotate(0deg)}.rotate10{-webkit-transform:rotate(10deg);-moz-transform:rotate(10deg);transform:rotate(10deg)}.rotate20{-webkit-transform:rotate(20deg);-moz-transform:rotate(20deg);transform:rotate(20deg)}.rotate30{-webkit-transform:rotate(30deg);-moz-transform:rotate(30deg);transform:rotate(30deg)}.rotate40{-webkit-transform:rotate(40deg);-moz-transform:rotate(40deg);transform:rotate(40deg)}.rotate50{-webkit-transform:rotate(50deg);-moz-transform:rotate(50deg);transform:rotate(50deg)}.rotate60{-webkit-transform:rotate(60deg);-moz-transform:rotate(60deg);transform:rotate(60deg)}.rotate70{-webkit-transform:rotate(70deg);-moz-transform:rotate(70deg);transform:rotate(70deg)}.rotate80{-webkit-transform:rotate(80deg);-moz-transform:rotate(80deg);transform:rotate(80deg)}.rotate86{-webkit-transform:rotate(86deg);-moz-transform:rotate(86deg);transform:rotate(86deg)}.rotate90{-webkit-transform:rotate(90deg);-moz-transform:rotate(90deg);transform:rotate(90deg)}.rotate100{-webkit-transform:rotate(100deg);-moz-transform:rotate(100deg);transform:rotate(100deg)}.rotate110{-webkit-transform:rotate(110deg);-moz-transform:rotate(110deg);transform:rotate(110deg)}.rotate120{-webkit-transform:rotate(120deg);-moz-transform:rotate(120deg);transform:rotate(120deg)}.rotate130{-webkit-transform:rotate(130deg);-moz-transform:rotate(130deg);transform:rotate(130deg)}.rotate140{-webkit-transform:rotate(140deg);-moz-transform:rotate(140deg);transform:rotate(140deg)}.rotate150{-webkit-transform:rotate(150deg);-moz-transform:rotate(150deg);transform:rotate(150deg)}.rotate160{-webkit-transform:rotate(160deg);-moz-transform:rotate(160deg);transform:rotate(160deg)}.rotate170{-webkit-transform:rotate(170deg);-moz-transform:rotate(170deg);transform:rotate(170deg)}.rotate180{-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);transform:rotate(180deg)}</style>
+
+
+
+<!-- Onlinetuner_S2S_IncontentLeaderboard3_ROS -->
+<div style="min-width: 300px; min-height: 250px; max-width:100%; overflow:hidden" id="bsa-zone_1741790926109-0_123456"></div>
+
+<!-- Wrapper !-->
+<div class="row">
+
+    <div id="tuner-container" class="row display-container">
+        
+        <div id="install-app-button" class="small hide" style="display:none;">Install as app</div>
+    
+        <div class="row center display-container">
+
+            <div id="desired-note" class="row padding">
+                <div class="show-inline-block display-container">
+                    <div id="current-note">A4</div>
+                                        <div id="current-string"></div>
+                                    </div>
+                <div>(<span id="current-frequency">440</span> Hz)</div>
+            </div>
+    
+            <!-- Meter tuner -->
+            <div id="meter-tuner" class="row center">
+                <div id="meter-super-container">
+                    <div id="note-left">G#4</div>
+                    <div id="note-right">A#4</div>
+                    <div id="meter-container">
+    
+                        <!-- Green zone -->
+                        <div class="green-circle">
+                        </div>
+    
+                        <!-- White bars -->
+                        <div class="rotate-86 transform-top-center white-bar">
+                        </div>
+                        <div class="rotate86 transform-top-center white-bar">
+                        </div>  
+                        
+                        <div class="base-circle">
+                        </div>
+                        
+                        <!-- White bars -->
+                        <div class="rotate-30 transform-top-center white-bar">
+                        </div>
+                        <div class="rotate30 transform-top-center white-bar">
+                        </div>  
+                        
+                        <!-- Marks -->
+                        <div class="rotate-60 transform-bottom-center strong-mark">
+                        </div>
+                        
+                        <div class="rotate60 transform-bottom-center strong-mark">
+                        </div>
+                        
+                        <!-- Hiding circle -->
+                        <div class="circle-0-9">
+                        </div>
+                        
+                        <!-- Needle -->
+                        <div id="needle" class="transform-bottom-center">
+                        </div>
+                        
+                        <!-- Middle dot -->
+                        <div class="middle-dot">
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Slider -->
+            <div id="slider-tuner" class="row padding">
+                <div id="tuner" class="show-inline-block">
+                    <div id="pitch-ball">
+                    </div>
+                    <div id="cursor"></div>
+                </div>
+            </div>
+    
+            <!-- User note -->
+            <div id="user-note" class="row padding">
+                <div class="show-inline-block padding-small">Current frequency: <span id="current-user-frequency">440</span> Hz</div>
+                <div class="row display-container padding-16">
+                    <span id="tune-up">Tune up &#x2191;</span>
+                    <span id="tune-down">Tune down &#x2193;</span>
+                    <span id="in-tune">In tune</span>
+                                        <span id="string-information">|</span>
+                                    </div>
+            </div>
+    
+            <!-- Wait/Play -->
+            <div id="wait-play" class="hide">
+            </div>
+            <span id="wait" class="display-middle xxlarge hide">Wait...</span>
+            <span id="play" class="display-middle xxlarge hide">Play!</span>
+    
+            <div class="row">
+                <div id="start-tuning" class="custom-button green show">
+                    Start tuner                </div>
+                <div id="stop-tuning" class="custom-button red hide">
+                    Stop tuner                </div>
+            </div>
+            
+            <div id="app-stores" class="row">
+            
+                <!-- App Store -->
+                <a class="no-decoration hover-opacity show-inline-block" href="https://apps.apple.com/app/raw-tuner/id6748946202">
+                    <img class="margin-top image hover-opacity" src="/modules/online-tuner/img/apple-en.svg"/>
+                </a>
+                
+                <!-- Play Store -->
+                <a class="no-decoration hover-opacity show-inline-block" href="https://play.google.com/store/apps/details?id=com.xwurg.rawtuner">
+                    <img class="margin-top image hover-opacity" src="/modules/online-tuner/img/google-en.svg"/>
+                </a>
+            
+            </div>
+    
+        </div>
+        
+        <div class="row center padding">
+            <a class="menu-button white border show-inline-block" href="https://metronome-online.org/" target="_blank" rel="noopener">
+                <img src="https://metronome-online.org/medias/2025/09/logo-metronome-online.png" alt="Metronome-Online logo" style="height:30px; margin-right:4px" class="show-inline-block cell-middle">
+                <span class="show-inline-block cell-middle">Discover our new Online Metronome</span>
+            </a>
+        </div>
+        
+        <hr>
+    
+        <div class="row center">
+            
+            <!-- Settings settings -->
+            <div class="row center">
+
+                <div id="la-container" class="row padding-small">
+                    
+                    <!-- La -->
+                    <div class="show-inline-block cell-middle  padding">
+                        <label for="la" class="show-inline-block">Set frequency of A4 (Hz):</label>
+                        <input id="la" class="show-inline-block" style="width: auto; border: 0;" type="number" step="1" min="0" max="800">
+                    </div>
+                    
+                    <!-- Switcher -->
+                    <div class="show-inline-block cell-middle  padding">
+                        <label class="switch display-container cell-middle pointer">
+                            <input id="tuner-switcher" type="checkbox" class="absolute-hide" name="tuner" value="slider"/>
+                            <span></span>
+                        </label>
+                        <label for="tuner-switcher" class="cell-middle pointer">Display the slider tuner</label>
+                    </div>
+                    
+                </div>
+                
+                        
+                <!-- Advanced settings -->
+                <div class="row padding">
+                    <span class="text-blue underline hover-opacity pointer" onclick="myModal('advanced-settings')">Advanced settings</span>
+                </div>
+    
+                <div id="advanced-settings" class="hide animate-opacity margin-top">
+                    <div class="cell-row">
+    
+                        <!-- Confidence threshold -->
+                        <div id="confidence-threshold-container" class="cell l6 m6 s12 cell-top padding">
+                            <div>Confidence threshold</div>
+                            <input type="number" id="confidence-threshold" name="confidence-threshold" min="0.9" max="0.999" step="0.001">
+                            <input type="range" class="slider" id="confidence-threshold-slider" min="0.9" max="0.999" step="0.001" oninput="document.getElementById('confidence-threshold').value = this.value">
+                        </div>
+    
+                        <!--Noise gate -->
+                        <div id="noise-gate-container" class="cell cell l6 m6 s12 cell-top padding">
+                            <div>Noise gate (dB)</div>
+                            <input id="noise-gate" name="noise-gate" type="number" min="-127" max="0" step="0.01">
+                            <input id="noise-gate-slider" oninput="document.getElementById('noise-gate').value = this.value" type="range" class="slider" min="-127" max="0" step="0.01">
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="padding">
+                    <div id="save-settings" class="custom-button">
+                        Save settings                    </div>
+                    <div id="reset-settings" class="custom-button">
+                        Reset settings                    </div>
+                </div>
+            </div>
+    
+            <hr>
+    
+            <div id="synth" class="row padding center">
+                <h2>🎶 Tune by ear 🎶</h2>
+                <div onclick="changeOctave(-1)" id="octave-down" class="custom-button">-1 Octave</div>
+                <div id="click-on-a-note" class="show">Click on a note</div>
+                <div id="stop-sound" onclick="stopOscillator()" class="custom-button hide">Stop playing</div>
+                <div onclick="changeOctave(1)" id="octave-up" class="custom-button">+1 Octave</div>
+            </div>
+    
+            <div id="notes-container" class="row padding">
+            </div>
+    
+    
+        </div>
+    
+    </div>
+    
+</div>
+
+<script type="text/javascript">
+/********************/
+/*   CONFIGURATION  */
+/********************/
+// The selected instrument and tuning to adjust pitch and freq
+var instrument = null;
+var tuning = null;
+
+// Strings
+var wordForString = 'String n°';
+var wordForPreviousString = '&#x2193; to string n°';
+var wordForNextString = '&#x2191; to string n°';
+
+// Note
+var wordForNote = 'Target note';
+var wordLowFromTarget = 'Tune &#x2191; to target - ';
+var wordUpFromTarget = 'Tune &#x2193; to target - ';
+
+// The initial octave to display
+var currentOctave = 4;
+
+// Base pitch
+var notes = {};
+
+// Configuration parameters
+const sizeOfFFT = 4096;
+const modeCache = 2;
+const frequencyCache = 3;
+const bufferSmoothing = 3;
+const minFrequency = 20;
+const maxFrequency = 10000;
+
+const lowSecurityThreshold = Math.pow(2, -1/12);
+const highSecurityThreshold = Math.pow(2, 1/12);
+
+// This will determine the step to divide the buffersize by 2
+const freqStep = 200;
+const maxPowStep = 1;
+
+// Add notes in cache array to stabilize
+var notesInCache = [];
+
+// Add frequencies in cache array to change method for low frequencies
+var frequenciesInCache= [];
+
+// Tuning threshold
+const lowTuningThreshold = 48;
+const highTuningThreshold = 52;
+
+// Parameters
+const defaultSettings = {
+    'la': 440,
+    'noise-gate': 0,
+    'confidence-threshold': 0.95,
+    'tuner': 'meter'
+};
+
+
+const dontUpdateLa = false;
+// Tunings and instruments
+function findInstrumentStrings(instrument, tuning, a) {
+
+    let instrumentTuningList = {
+        // Violin
+        'violin': {
+            'standard' : {
+                'strings' : {
+                    'G3': a * Math.pow(3/2, -2),
+                    'D4': a * Math.pow(3/2, -1),
+                    'A4': a,
+                    'E5': a * Math.pow(3/2, 1),
+                }
+            }
+        },
+        // Viola
+        'viola': {
+            'standard': {
+                'strings': {
+                    'C3': a * Math.pow(3/2, -3),
+                    'G3': a * Math.pow(3/2, -2),
+                    'D4': a * Math.pow(3/2, -1),
+                    'A4': a,
+                }
+            }
+        },
+        'cello': {
+            'standard': {
+                'strings': {
+                    'C2': (a/2) * Math.pow(3/2, -3),
+                    'G2': (a/2) * Math.pow(3/2, -2),
+                    'D3': (a/2) * Math.pow(3/2, -1),
+                    'A3': a / 2,
+                }
+            }
+        },
+        // Guitar
+        'guitar': {
+            'standard': {
+                'strings': {
+                    'E2': null,
+                    'A2': null,
+                    'D3': null,
+                    'G3': null,
+                    'B3': null,
+                    'E4': null,
+                }
+            },
+            'half_step_down': {
+                'strings': {
+                    'D#2': null,
+                    'G#2': null,
+                    'C#3': null,
+                    'F#3': null,
+                    'A#3': null,
+                    'D#4': null,
+                }
+            },
+            'one_step_down': {
+                'strings': {
+                    'D2': null,
+                    'G2': null,
+                    'C3': null,
+                    'F3': null,
+                    'A3': null,
+                    'D4': null,
+                }
+            },
+            'drop_d': {
+                'strings': {
+                    'D2': null,
+                    'A2': null,
+                    'D3': null,
+                    'G3': null,
+                    'B3': null,
+                    'E4': null,
+                }
+            },
+            'open_g': {
+                'strings': {
+                    'D2': null,
+                    'G2': null,
+                    'D3': null,
+                    'G3': null,
+                    'B3': null,
+                    'D4': null,
+                }
+            },
+            'open_d': {
+                'strings': {
+                    'D2': null,
+                    'A2': null,
+                    'D3': null,
+                    'F#3': null,
+                    'A3': null,
+                    'D4': null,
+                }
+            },
+            'dadgad': {
+                'strings': {
+                    'D2': null,
+                    'A2': null,
+                    'D3': null,
+                    'G3': null,
+                    'A3': null,
+                    'D4': null,
+                }
+            },
+        },
+        // Bass
+        'bass': {
+            'standard': {
+                'strings': {
+                    'E1': null,
+                    'A1': null,
+                    'D2': null,
+                    'G2': null,
+                }
+            },
+            'drop_d': {
+                'strings': {
+                    'D1': null,
+                    'A1': null,
+                    'D2': null,
+                    'G2': null,
+                }
+            },
+            'drop_c': {
+                'strings': {
+                    'C1': null,
+                    'G1': null,
+                    'C2': null,
+                    'F2': null,
+                }
+            },
+            'half_step_down': {
+                'strings': {
+                    'D#1': null,
+                    'G#1': null,
+                    'C#2': null,
+                    'F#2': null,
+                }
+            },
+            'one_step_down': {
+                'strings': {
+                    'D1': null,
+                    'G1': null,
+                    'C2': null,
+                    'F2': null,
+                }
+            }
+        },
+        // Ukulele
+        'ukulele': {
+            'standard': {
+                'strings': {
+                    'G4': null,
+                    'C4': null,
+                    'E4': null,
+                    'A4': null,
+                }
+            },
+            'baritone': {
+                'strings': {
+                    'D3': null,
+                    'G3': null,
+                    'B3': null,
+                    'E4': null,
+                }
+            },
+            'low_g': {
+                'strings': {
+                    'G3': null,
+                    'C4': null,
+                    'E4': null,
+                    'A4': null,
+                }
+            },
+            'half_step_down': {
+                'strings': {
+                    'F#4': null,
+                    'B#4': null,
+                    'D#4': null,
+                    'G#4': null,
+                }
+            },
+            'one_step_down': {
+                'strings': {
+                    'F4': null,
+                    'B4': null,
+                    'D4': null,
+                    'G4': null,
+                }
+            },
+            'bass': {
+                'strings': {
+                    'E1': null,
+                    'A1': null,
+                    'D2': null,
+                    'G2': null,
+                }
+            }
+        },
+        // 5-string Banjo
+        'banjo': {
+            'standard': {
+                'strings': {
+                    'G4': null,
+                    'D3': null,
+                    'G3': null,
+                    'B3': null,
+                    'D4': null,
+                }
+            },
+            'open_g': {
+                'strings': {
+                    'G4': null,
+                    'D3': null,
+                    'G3': null,
+                    'B3': null,
+                    'D4': null,
+                }
+            },
+            'double_c': {
+                'strings': {
+                    'G4': null,
+                    'C3': null,
+                    'G3': null,
+                    'C4': null,
+                    'D4': null,
+                }
+            },
+            'g-sawmill': {
+                'strings': {
+                    'G4': null,
+                    'D3': null,
+                    'G3': null,
+                    'C4': null,
+                    'D4': null,
+                }
+            }
+        },
+        'mandolin': {
+            'standard': {
+                'strings': {
+                    'G3': a * Math.pow(3/2, -2),
+                    'D4': a * Math.pow(3/2, -1),
+                    'A4': a,
+                    'E5': a * Math.pow(3/2, 1)
+                }
+            }
+        },
+        // 4-string Banjo
+        '4-string-banjo': {
+            'standard': {
+                'strings': {
+                    'C3': null,
+                    'G3': null,
+                    'D4': null,
+                    'A4': null,
+                }
+            },
+            'irish': {
+                'strings': {
+                    'G2': null,
+                    'D3': null,
+                    'A3': null,
+                    'E4': null,
+                }
+            },
+            'd-tuning': {
+                'strings': {
+                    'A2': null,
+                    'D3': null,
+                    'F#3': null,
+                    'B3': null,
+                }
+            },
+            'c-tuning': {
+                'strings': {
+                    'G3': null,
+                    'C4': null,
+                    'E4': null,
+                    'A4': null,
+                }
+            }
+        },
+        // Trumpet
+        'trumpet': {
+            'standard': {
+                'strings': {
+                    'C4': null,
+                }
+            }
+        }, 
+        // Flute
+        'flute': {
+            'standard': {
+                'strings': {
+                    'A4': null,
+                }
+            }
+        },
+        // Oboe
+        'oboe': {
+            'standard': {
+                'strings': {
+                    'A4': null,
+                }
+            }
+        }
+    }
+    
+    if(instrumentTuningList[instrument] !== undefined) {
+        return instrumentTuningList[instrument][tuning]['strings'];
+    } else {
+        return null;
+    }
+
+}
+</script>
+<script type="text/javascript" charset="utf-8" src="https://onlinetuner.org/modules/online-tuner/tuner.min.js"></script>
+<script type="text/javascript" charset="utf-8" src="https://onlinetuner.org/modules/online-tuner/app/install-app.js"></script>
+
+
+<hr><p class="left-align center"><b>OnlineTuner.org is also available in the following languages:<br></b><a href="https://onlinetuner.org/" class="version-link">English</a> - <a href="https://onlinetuner.org/es" class="version-link">Spanish</a> - <a href="https://onlinetuner.org/pt" class="version-link">Portuguese</a> - <a href="https://onlinetuner.org/fr" class="version-link">French</a> - <a href="https://onlinetuner.org/de" class="version-link">Deutsche</a> - <a href="https://onlinetuner.org/it" class="version-link">Italian</a> - <a href="https://onlinetuner.org/ru" class="version-link">Russian</a> - <a href="https://onlinetuner.org/ja" class="version-link">Japanese</a> - <a href="https://onlinetuner.org/ko" class="version-link">Korean</a> - <a href="https://onlinetuner.org/nl" class="version-link">Dutch</a> - <a href="https://onlinetuner.org/sv" class="version-link">Swedish</a> - <a href="https://onlinetuner.org/da" class="version-link">Danish</a><br></p></div><div id="ipryl" class="row padding"><h2 class="center"></h2><h2 id="iqk39" class="center">🎶 Discover our collection of online tuners 🎶
+</h2><p>Whatever the instrument that you're looking to get in tune, we have got you covered. Our online tuner app covers lets you know of all of its strings or its desired note. Hence, you can hear what each an every one of your strings should sound like and tune your instrument accordingly. We also let you know how far you are from the optimal tuning, so that tuning your instrument is hassle-free.<br></p><p>Further, we calculate frequencies differently according to the specific requirements of all the instruments to provide you with the best tuning experience online. For instance, tuning a violin should not be envisioned the same way as tuning your guitar. Doing so wouldn't sound right.</p><div class="flex-container padding-16 justify-center"><a id="ido96" href="/guitar-tuner" title="An online guitar tuner" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2023/10/electric-guitar.svg" height="114" width="114" alt="An electric guitar" class="image"><span id="i0ao8"><b>Online Guitar Tuner
+    </b></span></a><a id="ipnuj" href="/ukulele-tuner" title="An online ukulele tuner" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2023/10/ukulele.svg" height="114" width="114" alt="A ukulele" class="image"><span id="i2s2m"><b>Online Ukulele Tuner
+    </b></span></a><a id="ii8e6" href="https://onlinetuner.org/bass-tuner" title="An online bass tuner" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2023/10/bass-guitar.svg" height="114" width="114" alt="An electric bass" class="image"><span id="iwpas"><b>Online Bass Tuner
+    </b></span></a><a id="izn82" href="/banjo-tuner" title="An online banjo tuner" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2023/10/banjo.svg" height="114" width="114" alt="A banjo" class="image"><span id="i81dv"><b>Online Banjo Tuner
+    </b></span></a><a href="/mandolin-tuner" title="An online mandolin tuner" id="idz3sz" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2024/10/mandolin.png" height="114" width="114" alt="A banjo" class="image"><span id="i41ij9"><b>Online Mandolin Tuner
+    </b></span></a><a id="i5bi8" href="/violin-tuner" title="An online violin tuner" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2023/10/violin.svg" height="114" width="114" alt="A violin" class="image"><span id="iqnlh"><b>Online Violin Tuner
+    </b></span></a><a id="iratt" href="/viola-tuner" title="An online viola tuner" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2023/10/viola.svg" height="114" width="114" alt="A viola" class="image"><span id="iy6vi"><b>Online Viola Tuner
+    </b></span></a><a id="im2a1" href="/cello-tuner" title="An online cello tuner" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2023/10/cello.svg" height="114" width="114" alt="A cello" class="image"><span id="iio5n"><b>Online Cello Tuner
+    </b></span></a><a href="/chromatic-tuner-online" title="An online chromatic tuner" id="i3vgpo" class="padding-large round card flex center no-decoration white hover-opacity"><img src="https://onlinetuner.org/medias/2024/01/chromatic-note.svg" height="114" width="114" alt="A cello" class="image"><span id="i005xp"><b>Online Chromatic Tuner
+    </b></span></a><a id="ib817" href="" title="An online trumpet tuner" class="padding-large round card flex center no-decoration white hover-opacity hide"><img src="https://onlinetuner.org/medias/2023/10/trumpet.svg" height="0" width="0" alt="A trumpet" class="image"><span id="ijfn8">Online Trumpet Tuner
+    </span></a><a id="i3uji" href="" title="An online trombone tuner" class="padding-large round card flex center no-decoration white hover-opacity hide"><img src="https://onlinetuner.org/medias/2023/10/trombone.svg" height="0" width="0" alt="A trombone" class="image"><span id="i437e">Online Trombone Tuner
+    </span></a><a id="ioosm" href="" title="An online flute tuner" class="padding-large round card flex center no-decoration white hover-opacity hide"><img src="https://onlinetuner.org/medias/2023/10/flute.svg" height="0" width="0" alt="A flute" class="image"><span id="il6ml">Online Flute Tuner
+    </span></a><a id="izyhk" href="" title="An online oboe tuner" class="padding-large round card flex center no-decoration white hover-opacity hide"><img src="https://onlinetuner.org/medias/2023/10/oboe.svg" height="0" width="0" alt="An oboe" class="image"><span id="ik5hb">Online Oboe Tuner
+    </span></a><a id="ije0p" href="" title="An online clarinet tuner" class="padding-large round card flex center no-decoration white hover-opacity hide"><img src="https://onlinetuner.org/medias/2023/10/clarinet.svg" height="0" width="0" alt="A clarinet" class="image"><span id="iu3ne">Online Clarinet Tuner
+    </span></a></div></div><div class="row padding padding-32"><h2>How to use OnlineTuner.org to tune your instrument online?</h2><p>We tried to simplify the process of tuning your instrument online without compromising on the accuracy of our online tuning app. To tune your instrument online, follow these simple steps:<br></p><ol class="padding-16"><li class="margin-bottom">Click on one of the instruments on the list above, or simply go on <a href="https://onlinetuner.org" title="OnlineTuner.org, the best online tuner">OnlineTuner.org</a> and use our generic online tuner that can provide high precision tuning for all sorts of instruments.</li><li class="margin-bottom">Take your instrument and prepare to play. Place yourself in front of the device - laptop, smartphone or tablet - you're using to access OnlineTuner.org and make sure that the environment is quiet enough. This is how our online tuner will achieve its best results.</li><li class="margin-bottom">Click the Start Tuner button, and allow OnlineTuner.org to access to your microphone. This is a very important step. If you don't allow us to use your microphone, we won't be able to tell you how to tune your instrument.</li><li class="margin-bottom">Start playing a note and watch carefully at the meter. Our online tuner will pick the closest note and let you know whether you need to tune up or down to reach it. On our specific instrument tuners, we also let you know how close you are from the closest string(s) or the required note.<br><br>You can also scroll down to directly hear the strings or the notes that you have to tune!</li></ol><p>And that's it! Your instruments should be in tune and ready to play. Many thanks for using OnlineTuner.org. Don't forget to share our website if you appreciate it, and to allow other people to use our online tuner.</p><hr><h2>What are the settings available on OnlineTuner.org's online tuner?</h2><p>We wanted to make your online tuning experience as pleasant, easy and as accurate as possible. This is why we filled our online tuner with several settings that will allow you to optimize your tuning experience. Here they are.</p><h3>Set the frequency of A4 to calibrate the online tuner</h3><p>The first setting of our online tuner is rather common, but also extremely important. We compute all the notes according to a 440Hz A4. We know that some people prefer to tune their instruments using a 442-hertz A4, or that some others find it more melodious with a 432-hertz A4. Whatever your preferred value, you can set it yourself!</p><h3>Augment or decrease the sensitivity of the online tuner</h3><p>There are three ways you can change the sensitivity of our online tuner app. First, by turning up your microphone input volume, second by playing with our algorithm's probability, and third, by setting a noise gate.</p><p><b>Playing with our algorithm's sensibility:</b> Our online tuner uses McLeod's pitch detection method to compute the frequency of the notes that you play. If you click on the "Advanced settings" button, you can increase or decrease the probability threshold of the pitch detection algorithm. The higher it is, the less notes our online tuner will detect, but the results are more likely to be accurate. The lower it is, the more notes it will detect, but the lower the precision will be.</p><p><b>Setting a noise gate:</b> Sometimes, you won't find yourself in the best environment to tune your instrument. Ideally, you'll be in a quiet room, but if there is too much background noise, you may want to set a noise limit under which our tuner won't process the sounds. To do that, click on the "Advanced settings" button and play with the Noise gate slider.</p><h3>Save OnlineTuner.org as an app</h3><p>If you like our online tuner, you can save it as an app on your device to access it in only one click. You can only do this on some specific web browsers based on Chromium - i.e., Google Chrome or Microsoft Edge. On the top left of the online tuner, there will be a "Save as app" button that you can click on to save our online tuner as an app. It's as simple as that!</p><h3>Save the settings or the online tuner</h3><p>Your might want to save the settings of our online tuner so that you can find them back on your next visit on OnlineTuner.org. To do that, simply click on the "Save settings" button. This will create a cookie on your device. We will simply access it to retrieve your settings. Absolutely no personal data will be stored on it. In case you wish to start fresh, click on the "Reset settings" button.</p><hr><h2>Can I use your online tuner for non-standard tunings?</h2><p>Of course! OnlineTuner.org's online tuner is not limited to the dreaded standard EADGBE guitar tuning! We also have a wide range of non-standard guitar, ukulele or bass tunings. you may find a list of all of them below.</p><div class="cell-row padding-16"><div class="cell l4 m4 s12 padding-small center"><div class="row padding-large center"><img id="i2jbwl" src="https://onlinetuner.org/medias/2023/10/electric-guitar.svg" height="60" width="60" alt="An electric guitar" class="image"></div><h3>All our online guitar tuners
+    </h3><p><a href="/guitar-tuner" class="no-decoration">Online Guitar Tuner</a></p><p><a href="/guitar-tuner/drop-d" class="no-decoration">Drop D Guitar Tuner</a></p><p><a href="/guitar-tuner/open-d" class="no-decoration">Open D Guitar Tuner</a></p><p><a href="/guitar-tuner/open-g" class="no-decoration">Open G Guitar Tuner</a></p><p><a href="/guitar-tuner/half-step-down" class="no-decoration">Half Step Down Guitar Tuner</a></p><p><a href="/guitar-tuner/one-step-down" class="no-decoration">One Step Down Guitar Tuner</a></p></div><div class="cell l4 m4 s12 padding-small center"><div class="row padding-large center"><img id="ifqao6" src="https://onlinetuner.org/medias/2023/10/bass-guitar.svg" height="60" width="60" alt="An electric guitar" class="image"></div><h3>All our bass tuners
+    </h3><p><a href="/bass-tuner" title="An online bass tuner" class="no-decoration">Online Bass Tuner</a></p><p><a href="/bass-tuner/drop-d" title="An online Drop D bass tuner" class="no-decoration">Drop D Bass Tuner</a></p><p><a href="/bass-tuner/drop-c" title="An online Drop C bass tuner" class="no-decoration">Drop C Bass Tuner</a></p><p><a href="/bass-tuner/half-step-down" title="An online Half Step Down bass Tuner" class="no-decoration">Half Step Down Bass Tuner</a></p><p><a href="/bass-tuner/one-step-down" title="An online One Step Down bass tuner" class="no-decoration">One Step Down Bass Tuner</a></p></div><div class="cell l4 m4 s12 padding-small center"><div class="row padding-large center"><img src="https://onlinetuner.org/medias/2023/10/ukulele.svg" height="60" width="60" alt="A ukulele" id="ig484l" class="image"></div><h3>All ou ukulele tuners</h3><p><a href="/ukulele-tuner" title="An online ukulele tuner" class="no-decoration">Online Ukulele Tuner</a></p><p><a href="/ukulele-tuner/baritone" title="A baritone ukulele tuner" class="no-decoration">Baritone Ukulele Tuner</a></p><p><a href="/ukulele-tuner/low-g" title="A Low G ukulele tuner" class="no-decoration">Low G Ukulele Tuner</a></p></div></div><div class="cell-row padding-16"><div class="cell l4 m4 s12 padding-small center"><div class="row padding-large center"><img src="https://onlinetuner.org/medias/2023/10/banjo.svg" height="60" width="60" alt="A banjo" id="iqikts" class="image"></div><h3>All our banjo tuners</h3><p><a href="/banjo-tuner" title="An online banjo tuner" class="no-decoration">Online Banjo Tuner</a></p><p><a href="/banjo-tuner/open-g" title="An Open G banjo tuner" class="no-decoration">Open G Banjo Tuner</a></p><p><a href="/banjo-tuner/double-c" title="A Double C banjo tuner" class="no-decoration">Double C Banjo Tuner</a></p><p><a href="/banjo-tuner/drop-c" title="A Drop C banjo tuner" class="no-decoration">Drop C Banjo Tuner</a></p></div><div class="cell l4 m4 s12 padding-small center"><div class="row padding-large center"><img src="https://onlinetuner.org/medias/2023/10/violin.svg" height="60" width="60" alt="A violin" id="islydi" class="image"></div><h3>All our bowed-string tuners</h3><p><a href="/violin-tuner" title="An online violin tuner" class="no-decoration">Online Violin Tuner</a></p><p><a href="/viola-tuner" title="An online viola tuner" class="no-decoration">Online Viola Tuner</a></p><p><a href="/cello-tuner" title="An online cello tuner" class="no-decoration">Online Cello Tuner</a></p></div></div></div>
+</div>
+
+</div>
+        <style>#iq0ez{height:75px;}#ieokr{height:50px;}#igpt9{height:75px;}#i81xm{height:75px;}#i965y2{height:75px;}#i6t8k{height:75px;}#ilec0i{font-size:24px;}#iwix6{height:50px;}#ij0up{height:50px;}#izfsu{width:50px;}#i52pf{width:50px;}#ixl0n{width:50px;}#ipmn6{width:50px;}#i6p25r{font-size:24px;}</style><footer><div id="main-footer" class="hide-medium hide-small"><div class="row center border-top padding-32 padding"><a href="https://onlinetuner.org" class="show-inline-block menu-button"><p class="show-inline-block left-align"><img src="https://onlinetuner.org/medias/2023/07/icon-online-tuner.png" height="50" width="50" id="ieokr" alt="OnlineTuner.org's Logo" class="image show-inline-block"><span class="small show-inline-block cell-middle padding-small"><b class="medium">ONLINETUNER.ORG
+        </b><br>Tune your instrument online for free<br></span></p></a><p class="small">© OnlineTuner.org, 2023
+    </p><p class="small"><a href="/privacy-policy" title="Privacy Policy" class="no-decoration">Privacy Policy</a> - <a href="/cookie-policy" title="Cookie Policy" class="no-decoration">Cookie Policy</a> - <span class="pointer menu-link personalize-cookies">Manage Cookies</span></p><p class="small"><a href="https://metronome-online.org" title="Online Metronome">Discover our Online Metronome!</a></p><hr><h2 id="ilec0i">Discover all our online instrument tuners</h2><div class="flex-container padding-16"><div id="all-guitar-tuners" title="All our guitar tuners" class="flex padding-large l3 m3 s12"><img src="https://onlinetuner.org/medias/2023/10/electric-guitar.svg" height="75" width="75" id="iq0ez" alt="Electric guitar" class="image"><h2 class="large">All our online guitar tuners
+        </h2><p><a href="/guitar-tuner" title="Online Guitar Tuner" class="no-decoration hover-opacity">Online Guitar Tuner</a><br></p><p><a href="/guitar-tuner/drop-d" title="Online Drop D Guitar Tuner" class="no-decoration hover-opacity">Drop D Guitar Tuner</a><br></p><p><a href="/guitar-tuner/open-d" title="Online Open D Guitar Tuner" class="no-decoration hover-opacity">Open D Guitar Tuner</a><br></p><p><a href="/guitar-tuner/open-g" title="Online Open G Guitar Tuner" class="no-decoration hover-opacity">Open G Guitar Tuner</a><br></p><p><a href="/guitar-tuner/half-step-down" title="Online Half Step Down Guitar Tuner" class="no-decoration hover-opacity">Half Step Down Guitar Tuner</a></p><p><a href="/guitar-tuner/one-step-down" title="Online One Step Down Guitar Tuner" class="no-decoration hover-opacity">One Step Down Guitar Tuner</a></p></div><div title="All our guitar tuners" class="flex padding-large l3 m3 s12"><img src="https://onlinetuner.org/medias/2023/10/bass-guitar.svg" height="75" width="75" alt="Bass" id="igpt9" class="image"><h2 class="large">All our online bass tuners
+        </h2><p><a href="/bass-tuner" title="Online Bass Tuner" class="no-decoration hover-opacity">Online Bass Tuner</a><br></p><p><a href="/bass-tuner/drop-d" title="Online Drop D Bass Tuner" class="no-decoration hover-opacity">Drop D Bass Tuner</a><br></p><p><a href="/bass-tuner/drop-c" title="Online Drop C Bass Tuner" class="no-decoration hover-opacity">Drop C Bass Tuner</a><br></p><p><a href="/bass-tuner/half-step-down" title="Online Half Step Down Bass Tuner" class="no-decoration hover-opacity">Half Step Down Bass Tuner</a><br></p><p><a href="/bass-tuner/one-step-down" title="Online One Step Down Bass Tuner" class="no-decoration hover-opacity">One Step Down Bass Tuner</a><br></p></div><div title="All our guitar tuners" class="flex padding-large l3 m3 s12"><img src="https://onlinetuner.org/medias/2023/10/ukulele.svg" height="75" width="75" alt="Ukulele" id="i81xm" class="image"><h2 class="large">All our online ukulele tuners</h2><p><a href="/ukulele-tuner" title="Online Ukulele Tuner" class="no-decoration hover-opacity">Online Ukulele Tuner</a><br></p><p><a href="/ukulele-tuner/baritone" title="Baritone Ukulele Tuner" class="no-decoration hover-opacity">Baritone Ukulele Tuner</a><br></p><p><a href="/ukulele-tuner/low-g" title="Low G Ukulele Tuner" class="no-decoration hover-opacity">Low G Ukulele Tuner</a><br></p></div><div title="All our guitar tuners" class="flex padding-large l3 m3 s12"><img src="https://onlinetuner.org/medias/2023/10/banjo.svg" height="75" width="75" alt="Banjo" id="i6t8k" class="image"><h2 class="large">All our banjo tuners</h2><p><a href="/banjo-tuner" title="Online Banjo Tuner" class="no-decoration hover-opacity">Online Banjo Tuner</a><br></p><p><a href="/banjo-tuner/open-g" title="Open G Banjo Tuner" class="no-decoration hover-opacity">Open G Banjo Tuner</a><br></p><p><a href="/banjo-tuner/double-c" title="Double C Banjo Tuner" class="no-decoration hover-opacity">Double C Banjo Tuner</a><br></p><p><a href="/banjo-tuner/drop-c" title="Drop C Banjo Tuner" class="no-decoration hover-opacity">Drop C Banjo Tuner</a><br></p></div><div title="All our guitar tuners" class="flex padding-large l3 m3 s12"><img src="https://onlinetuner.org/medias/2023/10/violin.svg" height="75" width="75" alt="Violin" id="i965y2" class="image"><h2 class="large">All our bowed-strings tuners
+        </h2><p><a href="/violin-tuner" title="Online Violin Tuner" class="no-decoration hover-opacity">Online Violin Tuner</a><br></p><p><a href="/viola-tuner" title="Online Viola Tuner" class="no-decoration hover-opacity">Online Viola Tuner</a><br></p><p><a href="/cello-tuner" title="Online Cello Tuner" class="no-decoration hover-opacity">Online Cello Tuner</a><br></p></div></div></div></div><div id="mobile-footer" class="hide-large"><div class="row center border-top smart-margins padding-32"><a href="https://onlinetuner.org" class="show-inline-block menu-button"><p class="show-inline-block left-align"><img src="https://onlinetuner.org/medias/2023/07/icon-online-tuner.png" height="50" width="50" id="iwix6" alt="OnlineTuner.org's Logo" class="image"><span class="small show-inline-block cell-middle padding-small"><b class="medium">ONLINETUNER.ORG
+        </b><br>Tune your instrument online for free<br></span></p></a><p class="small">© OnlineTuner.org, 2023
+    </p><p class="small"><a href="/privacy-policy" title="Privacy Policy" class="no-decoration">Privacy Policy</a> - <a href="/cookie-policy" title="Cookie Policy" class="no-decoration">Cookie Policy</a> - <span class="pointer menu-link personalize-cookies">Manage Cookies</span></p><p class="small"><a href="https://online-metronome.org" title="Online Metronome">Discover our Online Metronome!</a></p><hr><h2 id="i6p25r">Discover all our online instrument tuners</h2><div id="all-guitar-tuners" title="All our guitar tuners" class="padding-large"><img id="ij0up" src="https://onlinetuner.org/medias/2023/10/electric-guitar.svg" height="50" width="50" alt="Electric Guitar" class="image"><h2 class="large">All our online guitar tuners
+  </h2><p><a href="/guitar-tuner" title="Online Guitar Tuner" class="hover-opacity no-decoration">Online Guitar Tuner</a><br></p><p><a href="/guitar-tuner/drop-d" title="Online Drop D Guitar Tuner" class="hover-opacity no-decoration">Drop D Guitar Tuner</a><br></p><p><a href="/guitar-tuner/open-d" title="Online Open D Guitar Tuner" class="hover-opacity no-decoration">Open D Guitar Tuner</a><br></p><p><a href="/guitar-tuner/open-g" title="Online Open G Guitar Tuner" class="hover-opacity no-decoration">Open G Guitar Tuner</a><br></p><p><a href="/guitar-tuner/half-step-down" title="Online Half Step Down Guitar Tuner" class="hover-opacity no-decoration">Half Step Down Guitar Tuner</a></p><p><a href="/guitar-tuner/one-step-down" title="Online One Step Down Guitar Tuner" class="hover-opacity no-decoration">One Step Down Guitar Tuner</a></p></div><div title="All our guitar tuners" class="padding-large"><img src="https://onlinetuner.org/medias/2023/10/bass-guitar.svg" height="50" width="50" id="izfsu" alt="Bass" class="image"><h2 class="large">All our online bass tuners
+        </h2><p><a href="/bass-tuner" title="Online Bass Tuner" class="hover-opacity no-decoration">Online Bass Tuner</a><br></p><p><a href="/bass-tuner/drop-d" title="Online Drop D Bass Tuner" class="hover-opacity no-decoration">Drop D Bass Tuner</a><br></p><p><a href="/bass-tuner/drop-c" title="Online Drop C Bass Tuner" class="hover-opacity no-decoration">Drop C Bass Tuner</a><br></p><p><a href="/bass-tuner/half-step-down" title="Online Half Step Down Bass Tuner" class="hover-opacity no-decoration">Half Step Down Bass Tuner</a><br></p><p><a href="/bass-tuner/one-step-down" title="Online One Step Down Bass Tuner" class="hover-opacity no-decoration">One Step Down Bass Tuner</a><br></p></div><div title="All our guitar tuners" class="padding-large"><img src="https://onlinetuner.org/medias/2023/10/ukulele.svg" height="50" width="50" alt="Ukulele" id="i52pf" class="image"><h2 class="large">All our online ukulele tuners</h2><p><a href="/ukulele-tuner" title="Online Ukulele Tuner" class="hover-opacity no-decoration">Online Ukulele Tuner</a><br></p><p><a href="/ukulele-tuner/baritone" title="Baritone Ukulele Tuner" class="hover-opacity no-decoration">Baritone Ukulele Tuner</a><br></p><p><a href="/ukulele-tuner/low-g" title="Low G Ukulele Tuner" class="hover-opacity no-decoration">Low G Ukulele Tuner</a><br></p></div><div title="All our guitar tuners" class="padding-large"><img src="https://onlinetuner.org/medias/2023/10/banjo.svg" height="50" width="50" alt="Banjo" id="ipmn6" class="image"><h2 class="large">All our banjo tuners</h2><p><a href="/banjo-tuner" title="Online Banjo Tuner" class="hover-opacity no-decoration">Online Banjo Tuner</a><br></p><p><a href="/banjo-tuner/open-g" title="Open G Banjo Tuner" class="hover-opacity no-decoration">Open G Banjo Tuner</a><br></p><p><a href="/banjo-tuner/double-c" title="Double C Banjo Tuner" class="hover-opacity no-decoration">Double C Banjo Tuner</a><br></p><p><a href="/banjo-tuner/drop-c" title="Drop C Banjo Tuner" class="hover-opacity no-decoration">Drop C Banjo Tuner</a><br></p></div><div title="All our guitar tuners" class="padding-large"><img src="https://onlinetuner.org/medias/2023/10/violin.svg" height="50" width="50" alt="Violin" id="ixl0n" class="image"><h2 class="large">Our online bowed-strings tuners</h2><p><a href="/violin-tuner" title="Online Violin Tuner" class="hover-opacity no-decoration">Online Violin Tuner</a><br></p><p><a href="/viola-tuner" title="Online Viola Tuner" class="hover-opacity no-decoration">Online Viola Tuner</a><br></p><p><a href="/cello-tuner" title="Online Cello Tuner" class="hover-opacity no-decoration">Online Cello Tuner</a><br></p></div></div></div></footer>    <style>
+        #cookie-consent-message, #cookie-consent-form {
+            z-index:99999;
+            max-height:60vh;
+            overflow: auto;
+        }
+    </style>
+
+    <div id="cookie-consent-message" class="row hide white bottom padding-16 smart-margins">
+        <div class="cell-row">
+            <div class="cell l2 m2 s12 padding cell-middle center">
+                <img style="max-height: 100px; width:auto; height:auto; max-width:100%" class="show-inline-block" src="https://onlinetuner.org/medias/2023/07/icon-online-tuner.png">
+            </div>
+            <div class="cell l10 m10 s12 cell-middle">
+                <p>We rely on advertising to provide you our services for free. This means our partner advertising networks and video hosting websites can set cookies on your device. <b>Please accept them if you want to support us.</b></p>
+            </div>
+        </div>
+
+        <div class="row center">
+            <div class="round green padding button" onclick="acceptCookies('all')">Accept all</div>
+            <div class="round light-grey padding button" onclick="openPersonalize()">Personalize</div>
+            <div class="round light-grey padding button" onclick="acceptCookies('none')">Refuse all</div>
+        </div>
+
+        <p class="center">
+            <a href="/privacy-policy">Privacy policy</a> | <a href="/cookie-policy">Cookie policy</a>
+        </p>
+    </div>
+
+    <div id="cookie-consent-form" class="row hide white bottom padding-16 smart-margins">
+        <!-- Logo and Personalization Intro -->
+        <div class="cell-row">
+            <div class="cell l2 m2 s12 cell-middle padding center">
+                <img style="max-height: 100px; width:auto; height:auto; max-width:100%" class="show-inline-block" src="https://onlinetuner.org/medias/2023/07/icon-online-tuner.png">
+            </div>
+            <div class="cell l10 m10 s12 cell-middle">
+                <p>Customize the cookies that our website and our partners can set.</p>
+            </div>
+        </div>
+
+        <!-- Necessary Cookies Section -->
+        <div class="row">
+            <h3 class="no-margin">Necessary cookies</h3>
+            <div class="cell-row">
+                <div class="cell l10 m10 s10 cell-middle">
+                    <p>Some cookies are strictly necessary for the website to function and do not collect any personal data.</p>
+                </div>
+                <div class="cell l2 m2 s2 cell-middle right-align">
+                    <label class="toggle opacity">
+                        <input type="checkbox" disabled checked>
+                        <span class="toggle-slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+                <!-- Advertising Cookies Section -->
+        <div class="row">
+            <h3 class="no-margin">Advertising cookies</h3>
+            <div class="cell-row">
+                <div class="cell l10 m10 s10 cell-middle">
+                    <p>These cookies are used to deliver advertisements more relevant to you and your interests. They can track your browsing activity across different websites to build a profile based on your interests, helping advertisers show you targeted ads. Our advertising partners are:</p>
+                    <ul>
+                        <li>BuySellAds.com</li>                    </ul>
+                </div>
+                <div class="cell l2 m2 s2 cell-middle right-align">
+                    <label class="toggle">
+                        <input id="ads-cookies-toggle" type="checkbox" checked>
+                        <span class="toggle-slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- Save Preferences Button -->
+        <div class="row right-align">
+            <div class="button green" onclick="saveCookiesPreferences()">Save preferences</div>
+            <div class="button green" onclick="acceptCookies('all')">Accept all</div>
+        </div>
+    </div>
+            <script type="text/javascript" defer>
+            var cookieConsentNeeded = 0;
+            var adsCookie = true;
+            var iframeCookie = false;
+            var cookieJSON = {"adsNetworks": adsCookie, "iframeContents": iframeCookie};
+
+            function acceptCookies(x) {
+                if(x == 'all') {
+                    setCookie('cookie_consent', JSON.stringify(cookieJSON), 365, '.onlinetuner.org');
+                    showAdsScripts();
+                }
+                if(x == 'none') {
+                    cookieJSON = {"adsNetworks": false, "iframeContents": false};
+                    setCookie('cookie_consent', JSON.stringify(cookieJSON), 365, '.onlinetuner.org');
+                }
+                hideModal('cookie-consent-message');
+                hideModal('cookie-consent-form');
+            }
+
+            function saveCookiesPreferences() {
+                var adsNetworks = (document.getElementById('ads-cookies-toggle') !== null) 
+                                  ? document.getElementById('ads-cookies-toggle').checked : false;
+                var iframeContents = (document.getElementById('embedded-content-cookies-toggle') !== null)
+                                     ? document.getElementById('embedded-content-cookies-toggle').checked : false;
+
+                cookieJSON = {"adsNetworks": adsNetworks, "iframeContents": iframeContents};
+                setCookie('cookie_consent', JSON.stringify(cookieJSON), 365, '.onlinetuner.org');
+
+                if(adsNetworks == true) {
+                    showAdsScripts();
+                }
+
+                hideModal('cookie-consent-message');
+                hideModal('cookie-consent-form');
+            }
+
+            function unblockContent(x) {
+                let cookieConsent = getCookie('cookie_consent');
+                if (cookieConsent) {
+                    try {
+                        let consentData = JSON.parse(cookieConsent);
+                        if(x == 'iframeContents') {
+                            consentData.iframeContents = true;
+                        } else {
+                            consentData.adsNetworks = true;
+                        }
+                        let updatedCookie = JSON.stringify(consentData);
+                        setCookie('cookie_consent', updatedCookie, 365, '.onlinetuner.org');
+                        window.location.reload();
+                    } catch (e) {
+                        console.error("Error parsing cookie_consent:", e);
+                    }
+                } else {
+                    var newCookie;
+                    if(x == 'iframeContents') {
+                        newCookie = {"adsNetworks": false, "iframeContents": true};
+                    } else {
+                        newCookie = {"adsNetworks": true, "iframeContents": false};
+                    }
+                    setCookie('cookie_consent', JSON.stringify(newCookie), 365, '.onlinetuner.org');
+                    window.location.reload();
+                }
+            }
+
+            function showAdsScripts() {
+                                    location.reload(); 
+                            }
+
+            function openPersonalize() {
+                hideModal('cookie-consent-message');
+                showModal('cookie-consent-form');
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.personalize-cookies').forEach(function(element) {
+                    element.addEventListener('click', openPersonalize);
+                });
+            });
+
+            function showModal(x) {
+                const element = document.getElementById(x);
+                if (element.classList.contains('hide')) {
+                    element.classList.remove('hide');
+                    element.classList.add('show');
+                }
+            }
+
+            function hideModal(x) {
+                const element = document.getElementById(x);
+                if (element.classList.contains('show')) {
+                    element.classList.remove('show');
+                    element.classList.add('hide');
+                }
+            }
+
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) {
+                    return parts.pop().split(';').shift()
+                } else {
+                    return false;
+                }
+            }
+
+            function setCookie(name, value, days, domain) {
+                const d = new Date();
+                d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+                const expires = "expires=" + d.toUTCString();
+                const domainStr = domain ? `;domain=${domain}` : '';
+                document.cookie = name + "=" + value + ";" + expires + ";path=/" + domainStr;
+            }
+        </script>
+    
+        <script type="text/javascript" charset="utf-8" src="/elements/scripts.js"></script>
+        <script>
+            // Animations
+            window.addEventListener("scroll", reveal);
+            window.addEventListener("load", reveal);
+
+            function reveal() {
+                var reveals = document.querySelectorAll(".reveal");
+                for (var i = 0; i < reveals.length; i++) {
+                    var windowHeight = window.innerHeight;
+                    var elementTop = reveals[i].getBoundingClientRect().top;
+                    var elementVisible = 150;
+                    if (elementTop < windowHeight - elementVisible) {
+                        reveals[i].classList.add("active");
+                    } else {
+                        reveals[i].classList.remove("active");
+                    }
+                }
+            }
+        </script>
+
+    </body>
+
+</html>
+
