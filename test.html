@@ -865,6 +865,19 @@
     transform: translateY(1px); /* optical centering */
   }
 
+  .reset-btn.reset-anim,
+  .mini-btn.reset-anim {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 0.18rem rgba(34,197,94,0.2);
+    animation: reset-btn-pop 240ms ease;
+  }
+
+  @keyframes reset-btn-pop {
+    0% { transform: scale(1); }
+    45% { transform: scale(0.94); }
+    100% { transform: scale(1); }
+  }
+
   /* Pitch readout */
   .pitch-block {
     display: flex;
@@ -9072,11 +9085,32 @@
     }
   }
 
+  function triggerResetButtonAnimation() {
+    const targets = [resetBtn, miniResetBtn].filter(Boolean);
+    targets.forEach(btn => {
+      btn.classList.remove("reset-anim");
+      void btn.offsetWidth;
+      btn.classList.add("reset-anim");
+      if (btn._resetAnimTimeoutId) {
+        window.clearTimeout(btn._resetAnimTimeoutId);
+      }
+      btn._resetAnimTimeoutId = window.setTimeout(() => {
+        btn.classList.remove("reset-anim");
+        btn._resetAnimTimeoutId = null;
+      }, 280);
+    });
+  }
+
+  function handleResetAction() {
+    triggerResetButtonAnimation();
+    resetHeatmapOnly();
+  }
+
   micBtn.addEventListener("click", handleMicToggle);
   overlayPlayBtn.addEventListener("click", handleMicToggle);
 
   resetBtn.addEventListener("click", () => {
-    resetHeatmapOnly();
+    handleResetAction();
   });
 
   if (resetUsageBtn) {
@@ -9311,7 +9345,7 @@
 
   if (miniResetBtn) {
     miniResetBtn.addEventListener("click", () => {
-      if (resetBtn) resetBtn.click();
+      handleResetAction();
     });
   }
 
@@ -9428,7 +9462,7 @@
 
     if (key === "r") {
       event.preventDefault();
-      resetHeatmapOnly();
+      handleResetAction();
       return;
     }
 
