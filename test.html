@@ -4042,40 +4042,7 @@
   let micStream = null;
   let wakeLockSentinel = null;
   let noSleepAudioEl = null;
-
-  // Instrumentation for settling analysis
   let micStartTimeMs = 0;
-  let pitchDetectionLog = [];
-  const SETTLING_LOG_DURATION_MS = 15000; // 15 seconds
-
-  // Expose settling analysis function for console use
-  window.tonemap_exportSettlingLog = function() {
-    if (pitchDetectionLog.length === 0) {
-      console.log('No settling data logged yet. Start mic and wait 15 seconds.');
-      return null;
-    }
-    const csv = 'elapsed_ms,raw_pitch_hz,clarity,rms\n' + 
-                pitchDetectionLog.map(e => `${e.elapsed.toFixed(1)},${e.rawPitch.toFixed(2)},${e.clarity.toFixed(3)},${e.rms.toFixed(6)}`).join('\n');
-    console.log('=== SETTLING ANALYSIS LOG ===');
-    console.log(`Total frames: ${pitchDetectionLog.length}`);
-    console.log(`Duration: ${pitchDetectionLog[pitchDetectionLog.length - 1]?.elapsed.toFixed(0) || 0}ms`);
-    console.log('\nCSV Data:\\n' + csv);
-    
-    // Calculate statistics
-    const pitches = pitchDetectionLog.map(e => e.rawPitch).filter(p => p > 0);
-    const clarities = pitchDetectionLog.map(e => e.clarity);
-    if (pitches.length > 0) {
-      const avgPitch = pitches.reduce((a, b) => a + b) / pitches.length;
-      const maxPitch = Math.max(...pitches);
-      const minPitch = Math.min(...pitches);
-      console.log(`\nPitch stats: min=${minPitch.toFixed(2)}Hz, max=${maxPitch.toFixed(2)}Hz, avg=${avgPitch.toFixed(2)}Hz`);
-      console.log(`Pitch range: ${(maxPitch - minPitch).toFixed(2)}Hz`);
-      const expectedA4 = 440;
-      console.log(`Expected A4: ${expectedA4}Hz, Avg offset: ${((avgPitch - expectedA4) / expectedA4 * 100).toFixed(2)}%`);
-    }
-    console.log(`Avg clarity: ${(clarities.reduce((a, b) => a + b) / clarities.length).toFixed(3)}`);
-    return {csv, log: pitchDetectionLog};
-  };
 
   let A4 = 440;
 
@@ -4690,6 +4657,43 @@
     scrollLerpX: null,
     resizeRenderRafId: null
   };
+
+  const noteViewScrollRatioByStyle = {
+    [NOTE_VIEW_STYLE_RIBBONS]: 1,
+    [NOTE_VIEW_STYLE_BALLOONS]: 1
+  };
+
+  function getNoteViewScrollProgressRatio() {
+    if (!noteViewContainer) return 1;
+    const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
+    if (maxScroll <= 0) return 1;
+    return Math.max(0, Math.min(1, noteViewContainer.scrollLeft / maxScroll));
+  }
+
+  function saveNoteViewScrollRatioForStyle(style) {
+    if (!style || !noteViewContainer) return;
+    noteViewScrollRatioByStyle[style] = running ? 1 : getNoteViewScrollProgressRatio();
+  }
+
+  function restoreNoteViewScrollRatioForStyle(style, { fallbackRatio } = {}) {
+    if (!style || !noteViewContainer) return;
+    const storedRatio = noteViewScrollRatioByStyle[style];
+    const baseRatio = Number.isFinite(storedRatio)
+      ? storedRatio
+      : (Number.isFinite(fallbackRatio) ? fallbackRatio : 1);
+    const ratio = Math.max(0, Math.min(1, baseRatio));
+    const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
+    const nextLeft = Math.round(maxScroll * ratio);
+    noteViewRenderState.scrollLerpX = nextLeft;
+    noteViewRenderState.programmaticScrollLeft = nextLeft;
+    noteViewContainer.scrollLeft = nextLeft;
+    noteViewLastObservedScrollLeft = nextLeft;
+    noteViewScrollRatioByStyle[style] = ratio;
+    if (!running) {
+      const atRight = (maxScroll - nextLeft) <= NOTE_VIEW_SCROLL_SNAP_EPSILON_PX;
+      noteViewRenderState.isLive = atRight;
+    }
+  }
 
   function scheduleNoteViewResizeRender() {
     if (!noteViewActive) return;
@@ -7333,6 +7337,7 @@
 
   if (noteViewContainer) {
     noteViewContainer.addEventListener("scroll", () => {
+      const currentStyle = currentSettings.noteViewStyle || NOTE_VIEW_STYLE_DEFAULT;
       const currentScrollLeft = noteViewContainer.scrollLeft;
       const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
       const atRight = (maxScroll - currentScrollLeft) <= NOTE_VIEW_SCROLL_SNAP_EPSILON_PX;
@@ -7368,9 +7373,14 @@
       }
 
       const isUserWindowActive = noteViewScrollIsUserInitiated || nowMs() <= noteViewUserScrollUntilMs;
-      const userSessionActive = isUserWindowActive || !running;
 
-      if (userSessionActive && scrollDelta > 0.25) {
+      if (maxScroll > 0) {
+        noteViewScrollRatioByStyle[currentStyle] = Math.max(0, Math.min(1, currentScrollLeft / maxScroll));
+      } else {
+        noteViewScrollRatioByStyle[currentStyle] = 1;
+      }
+
+      if (scrollDelta > 0.25) {
         noteViewRenderState.isLive = atRight;
         if (!atRight) noteViewRenderState.scrollLerpX = null;
       }
@@ -7383,12 +7393,6 @@
         if (nowMs() > noteViewUserScrollUntilMs) {
           noteViewScrollIsUserInitiated = false;
         }
-        return;
-      }
-
-      if (atRight && !noteViewRenderState.isLive) {
-        noteViewRenderState.isLive = true;
-        if (noteViewActive) renderNoteView();
         return;
       }
 
@@ -7427,7 +7431,7 @@
         e.preventDefault();
         return;
       }
-      if (!noteViewContainer._touchStartX) return;
+      if (noteViewContainer._touchStartX == null) return;
       markNoteViewUserScrollIntent(320);
       const deltaX = e.touches[0].clientX - noteViewContainer._touchStartX;
       const atLeft = noteViewContainer.scrollLeft === 0;
@@ -8622,23 +8626,6 @@
     const dtMs = nowT - lastFrameTime;
     lastFrameTime = nowT;
 
-    // Log raw pitch detection for settling analysis
-    if (micStartTimeMs > 0) {
-      const elapsedMs = nowT - micStartTimeMs;
-      if (elapsedMs < SETTLING_LOG_DURATION_MS) {
-        pitchDetectionLog.push({
-          elapsed: elapsedMs,
-          rawPitch: pitch,
-          clarity: clarity,
-          rms: rms
-        });
-      } else if (pitchDetectionLog.length > 0 && pitchDetectionLog[pitchDetectionLog.length - 1].elapsed < SETTLING_LOG_DURATION_MS) {
-        // Log once at the end of the 15s window
-        console.log(`[Tonemap] Settling log complete (${elapsedMs}ms). Total frames: ${pitchDetectionLog.length}`);
-        console.log('First 20 frames:', pitchDetectionLog.slice(0, 20).map(e => `${e.elapsed.toFixed(0)}ms: ${e.rawPitch.toFixed(2)}Hz (clarity=${e.clarity.toFixed(3)})`).join(' | '));
-      }
-    }
-
     const loudEnough = rms >= volumeThreshold;
     const quietSignal = !loudEnough && rms >= Math.max(volumeThreshold * LED_QUIET_RATIO, LED_MIN_FLOOR);
     const pitchValid =
@@ -8868,11 +8855,7 @@
       dataBuffer = new Float32Array(analyserNode.fftSize);
 
       detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
-
-      // Initialize settling analysis
       micStartTimeMs = nowMs();
-      pitchDetectionLog = [];
-      console.log(`[Tonemap] Mic started | Echo: ${useEchoCancellation} (Safari fix: ${safariEchoFixEnabled})`);
 
       running = true;
       syncUsageLock();
@@ -8963,17 +8946,8 @@
       });
     }
 
-    // Dump settling log before stopping
-    if (pitchDetectionLog.length > 0) {
-      console.log(`[Tonemap] Settling session ended. Total frames logged: ${pitchDetectionLog.length}`);
-      // Export as CSV for analysis
-      const csv = 'elapsed_ms,raw_pitch_hz,clarity,rms\n' + pitchDetectionLog.map(e => `${e.elapsed.toFixed(1)},${e.rawPitch.toFixed(2)},${e.clarity.toFixed(3)},${e.rms.toFixed(6)}`).join('\n');
-      console.log('CSV Export:\n' + csv);
-    }
-    micStartTimeMs = 0;
-    pitchDetectionLog = [];
-
     setMicUiRunningState(false);
+    micStartTimeMs = 0;
 
     micDisabled = markDisabled ? true : micDisabled;
     resetMicHealthWatchdog();
@@ -9828,11 +9802,20 @@
 
   if (noteViewStyleSelect) {
     noteViewStyleSelect.addEventListener("change", () => {
+      const previousStyle = currentSettings.noteViewStyle || NOTE_VIEW_STYLE_DEFAULT;
+      const previousRatio = getNoteViewScrollProgressRatio();
+      saveNoteViewScrollRatioForStyle(previousStyle);
       currentSettings.noteViewStyle = noteViewStyleSelect.value;
       persistSettings(currentSettings);
       markNoteViewDataDirty();
       if (noteViewActive) {
         renderNoteView();
+        if (running) {
+          noteViewScrollRatioByStyle[currentSettings.noteViewStyle] = 1;
+        } else {
+          restoreNoteViewScrollRatioForStyle(currentSettings.noteViewStyle, { fallbackRatio: previousRatio });
+          renderNoteView();
+        }
       }
       syncSegmentedOptionControls();
     });
