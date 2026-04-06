@@ -2029,13 +2029,7 @@
           </div>
         </div>
 
-        <div class="safari-fix-row" id="safariFixRow">
-          <p class="safari-fix-inline">
-            <input type="checkbox" id="safariEchoFixCheckbox" />
-            <label for="safariEchoFixCheckbox">Safari 26.4 echo bug fix</label>
-            <button class="info-btn" type="button" data-info-key="safariEchoFix" aria-label="Learn about Safari 26.4 echo cancellation fix">i</button>
-          </p>
-        </div>
+
 
         <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, please buy me a coffee! ☕️
 </a></div>
@@ -2385,6 +2379,10 @@
 
       <section class="status-section">
         <h3 class="status-section-title">System</h3>
+        <div class="status-row" id="safariFixStatusRow" style="display:none;">
+          <span class="status-key">Safari Bugfix</span>
+          <span class="status-val" id="dbgSafariFix">Applied</span>
+        </div>
         <div class="status-row">
           <span class="status-key">Sample Rate</span>
           <span class="status-val" id="dbgSR">--</span>
@@ -2578,9 +2576,6 @@
   const paletteToOptionsBtn = document.getElementById("paletteToOptionsBtn");
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
   const rowStartSelect = document.getElementById("rowStartSelect");
-  const safariEchoFixCheckbox = document.getElementById("safariEchoFixCheckbox");
-  const safariFixRow = document.getElementById("safariFixRow");
-
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
   const dbgGuidance   = document.getElementById("dbgGuidance");
@@ -2606,45 +2601,60 @@
   const resetUsageBtn = document.getElementById("resetUsageBtn");
 
   // Safari version detection and echo fix state
-  let isSafari264Beta = false;
-  let safariEchoFixEnabled = false;
-  let safariEchoFixRestartInFlight = false;
+  let isSafariEchoBug = false;
+  let safariShadowStream = null;
+  let safariEchoFixApplied = false;
 
-  function detectSafari264Beta() {
+  function detectSafariEchoBug() {
     const ua = navigator.userAgent;
     if (!/^((?!chrome|android).)*safari/i.test(ua)) {
       return false;
     }
+    // Parse Safari version - bug present in 26.4 and later (until Apple fixes it)
     const versionMatch = ua.match(/Version\/(\d+)\.(\d+)/);
     if (!versionMatch) return false;
     const major = parseInt(versionMatch[1], 10);
     const minor = parseInt(versionMatch[2], 10);
-    return major === 26 && minor === 4;
+    return major > 26 || (major === 26 && minor >= 4);
   }
 
-  isSafari264Beta = detectSafari264Beta();
-  if (isSafari264Beta && safariFixRow) {
-    safariFixRow.style.display = "block";
-    console.log("[Tonemap] Safari 26.4 detected - echo fix option available");
+  // Apply shadow stream to prevent Safari echo bug
+  // Keep shadow stream with echoCancellation=true open indefinitely
+  async function applySafariEchoBugFix() {
+    if (!isSafariEchoBug) return;
+
+    safariEchoFixApplied = true;
+    console.log("[Tonemap] Safari echo bugfix: opening persistent shadow stream");
+
+    // Update status display
+    const statusRow = document.getElementById("safariFixStatusRow");
+    const statusVal = document.getElementById("dbgSafariFix");
+    if (statusRow) statusRow.style.display = "";
+    if (statusVal) statusVal.textContent = "Applied (persistent)";
+
+    try {
+      safariShadowStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
+      });
+      console.log("[Tonemap] Safari echo bugfix: shadow stream opened (will stay open)");
+    } catch (err) {
+      console.warn("[Tonemap] Safari echo bugfix: shadow stream failed", err);
+    }
   }
 
-  if (safariEchoFixCheckbox) {
-    safariEchoFixCheckbox.addEventListener("change", async (e) => {
-      safariEchoFixEnabled = !!e.target.checked;
-      console.log("[Tonemap] Safari echo fix:", safariEchoFixEnabled ? "enabled" : "disabled");
+  function cancelSafariEchoBugFix() {
+    if (safariShadowStream) {
+      safariShadowStream.getTracks().forEach(t => t.stop());
+      safariShadowStream = null;
+      console.log("[Tonemap] Safari echo bugfix: shadow stream closed");
+    }
+  }
 
-      if (!running) return;
-      if (safariEchoFixRestartInFlight) return;
+  // Detect Safari echo bug on load
+  isSafariEchoBug = detectSafariEchoBug();
 
-      safariEchoFixRestartInFlight = true;
-      try {
-        console.log("[Tonemap] Restarting mic to apply Safari echo fix setting");
-        stopMic();
-        await startMic();
-      } finally {
-        safariEchoFixRestartInFlight = false;
-      }
-    });
+  if (isSafariEchoBug) {
+    console.log("[Tonemap] Safari echo bug detected (26.4+) - automatic fix will be applied on mic start");
   }
 
   function openOptionsOverlay() {
@@ -3305,13 +3315,13 @@
       ]
     },
     safariEchoFix: {
-      title: "Safari 26.4 Echo Bug Fix",
-      summary: "Workaround for a Safari 26.4 issue where pitch can read sharp right after starting the microphone.",
+      title: "Safari 26.4+ Echo Bug Fix",
+      summary: "Automatic workaround for a Safari 26.4+ issue where pitch detection reads ~5% high for the first several seconds after starting the microphone.",
       detail: [
-        "The issue appears when echo cancellation is off: startup frames can be briefly time-stretched and read high.",
-        "Enabling this option sets echoCancellation=true to avoid the startup bias.",
-        "Trade-off: echo cancellation can alter the raw signal path and may affect some subtle pitch content.",
-        "If you notice startup sharpness in Safari 26.4, enable this option; otherwise leave it off."
+        "<strong>The Issue:</strong> Safari 26.4+ has a bug where, with echoCancellation=false, the AudioContext applies unexpected time-stretching during mic startup, causing pitch to read approximately 5% sharp (a semitone) for 4-10 seconds.",
+        "<strong>The Fix:</strong> Tonemap automatically applies brief 'shadow' echo-cancellation pulses at startup that prevent the bug from activating, without affecting audio quality.",
+        "<strong>Status:</strong> When this fix is active, you'll see 'Safari Bugfix: Applied' in the Status panel under System.",
+        "<strong>No action required:</strong> The fix is applied automatically on affected Safari versions. Your audio path remains clean (echoCancellation=false on the main stream)."
       ]
     }
   };
@@ -5780,20 +5790,21 @@
 
   async function startMic() {
     try {
-      const useEchoCancellation = safariEchoFixEnabled;
-
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
 
       micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          echoCancellation: useEchoCancellation,
+          echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false
         }
       });
       attachMicStreamWatchers(micStream);
+
+      // Apply Safari echo bug fix (persistent shadow stream)
+      applySafariEchoBugFix();
 
       const source = audioContext.createMediaStreamSource(micStream);
 
@@ -5840,6 +5851,7 @@
 
   function stopMic() {
     running = false;
+    cancelSafariEchoBugFix();
     releaseScreenWakeLock();
     forceStopUsageTimer(nowMs());
     releaseUsageLock();

@@ -1,10 +1,10 @@
 # Free/Pro Split Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> **For Claude:** 
 
-**Goal:** Create `free.html` (gated free-tier app) by copying `index.html`, removing/restricting Pro features at the HTML and JS level, adding an upgrade modal + CTA, and wiring the Cloudflare Worker to production routes on tonemap.live.
+**Goal:** Create `free.html` (gated free-tier app) by copying `test.html`, removing/restricting Pro features at the HTML and JS level, adding an upgrade modal + CTA, and wiring the Cloudflare Worker to production routes on tonemap.live.  
 
-**Architecture:** `free.html` is a modified static copy of `index.html` with Pro JS constants removed and UI options restricted. An inline upgrade modal handles Pro prompts. `index.html` is never touched until `free.html` is fully tested and ready to swap. The Cloudflare Worker (already deployed) handles `/activate` and `/pro` once routes are wired in `wrangler.toml`.
+**Architecture:** `free.html` is a modified static copy of `test.html` with Pro JS constants removed and UI options restricted. An inline upgrade modal handles Pro prompts. `test.html` is never touched until `free.html` is fully tested and ready to swap. The Cloudflare Worker (already deployed) handles `/activate` and `/pro` once routes are wired in `wrangler.toml`.  'test.html' will need lite Pro branding and user thank-yous before it goes live.
 
 **Tech Stack:** Vanilla JS/HTML/CSS (single-file, no build step), Cloudflare Pages (static hosting), Cloudflare Worker + Workers KV, Wrangler CLI v4.68.1, Lemon Squeezy (license validation + checkout).
 

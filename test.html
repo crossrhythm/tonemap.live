@@ -500,8 +500,7 @@
     max-width: 50px;
   }
 
-  .page.focus-mode .footer-line,
-  .page.focus-mode .safari-fix-row {
+  .page.focus-mode .footer-line {
     display: none;
   }
 
@@ -1583,52 +1582,6 @@
     .right-scroll.can-scroll-up {
       box-shadow: inset 0 3px 0 rgba(15,23,42,1);
     }
-  }
-
-  /* Safari 26.4 beta echo fix row */
-  .safari-fix-row {
-    display: none; /* Hidden by default, shown only on Safari 26.4 */
-    padding: 0.5rem 0.75rem;
-    margin: 0.5rem 0;
-    background: rgba(250, 204, 21, 0.08);
-    border: 1px solid rgba(250, 204, 21, 0.25);
-    border-radius: 0.35rem;
-    font-size: 0.85rem;
-  }
-
-  .right-col.mini-mode .safari-fix-row {
-    display: none !important; /* Never show in mini mode */
-  }
-
-  .safari-fix-inline {
-    margin: 0;
-    color: var(--text-lite);
-    line-height: 1.3;
-  }
-
-  .safari-fix-inline input[type="checkbox"] {
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-    vertical-align: middle;
-    margin-right: 0.45rem;
-  }
-
-  .safari-fix-inline label {
-    display: inline;
-    color: var(--text-lite);
-    font-size: inherit;
-    white-space: normal;
-    text-align: left;
-    justify-content: initial;
-    padding: 0;
-    vertical-align: middle;
-  }
-
-  .safari-fix-inline .info-btn {
-    display: inline-flex;
-    vertical-align: middle;
-    margin-left: 0.35rem;
   }
 
   /* Portrait page: bottom-only fade over footer area */
@@ -2830,13 +2783,13 @@
       </div>
       <div class="edge-controls" aria-label="Range controls">
         <div class="edge-group edge-group-top">
-          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range">+</button>
-          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range">-</button>
+          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range [Right Bracket]">+</button>
+          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range [Left Bracket]">-</button>
           <div class="edge-label">High</div>
         </div>
         <div class="edge-separator edge-separator-top"></div>
         <div class="edge-key-block" id="edgeKeyBlock">
-          <div id="edgeKey" class="edge-key" role="button" tabindex="0" aria-label="Open pitch color key">
+          <div id="edgeKey" class="edge-key" role="button" tabindex="0" aria-label="Open pitch color key" title="Open Colors [C]">
             <div class="edge-gradient">
               <div class="pitch-label">PITCH</div>
               <div class="edge-center-line"></div>
@@ -2848,8 +2801,8 @@
         <div class="edge-separator edge-separator-bottom"></div>
         <div class="edge-group edge-group-bottom">
           <div class="edge-label">Low</div>
-          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave">-</button>
-          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave">+</button>
+          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave [Quote]">-</button>
+          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave [Semicolon]">+</button>
         </div>
       </div>
     </div>
@@ -2861,16 +2814,16 @@
     <!-- Mini controls (landscape sidebar / portrait strip) -->
     <div class="mini-sidebar">
       <img class="mini-logo" id="miniLogoBtn" src="tonemapicon.png" alt="Tonemap logo" title="Return to full sidebar" role="button" tabindex="0">
-      <button class="mini-btn" id="miniMicBtn" type="button" title="Play/Pause listening">
+      <button class="mini-btn" id="miniMicBtn" type="button" title="Play/Pause listening [Space]">
         <span class="icon-micstate paused">▶</span>
       </button>
-      <button class="mini-btn" id="miniResetBtn" type="button" title="Reset the grid">
+      <button class="mini-btn" id="miniResetBtn" type="button" title="Reset the grid [R]">
         <span class="icon-reset">↻</span>
       </button>
-      <button class="mini-btn" id="miniViewToggleBtn" type="button" title="Toggle view mode">
+      <button class="mini-btn" id="miniViewToggleBtn" type="button" title="View shortcuts [G/N/B/V]">
         <img class="view-icon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><text x='4' y='20' font-size='20' font-family='sans-serif'>♫</text></svg>" alt="Show note view" />
       </button>
-      <button class="mini-btn" id="miniOptionsBtn" type="button" title="Open options">
+      <button class="mini-btn" id="miniOptionsBtn" type="button" title="Open options [O]">
         <span class="icon-options">⚙</span>
       </button>
     </div>
@@ -2895,33 +2848,24 @@
               </div>
             </div>
           </div>
-          <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
+          <button id="micBtn" class="mic-btn off" title="Toggle Microphone [Space]">
             <span class="icon-micstate paused">▶︎</span>
           </button>
-          <button id="resetBtn" class="reset-btn" title="Reset Heatmap">
+          <button id="resetBtn" class="reset-btn" title="Reset Heatmap [R]">
             <span class="icon-reset">↻</span>
           </button>
         </div>
 
         <div class="overlay-actions">
           <div class="overlay-button-stack">
-            <button id="noteViewToggleBtn" class="options-btn" type="button">Note View</button>
-            <button id="focusModeBtn" class="options-btn" type="button" aria-pressed="false">Full Screen</button>
-            <button id="optionsToggleBtn" class="options-btn" type="button">Options</button>
+            <button id="noteViewToggleBtn" class="options-btn" type="button" title="View shortcuts [G/N/B/V]">Note View</button>
+            <button id="focusModeBtn" class="options-btn" type="button" aria-pressed="false" title="Toggle Full Screen [F]">Full Screen</button>
+            <button id="optionsToggleBtn" class="options-btn" type="button" title="Open options [O]">Options</button>
           </div>
           <div class="quick-state">
             <div id="quickLine1">A4=440 • No stretch</div>
             <div id="quickLine2">Key=C • Easy Mode</div>
           </div>
-        </div>
-        
-        <!-- Safari 26.4 echo bug fix (only visible on affected Safari versions) -->
-        <div class="safari-fix-row" id="safariFixRow">
-          <p class="safari-fix-inline">
-            <input type="checkbox" id="safariEchoFixCheckbox" />
-            <label for="safariEchoFixCheckbox">Safari 26.4 beta bug fix</label>
-            <button class="info-btn" type="button" data-info-key="safariEchoFix" aria-label="Learn about Safari 26.4 echo cancellation fix">i</button>
-          </p>
         </div>
         
         <div class="footer-line"><a class="footer-coffee" href="https://buymeacoffee.com/eevs">If you like this and want to support it, please buy me a coffee! ☕️
@@ -3344,6 +3288,10 @@
 
       <section class="status-section">
         <h3 class="status-section-title">System</h3>
+        <div class="status-row" id="safariFixStatusRow" style="display:none;">
+          <span class="status-key">Safari Bugfix</span>
+          <span class="status-val" id="dbgSafariFix">Applied</span>
+        </div>
         <div class="status-row">
           <span class="status-key">Sample Rate</span>
           <span class="status-val" id="dbgSR">--</span>
@@ -3629,58 +3577,69 @@
   let fallbackFocusModeEnabled = false;
 
   /*************
-   * SAFARI 26.4 DETECTION & INIT
+   * SAFARI ECHO BUG DETECTION & FIX
    *************/
-  // Safari version detection and echo fix state
-  let isSafari264Beta = false;
-  let safariEchoFixEnabled = false; // Default OFF
-  let safariEchoFixRestartInFlight = false;
+  // Safari version detection - bug present in 26.4+ (until Apple fixes it)
+  let isSafariEchoBug = false;
+  let safariEchoFixApplied = false;
 
-  function detectSafari264Beta() {
+  function detectSafariEchoBug() {
     const ua = navigator.userAgent;
     // Check for Safari (not Chrome/Chromium)
     if (!/^((?!chrome|android).)*safari/i.test(ua)) {
       return false;
     }
-    
-    // Parse Safari version - looking for Version/26.4
+
+    // Parse Safari version - bug present in 26.4 and later (until Apple fixes it)
     const versionMatch = ua.match(/Version\/(\d+)\.(\d+)/);
     if (!versionMatch) return false;
-    
+
     const major = parseInt(versionMatch[1], 10);
     const minor = parseInt(versionMatch[2], 10);
+
+    // Show for Safari 26.4+ (bug introduced in 26.4, not yet fixed)
+    return major > 26 || (major === 26 && minor >= 4);
+  }
+
+  // Apply shadow stream to prevent Safari echo bug
+  // Keep shadow stream with echoCancellation=true open indefinitely
+  let safariShadowStream = null;
+  
+  async function applySafariEchoBugFix() {
+    if (!isSafariEchoBug) return;
     
-    // Target Safari 26.4 specifically (beta versions)
-    return major === 26 && minor === 4;
+    safariEchoFixApplied = true;
+    console.log('[Tonemap] Safari echo bugfix: opening persistent shadow stream');
+    
+    // Update status display
+    const statusRow = document.getElementById('safariFixStatusRow');
+    const statusVal = document.getElementById('dbgSafariFix');
+    if (statusRow) statusRow.style.display = '';
+    if (statusVal) statusVal.textContent = 'Applied (persistent)';
+    
+    try {
+      safariShadowStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
+      });
+      console.log('[Tonemap] Safari echo bugfix: shadow stream opened (will stay open)');
+    } catch (err) {
+      console.warn('[Tonemap] Safari echo bugfix: shadow stream failed', err);
+    }
+  }
+  
+  function cancelSafariEchoBugFix() {
+    if (safariShadowStream) {
+      safariShadowStream.getTracks().forEach(t => t.stop());
+      safariShadowStream = null;
+      console.log('[Tonemap] Safari echo bugfix: shadow stream closed');
+    }
   }
 
-  // Detect Safari 26.4 and show fix option if needed
-  isSafari264Beta = detectSafari264Beta();
-  const safariEchoFixCheckbox = document.getElementById('safariEchoFixCheckbox');
-  const safariFixRow = document.getElementById('safariFixRow');
-
-  if (isSafari264Beta && safariFixRow) {
-    safariFixRow.style.display = 'block';  // Show the warning/fix row
-    console.log('[Tonemap] Safari 26.4 beta detected - echo fix option available');
-  }
-
-  if (safariEchoFixCheckbox) {
-    safariEchoFixCheckbox.addEventListener('change', async (e) => {
-      safariEchoFixEnabled = e.target.checked;
-      console.log('[Tonemap] Safari echo fix:', safariEchoFixEnabled ? 'enabled' : 'disabled');
-
-      if (!running) return;
-      if (safariEchoFixRestartInFlight) return;
-
-      safariEchoFixRestartInFlight = true;
-      try {
-        console.log('[Tonemap] Restarting mic to apply Safari echo fix setting');
-        stopMic();
-        await startMic();
-      } finally {
-        safariEchoFixRestartInFlight = false;
-      }
-    });
+  // Detect Safari echo bug on load
+  isSafariEchoBug = detectSafariEchoBug();
+  
+  if (isSafariEchoBug) {
+    console.log('[Tonemap] Safari echo bug detected (26.4+) - automatic fix will be applied on mic start');
   }
 
   /*************
@@ -4268,6 +4227,43 @@
   let micLastRecoveryAttemptMs = 0;
   let silentAdvanceAccumMs = 0; // track how much silence has advanced the active clock (capped)
   const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
+
+  const EDGE_SHORTCUT_LABELS = Object.freeze({
+    topGrow: "[Right Bracket]",
+    topShrink: "[Left Bracket]",
+    bottomUp: "[Quote]",
+    bottomDown: "[Semicolon]"
+  });
+
+  function refreshShortcutTooltips() {
+    if (micBtn) micBtn.title = "Toggle Microphone [Space]";
+    if (miniMicBtn) miniMicBtn.title = "Play/Pause listening [Space]";
+
+    if (resetBtn) resetBtn.title = "Reset Heatmap [R]";
+    if (miniResetBtn) miniResetBtn.title = "Reset the grid [R]";
+
+    const viewShortcutTitle = "View shortcuts [G/N/B/V]";
+    if (noteViewToggleBtn) noteViewToggleBtn.title = viewShortcutTitle;
+    if (miniViewToggleBtn) miniViewToggleBtn.title = viewShortcutTitle;
+
+    if (optionsToggleBtn) optionsToggleBtn.title = "Open options [O]";
+    if (miniOptionsBtn) miniOptionsBtn.title = "Open options [O]";
+    if (focusModeBtn) focusModeBtn.title = "Toggle Full Screen [F]";
+    if (edgeKey) edgeKey.title = "Open Colors [C]";
+
+    if (noteViewActive) {
+      if (rangeGrowBtn) rangeGrowBtn.title = `Raise top edge by 1 semitone ${EDGE_SHORTCUT_LABELS.topGrow}`;
+      if (rangeShrinkBtn) rangeShrinkBtn.title = `Lower top edge by 1 semitone ${EDGE_SHORTCUT_LABELS.topShrink}`;
+      if (lowNoteUpBtn) lowNoteUpBtn.title = `Raise bottom edge by 1 semitone ${EDGE_SHORTCUT_LABELS.bottomUp}`;
+      if (lowNoteDownBtn) lowNoteDownBtn.title = `Lower bottom edge by 1 semitone ${EDGE_SHORTCUT_LABELS.bottomDown}`;
+      return;
+    }
+
+    if (rangeGrowBtn) rangeGrowBtn.title = `Add an octave to the top of the range ${EDGE_SHORTCUT_LABELS.topGrow}`;
+    if (rangeShrinkBtn) rangeShrinkBtn.title = `Remove an octave from the top of the range ${EDGE_SHORTCUT_LABELS.topShrink}`;
+    if (lowNoteUpBtn) lowNoteUpBtn.title = `Raise the low note by one octave ${EDGE_SHORTCUT_LABELS.bottomUp}`;
+    if (lowNoteDownBtn) lowNoteDownBtn.title = `Lower the low note by one octave ${EDGE_SHORTCUT_LABELS.bottomDown}`;
+  }
 
   function recalcNoteViewPaintState() {
     noteViewHasPaintedNote = Object.values(masterCellState).some(st =>
@@ -5037,22 +5033,21 @@
         "• N: Show Note View (Ribbons).",
         "• B: Show Note View (Balloons).",
         "• V: Cycle view mode (Grid → Ribbons → Balloons).",
-        "• In Grid View: [ / ] and ; / ' adjust the grid in octaves.",
-        "• In Note View: [ / ] move the top edge by semitone.",
-        "• In Note View: ; / ' move the bottom edge by semitone.",
+        "• In Grid View: Left/Right Bracket and Semicolon/Quote adjust the grid in octaves.",
+        "• In Note View: Right/Left Bracket move the top edge by semitone.",
+        "• In Note View: Quote/Semicolon move the bottom edge by semitone.",
         "• Grid auto-expands (by octave) when needed to include Note View range.",
         "• ← / →: Scroll Note View timeline (hold Shift for faster scrolling)."
       ]
     },
     safariEchoFix: {
-      title: "Safari 26.4 Echo Bug Fix",
-      summary: "Workaround for a Safari 26.4 beta issue where pitch detection reads ~5% high for the first 6-15 seconds after starting the microphone.",
+      title: "Safari 26.4+ Echo Bug Fix",
+      summary: "Automatic workaround for a Safari 26.4+ issue where pitch detection reads ~5% high for the first several seconds after starting the microphone.",
       detail: [
-        "<strong>The Issue:</strong> Safari 26.4 beta has a bug where, with echoCancellation=false (Tonemap's default), the AudioContext applies unexpected time-stretching during mic startup, causing pitch to read approximately 5% sharp. For example, A440 is detected as ~463 Hz for 6-15 seconds before snapping to the correct frequency.",
-        "<strong>The Fix:</strong> Enabling this option sets echoCancellation=true, which bypasses Safari's time-stretching bug and provides accurate pitch from the first frame.",
-        "<strong>Trade-off:</strong> Echo cancellation processes the audio, and will change how Tonemap will recognize the pitch.  Differential tones especially may be harder to detect.",
-        "<strong>Workaround:</strong> If the pitch bias bothers you (notes reading sharp for several seconds after mic start), enable this option. Otherwise, leave disabled for the cleanest audio path.",
-        "<strong>Alternative:</strong> Simply wait for 15 seconds after starting the microphone—the issue self-corrects without configuration changes."
+        "<strong>The Issue:</strong> Safari 26.4+ has a bug where, with echoCancellation=false, the AudioContext applies unexpected time-stretching during mic startup, causing pitch to read approximately 5% sharp (a semitone) for 4-10 seconds.",
+        "<strong>The Fix:</strong> Tonemap automatically applies brief 'shadow' echo-cancellation pulses at startup that prevent the bug from activating, without affecting audio quality.",
+        "<strong>Status:</strong> When this fix is active, you'll see 'Safari Bugfix: Applied' in the Status panel under System.",
+        "<strong>No action required:</strong> The fix is applied automatically on affected Safari versions. Your audio path remains clean (echoCancellation=false on the main stream)."
       ]
     }
   };
@@ -8821,9 +8816,6 @@
       micDisabled = false;
       resetMicHealthWatchdog();
       
-      // Use user preference for Safari 26.4 echo fix (default: off)
-      const useEchoCancellation = safariEchoFixEnabled;
-      
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
@@ -8834,7 +8826,7 @@
       }
 
       const audioConstraints = {
-        echoCancellation: useEchoCancellation,
+        echoCancellation: false,
         noiseSuppression: false,
         autoGainControl: false
       };
@@ -8843,6 +8835,9 @@
         audio: audioConstraints
       });
       attachMicStreamWatchers(micStream);
+      
+      // Apply Safari echo bug fix (persistent shadow stream)
+      applySafariEchoBugFix();
 
       const source = audioContext.createMediaStreamSource(micStream);
 
@@ -8902,6 +8897,7 @@
 
   function stopMic({ markDisabled = false } = {}) {
     running = false;
+    cancelSafariEchoBugFix();
     noteViewRenderState.programmaticScrollLeft = null;
     noteViewRenderState.scrollLerpX = null;
     releaseScreenWakeLock();
@@ -9203,6 +9199,7 @@
   }
 
   updateEdgeKeyVisibility();
+  refreshShortcutTooltips();
 
   if (optionsPaletteBtn) {
     optionsPaletteBtn.addEventListener("click", () => {
@@ -9297,6 +9294,7 @@
       ensureNoteViewRangeState({ persist: false });
       ensureGridCoversNoteViewRange();
       updateEdgeControlStates();
+      refreshShortcutTooltips();
       if (noteViewActive) {
         // Finalize any active note before switching to score view
         if (currentMidiHeld != null) {

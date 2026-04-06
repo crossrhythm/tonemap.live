@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.6 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 1.7 (update window.APP_VERSION below when bumping release) -->
 <!-- STATUS: Beta/test version for testing on mobile devices -->
 <!-- Once thoroughly tested, copy changes to index.html for production deployment -->
 <!-- Licensed under the MIT License; see LICENSE. -->
@@ -456,6 +456,12 @@
     transform: translateY(1px);
   }
 
+  .edge-btn.key-active {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 0.18rem rgba(34,197,94,0.2);
+    transform: translateY(1px);
+  }
+
   .edge-btn:disabled {
     opacity: 0.38;
     cursor: not-allowed;
@@ -483,6 +489,20 @@
     z-index: 2;
     background: transparent;
     transition: flex 0.3s ease, max-width 0.3s ease;
+  }
+
+  .page.focus-mode {
+    gap: 0.55rem;
+  }
+
+  .page.focus-mode .right-col.mini-mode {
+    flex: 0 0 50px;
+    max-width: 50px;
+  }
+
+  .page.focus-mode .footer-line,
+  .page.focus-mode .safari-fix-row {
+    display: none;
   }
 
   .right-col.mini-mode {
@@ -786,26 +806,6 @@
     font-weight: 700;
   }
 
-  .upgrade-pro-btn {
-    appearance: none;
-    background: rgba(34,197,94,0.12);
-    color: var(--text-lite);
-    border: 1px solid rgba(34,197,94,0.6);
-    border-radius: 999px;
-    padding: 0.4rem 0.95rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-  }
-
-  .upgrade-pro-btn:hover,
-  .upgrade-pro-btn:focus-visible {
-    border-color: var(--accent-green);
-    color: var(--accent-green);
-    outline: none;
-  }
-
   /* Buttons:
      - rectangular (~5:3 ratio)
      - per-icon sizing for balance
@@ -863,6 +863,19 @@
     font-size: 2.25rem;
     line-height: 1;
     transform: translateY(1px); /* optical centering */
+  }
+
+  .reset-btn.reset-anim,
+  .mini-btn.reset-anim {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 0 0.18rem rgba(34,197,94,0.2);
+    animation: reset-btn-pop 240ms ease;
+  }
+
+  @keyframes reset-btn-pop {
+    0% { transform: scale(1); }
+    45% { transform: scale(0.94); }
+    100% { transform: scale(1); }
   }
 
   /* Pitch readout */
@@ -1287,6 +1300,19 @@
   box-shadow: 0 0 0 0.3rem rgba(250,204,21,0.12);
 }
 
+.options-btn.action-anim {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+  box-shadow: 0 0 0 0.18rem rgba(34,197,94,0.2);
+  animation: sidebar-action-pop 220ms ease;
+}
+
+@keyframes sidebar-action-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
 .toggle-btn.active {
   background-color: rgba(34,197,94,0.12);
   border-color: var(--accent-green);
@@ -1559,6 +1585,52 @@
     }
   }
 
+  /* Safari 26.4 beta echo fix row */
+  .safari-fix-row {
+    display: none; /* Hidden by default, shown only on Safari 26.4 */
+    padding: 0.5rem 0.75rem;
+    margin: 0.5rem 0;
+    background: rgba(250, 204, 21, 0.08);
+    border: 1px solid rgba(250, 204, 21, 0.25);
+    border-radius: 0.35rem;
+    font-size: 0.85rem;
+  }
+
+  .right-col.mini-mode .safari-fix-row {
+    display: none !important; /* Never show in mini mode */
+  }
+
+  .safari-fix-inline {
+    margin: 0;
+    color: var(--text-lite);
+    line-height: 1.3;
+  }
+
+  .safari-fix-inline input[type="checkbox"] {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 0.45rem;
+  }
+
+  .safari-fix-inline label {
+    display: inline;
+    color: var(--text-lite);
+    font-size: inherit;
+    white-space: normal;
+    text-align: left;
+    justify-content: initial;
+    padding: 0;
+    vertical-align: middle;
+  }
+
+  .safari-fix-inline .info-btn {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 0.35rem;
+  }
+
   /* Portrait page: bottom-only fade over footer area */
   @media (max-aspect-ratio: 1/1) {
     .page::after {
@@ -1588,6 +1660,11 @@
     position: relative;
     z-index: 2;
     background: var(--ui-overlay-footer-bg);
+  }
+
+  .options-overlay-footer .overlay-button-stack {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .option-field {
@@ -1716,6 +1793,26 @@
     justify-content: space-between;
     gap: 0.4rem;
     width: 100%;
+  }
+
+  .upgrade-pro-btn {
+    appearance: none;
+    background: rgba(34,197,94,0.12);
+    color: var(--text-lite);
+    border: 1px solid rgba(34,197,94,0.6);
+    border-radius: 999px;
+    padding: 0.4rem 0.95rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .upgrade-pro-btn:hover,
+  .upgrade-pro-btn:focus-visible {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    outline: none;
   }
 
   .pro-badge {
@@ -2023,6 +2120,28 @@
     .overlay-button-stack {
       flex-direction: column;
       gap: 0.5rem;
+    }
+  }
+
+  @media (orientation: landscape) and (min-width: 1001px) {
+    .right-scroll .overlay-button-stack {
+      width: 100%;
+      flex-wrap: wrap;
+      justify-content: center;
+      row-gap: 0.45rem;
+      column-gap: 0.55rem;
+    }
+    .right-scroll .overlay-button-stack #noteViewToggleBtn,
+    .right-scroll .overlay-button-stack #focusModeBtn {
+      flex: 1 1 calc((100% - 0.55rem) / 2);
+      min-width: 0;
+      padding-left: 0.65rem;
+      padding-right: 0.65rem;
+    }
+    .right-scroll .overlay-button-stack #optionsToggleBtn {
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 0;
     }
   }
 
@@ -2569,80 +2688,6 @@
     transition: background-color 0.1s linear;
   }
 
-  .grid-cell.range-row-add-top {
-    animation: row-add-top 220ms ease-out;
-    z-index: 3;
-  }
-
-  .grid-cell.range-row-add-bottom {
-    animation: row-add-bottom 220ms ease-out;
-    z-index: 3;
-  }
-
-  .grid-row-removal-ghost {
-    position: absolute;
-    left: 0;
-    right: 0;
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    pointer-events: none;
-    z-index: 9;
-  }
-
-  .grid-row-removal-ghost.top {
-    top: 0;
-    animation: row-remove-top 220ms ease-in forwards;
-  }
-
-  .grid-row-removal-ghost.bottom {
-    bottom: 0;
-    animation: row-remove-bottom 220ms ease-in forwards;
-  }
-
-  @keyframes row-add-top {
-    from {
-      opacity: 0;
-      transform: translateY(-22%);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes row-add-bottom {
-    from {
-      opacity: 0;
-      transform: translateY(22%);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes row-remove-top {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(-28%);
-    }
-  }
-
-  @keyframes row-remove-bottom {
-    from {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    to {
-      opacity: 0;
-      transform: translateY(28%);
-    }
-  }
-
   .grid-cell.visited {
     color: var(--grid-text-on);
   }
@@ -2894,7 +2939,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.6";
+  window.APP_VERSION = "1.7";
 </script>
 
 <div class="page">
@@ -2926,13 +2971,13 @@
       </div>
       <div class="edge-controls" aria-label="Range controls">
         <div class="edge-group edge-group-top">
-          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range">+</button>
-          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range">-</button>
+          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range [Right Bracket]">+</button>
+          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range [Left Bracket]">-</button>
           <div class="edge-label">High</div>
         </div>
         <div class="edge-separator edge-separator-top"></div>
         <div class="edge-key-block" id="edgeKeyBlock">
-          <div id="edgeKey" class="edge-key" role="button" tabindex="0" aria-label="Open pitch color key">
+          <div id="edgeKey" class="edge-key" role="button" tabindex="0" aria-label="Open pitch color key" title="Open Colors [C]">
             <div class="edge-gradient">
               <div class="pitch-label">PITCH</div>
               <div class="edge-center-line"></div>
@@ -2944,8 +2989,8 @@
         <div class="edge-separator edge-separator-bottom"></div>
         <div class="edge-group edge-group-bottom">
           <div class="edge-label">Low</div>
-          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave">-</button>
-          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave">+</button>
+          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave [Quote]">-</button>
+          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave [Semicolon]">+</button>
         </div>
       </div>
     </div>
@@ -2957,16 +3002,16 @@
     <!-- Mini controls (landscape sidebar / portrait strip) -->
     <div class="mini-sidebar">
       <img class="mini-logo" id="miniLogoBtn" src="tonemapicon.png" alt="Tonemap logo" title="Return to full sidebar" role="button" tabindex="0">
-      <button class="mini-btn" id="miniMicBtn" type="button" title="Play/Pause listening">
+      <button class="mini-btn" id="miniMicBtn" type="button" title="Play/Pause listening [Space]">
         <span class="icon-micstate paused">▶</span>
       </button>
-      <button class="mini-btn" id="miniResetBtn" type="button" title="Reset the grid">
+      <button class="mini-btn" id="miniResetBtn" type="button" title="Reset the grid [R]">
         <span class="icon-reset">↻</span>
       </button>
-      <button class="mini-btn" id="miniViewToggleBtn" type="button" title="Toggle view mode">
+      <button class="mini-btn" id="miniViewToggleBtn" type="button" title="View shortcuts [G/N/B/V]">
         <img class="view-icon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><text x='4' y='20' font-size='20' font-family='sans-serif'>♫</text></svg>" alt="Show note view" />
       </button>
-      <button class="mini-btn" id="miniOptionsBtn" type="button" title="Open options">
+      <button class="mini-btn" id="miniOptionsBtn" type="button" title="Open options [O]">
         <span class="icon-options">⚙</span>
       </button>
     </div>
@@ -2991,24 +3036,28 @@
               </div>
             </div>
           </div>
-          <button id="micBtn" class="mic-btn off" title="Toggle Microphone">
+          <button id="micBtn" class="mic-btn off" title="Toggle Microphone [Space]">
             <span class="icon-micstate paused">▶︎</span>
           </button>
-          <button id="resetBtn" class="reset-btn" title="Reset Heatmap">
+          <button id="resetBtn" class="reset-btn" title="Reset Heatmap [R]">
             <span class="icon-reset">↻</span>
           </button>
         </div>
 
         <div class="overlay-actions">
           <div class="overlay-button-stack">
-            <button id="noteViewToggleBtn" class="options-btn" type="button">Note View</button>
-            <button id="optionsToggleBtn" class="options-btn" type="button">Options</button>
+            <button id="noteViewToggleBtn" class="options-btn" type="button" title="View shortcuts [G/N/B/V]">Note View</button>
+            <button id="focusModeBtn" class="options-btn" type="button" aria-pressed="false" title="Toggle Full Screen [F]">Full Screen</button>
+            <button id="optionsToggleBtn" class="options-btn" type="button" title="Open options [O]">Options</button>
           </div>
           <div class="quick-state">
             <div id="quickLine1">A4=440 • No stretch</div>
             <div id="quickLine2">Key=C • Easy Mode</div>
           </div>
         </div>
+        
+
+        
         <div class="footer-line">
           <button class="upgrade-pro-btn" type="button" data-open-pro-modal>Upgrade to ★ Pro</button>
         </div>
@@ -3322,6 +3371,7 @@
     </div>
       <div class="options-overlay-footer">
         <div class="overlay-button-stack">
+          <button id="keyboardShortcutsBtn" class="status-btn" type="button" data-info-key="keyboardShortcuts">Keyboard</button>
           <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
         </div>
       </div>
@@ -3435,6 +3485,10 @@
 
       <section class="status-section">
         <h3 class="status-section-title">System</h3>
+        <div class="status-row" id="safariFixStatusRow" style="display:none;">
+          <span class="status-key">Safari Bugfix</span>
+          <span class="status-val" id="dbgSafariFix">Applied</span>
+        </div>
         <div class="status-row">
           <span class="status-key">Sample Rate</span>
           <span class="status-val" id="dbgSR">--</span>
@@ -3547,7 +3601,7 @@
         <li>Rows start with any note</li>
       </ul>
       <p class="pro-modal-support">Your subscription supports ongoing development of Tonemap.</p>
-      <a id="proModalCTA" class="pro-modal-btn lemonsqueezy-button" href="https://eevs.lemonsqueezy.com/checkout/buy/4c47a015-d4b5-4062-8411-635e34ccd7db?embed=1&logo=0&discount=0">
+      <a id="proModalCTA" class="pro-modal-btn" href="https://eevs.lemonsqueezy.com/checkout/buy/4c47a015-d4b5-4062-8411-635e34ccd7db?embed=1&logo=0&discount=0">
         Start Free Trial →
       </a>
       <div class="pro-modal-or">Already purchased? <a href="/activate">Activate your license →</a></div>
@@ -3558,7 +3612,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.6";
+  const APP_VERSION = window.APP_VERSION || "1.7";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -3650,6 +3704,7 @@
   const noteOctaveEl  = noteEl ? noteEl.querySelector(".note-octave") : null;
   const appVersionEl  = document.getElementById("appVersion");
   const optionsToggleBtn = document.getElementById("optionsToggleBtn");
+  const focusModeBtn = document.getElementById("focusModeBtn");
   const optionsOverlay   = document.getElementById("optionsOverlay");
   const optionsCloseBtn  = document.getElementById("optionsCloseBtn");
   const noteViewToggleBtn = document.getElementById("noteViewToggleBtn");
@@ -3743,7 +3798,77 @@
   const optionsOverlayBodyEl = document.querySelector("#optionsOverlay .options-overlay-body");
   const statusOverlayBodyEl = document.querySelector("#statusOverlay .status-overlay-body");
   const pageEl = document.querySelector(".page");
+  const FULLSCREEN_HINT_KEY = "tonemap.live.fullscreenHintShown";
+  let fallbackFocusModeEnabled = false;
 
+  /*************
+   * SAFARI ECHO BUG DETECTION & INIT
+   *************/
+  // Safari version detection and echo fix state
+  let isSafariEchoBug = false;
+  let safariShadowStream = null;
+  let safariEchoFixApplied = false;
+
+  function detectSafariEchoBug() {
+    const ua = navigator.userAgent;
+    // Check for Safari (not Chrome/Chromium)
+    if (!/^((?!chrome|android).)*safari/i.test(ua)) {
+      return false;
+    }
+
+    // Parse Safari version - bug present in 26.4 and later (until Apple fixes it)
+    const versionMatch = ua.match(/Version\/(\d+)\.(\d+)/);
+    if (!versionMatch) return false;
+
+    const major = parseInt(versionMatch[1], 10);
+    const minor = parseInt(versionMatch[2], 10);
+
+    // Show for Safari 26.4+ (bug introduced in 26.4, not yet fixed)
+    return major > 26 || (major === 26 && minor >= 4);
+  }
+
+  // Apply shadow stream to prevent Safari echo bug
+  // Keep shadow stream with echoCancellation=true open indefinitely
+  async function applySafariEchoBugFix() {
+    if (!isSafariEchoBug) return;
+
+    safariEchoFixApplied = true;
+    console.log('[Tonemap] Safari echo bugfix: opening persistent shadow stream');
+
+    // Update status display
+    const statusRow = document.getElementById('safariFixStatusRow');
+    const statusVal = document.getElementById('dbgSafariFix');
+    if (statusRow) statusRow.style.display = '';
+    if (statusVal) statusVal.textContent = 'Applied (persistent)';
+
+    try {
+      safariShadowStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
+      });
+      console.log('[Tonemap] Safari echo bugfix: shadow stream opened (will stay open)');
+    } catch (err) {
+      console.warn('[Tonemap] Safari echo bugfix: shadow stream failed', err);
+    }
+  }
+
+  function cancelSafariEchoBugFix() {
+    if (safariShadowStream) {
+      safariShadowStream.getTracks().forEach(t => t.stop());
+      safariShadowStream = null;
+      console.log('[Tonemap] Safari echo bugfix: shadow stream closed');
+    }
+  }
+
+  // Detect Safari echo bug on load
+  isSafariEchoBug = detectSafariEchoBug();
+
+  if (isSafariEchoBug) {
+    console.log('[Tonemap] Safari echo bug detected (26.4+) - automatic fix will be applied on mic start');
+  }
+
+  /*************
+   * SCROLL FADE
+   *************/
   function attachScrollFade(el) {
     if (!el || el._scrollFadeAttached) return;
     el._scrollFadeAttached = true;
@@ -3785,9 +3910,143 @@
     update();
   }
 
+  function getFullscreenElement() {
+    return document.fullscreenElement
+      || document.webkitFullscreenElement
+      || document.msFullscreenElement
+      || null;
+  }
+
+  function supportsBrowserFullscreen() {
+    const el = document.documentElement;
+    return !!(
+      el.requestFullscreen
+      || el.webkitRequestFullscreen
+      || el.msRequestFullscreen
+    );
+  }
+
+  function isStandaloneDisplayMode() {
+    return !!(
+      window.matchMedia?.("(display-mode: standalone)")?.matches
+      || window.navigator?.standalone
+    );
+  }
+
+  function isIOSWebKitLike() {
+    const ua = navigator.userAgent || "";
+    const isAppleMobile = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isSafariLike = /^((?!chrome|android).)*safari/i.test(ua);
+    return isAppleMobile && isSafariLike;
+  }
+
+  function showHomeScreenInstallHintOnce() {
+    if (!isIOSWebKitLike() || isStandaloneDisplayMode()) return;
+    if (window.sessionStorage?.getItem(FULLSCREEN_HINT_KEY) === "1") return;
+    window.sessionStorage?.setItem(FULLSCREEN_HINT_KEY, "1");
+    window.alert("For true full-screen on iOS/iPadOS Safari, tap Share and choose 'Add to Home Screen'.");
+  }
+
+  function applyFocusModeClass() {
+    if (!pageEl) return;
+    const fullscreenOn = !!getFullscreenElement();
+    pageEl.classList.toggle("focus-mode", fullscreenOn || fallbackFocusModeEnabled);
+  }
+
+  function syncFocusModeButton() {
+    if (!focusModeBtn) return;
+    const fullscreenOn = !!getFullscreenElement();
+    const active = fullscreenOn || fallbackFocusModeEnabled;
+    if (fullscreenOn) {
+      focusModeBtn.textContent = "Window";
+    } else if (fallbackFocusModeEnabled) {
+      focusModeBtn.textContent = "Window";
+    } else {
+      focusModeBtn.textContent = supportsBrowserFullscreen() ? "Full Screen" : "Focus Mode";
+    }
+    focusModeBtn.setAttribute("aria-pressed", active ? "true" : "false");
+  }
+
+  async function requestAppFullscreen() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) {
+      await el.requestFullscreen();
+      return true;
+    }
+    if (el.webkitRequestFullscreen) {
+      el.webkitRequestFullscreen();
+      return true;
+    }
+    if (el.msRequestFullscreen) {
+      el.msRequestFullscreen();
+      return true;
+    }
+    return false;
+  }
+
+  async function exitAppFullscreen() {
+    if (document.exitFullscreen) {
+      await document.exitFullscreen();
+      return true;
+    }
+    if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+      return true;
+    }
+    if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+      return true;
+    }
+    return false;
+  }
+
+  async function toggleFocusMode() {
+    const fullscreenOn = !!getFullscreenElement();
+    if (fullscreenOn) {
+      fallbackFocusModeEnabled = false;
+      await exitAppFullscreen();
+      applyFocusModeClass();
+      syncFocusModeButton();
+      return;
+    }
+
+    if (fallbackFocusModeEnabled) {
+      fallbackFocusModeEnabled = false;
+      applyFocusModeClass();
+      syncFocusModeButton();
+      return;
+    }
+
+    if (supportsBrowserFullscreen()) {
+      try {
+        await requestAppFullscreen();
+      } catch (err) {
+        console.warn("Fullscreen request failed; using focus mode fallback", err);
+        fallbackFocusModeEnabled = true;
+      }
+    } else {
+      fallbackFocusModeEnabled = true;
+      showHomeScreenInstallHintOnce();
+    }
+
+    applyFocusModeClass();
+    syncFocusModeButton();
+  }
+
+  function onFullscreenStateChange() {
+    if (getFullscreenElement()) {
+      fallbackFocusModeEnabled = false;
+    }
+    applyFocusModeClass();
+    syncFocusModeButton();
+  }
+
   // Attach fades to always-present scrollable areas
   attachScrollFade(rightScrollEl);
   attachPortraitPageFade();
+  document.addEventListener("fullscreenchange", onFullscreenStateChange);
+  document.addEventListener("webkitfullscreenchange", onFullscreenStateChange);
+  document.addEventListener("MSFullscreenChange", onFullscreenStateChange);
 
   function openOptionsOverlay() {
     if (!optionsOverlay) return;
@@ -3837,7 +4096,7 @@
           if (item && typeof item === "object" && typeof item.html === "string") {
             p.innerHTML = item.html;
           } else {
-            p.textContent = typeof item === "string" ? item : "";
+            p.innerHTML = typeof item === "string" ? item : "";
           }
           optionInfoDetail.appendChild(p);
         });
@@ -3966,6 +4225,7 @@
   let micStream = null;
   let wakeLockSentinel = null;
   let noSleepAudioEl = null;
+  let micStartTimeMs = 0;
 
   let A4 = 440;
 
@@ -3982,23 +4242,8 @@
   const MEDIUM_ERR_SCALE = 0.7;
   const MEDIUM_NEEDLE_TAU_MS = 80;
 
-  // Hard mode softened but still tighter than Medium
-  const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 3; // ~0.076%
-  const HARD_ERR_SCALE = 0.9;
-  const HARD_NEEDLE_TAU_MS = 30;
-
-  // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
-  const RAILSBACK_ANCHORS = [
-    { midi: 21, cents: -40 },  // A0
-    { midi: 33, cents: -25 },  // A1
-    { midi: 45, cents: -10 },  // A2
-    { midi: 57, cents: -4 },   // A3
-    { midi: 69, cents: 0 },    // A4
-    { midi: 81, cents: 6 },    // A5
-    { midi: 93, cents: 15 },   // A6
-    { midi: 105, cents: 28 },  // A7
-    { midi: 108, cents: 35 }   // C8
-  ];
+  const MINIMAL_STRETCH_MAX_CENTS = 9;
+  const MINIMAL_STRETCH_MAX_MIDI = 108;
 
   // time to reach full brightness in the cell heatmap
   const FULL_CONF_MS = 500;  // 2x faster fade-in (was 1000ms)
@@ -4008,6 +4253,11 @@
 
   const LED_QUIET_RATIO = 0.5; // fraction of threshold that still counts as "heard"
   const LED_MIN_FLOOR = 1e-5;
+  const MIC_STALL_DETECT_MS = 1200;
+  const MIC_STALL_GRACE_MS = 1800;
+  const MIC_STALL_RMS_THRESHOLD = 1e-7;
+  const MIC_STALL_PEAK_THRESHOLD = 4e-6;
+  const MIC_RECOVERY_COOLDOWN_MS = 2500;
 
   function updateRmsGaugeThresholdMarker(threshold) {
     if (!rmsGaugeThresholdEl) return;
@@ -4181,10 +4431,48 @@
   let noteViewActiveClockMs = 0; // advances only while running (for Note View window)
   let noteViewHasPaintedNote = false;
   let micDisabled = false;
+  let micHealthySinceStart = false;
+  let micStallAccumMs = 0;
+  let micLastRecoveryAttemptMs = 0;
   let silentAdvanceAccumMs = 0; // track how much silence has advanced the active clock (capped)
-  const GRID_ROW_ANIM_MS = 220;
-  let pendingGridRowTransition = null;
   const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
+
+  const EDGE_SHORTCUT_LABELS = Object.freeze({
+    topGrow: "[Right Bracket]",
+    topShrink: "[Left Bracket]",
+    bottomUp: "[Quote]",
+    bottomDown: "[Semicolon]"
+  });
+
+  function refreshShortcutTooltips() {
+    if (micBtn) micBtn.title = "Toggle Microphone [Space]";
+    if (miniMicBtn) miniMicBtn.title = "Play/Pause listening [Space]";
+
+    if (resetBtn) resetBtn.title = "Reset Heatmap [R]";
+    if (miniResetBtn) miniResetBtn.title = "Reset the grid [R]";
+
+    const viewShortcutTitle = "View shortcuts [G/N/B/V]";
+    if (noteViewToggleBtn) noteViewToggleBtn.title = viewShortcutTitle;
+    if (miniViewToggleBtn) miniViewToggleBtn.title = viewShortcutTitle;
+
+    if (optionsToggleBtn) optionsToggleBtn.title = "Open options [O]";
+    if (miniOptionsBtn) miniOptionsBtn.title = "Open options [O]";
+    if (focusModeBtn) focusModeBtn.title = "Toggle Full Screen [F]";
+    if (edgeKey) edgeKey.title = "Open Colors [C]";
+
+    if (noteViewActive) {
+      if (rangeGrowBtn) rangeGrowBtn.title = `Raise top edge by 1 semitone ${EDGE_SHORTCUT_LABELS.topGrow}`;
+      if (rangeShrinkBtn) rangeShrinkBtn.title = `Lower top edge by 1 semitone ${EDGE_SHORTCUT_LABELS.topShrink}`;
+      if (lowNoteUpBtn) lowNoteUpBtn.title = `Raise bottom edge by 1 semitone ${EDGE_SHORTCUT_LABELS.bottomUp}`;
+      if (lowNoteDownBtn) lowNoteDownBtn.title = `Lower bottom edge by 1 semitone ${EDGE_SHORTCUT_LABELS.bottomDown}`;
+      return;
+    }
+
+    if (rangeGrowBtn) rangeGrowBtn.title = `Add an octave to the top of the range ${EDGE_SHORTCUT_LABELS.topGrow}`;
+    if (rangeShrinkBtn) rangeShrinkBtn.title = `Remove an octave from the top of the range ${EDGE_SHORTCUT_LABELS.topShrink}`;
+    if (lowNoteUpBtn) lowNoteUpBtn.title = `Raise the low note by one octave ${EDGE_SHORTCUT_LABELS.bottomUp}`;
+    if (lowNoteDownBtn) lowNoteDownBtn.title = `Lower the low note by one octave ${EDGE_SHORTCUT_LABELS.bottomDown}`;
+  }
 
   function recalcNoteViewPaintState() {
     noteViewHasPaintedNote = Object.values(masterCellState).some(st =>
@@ -4248,6 +4536,103 @@
   let heldCentsForDisplay = 0;
   let stainedThisTick = new Set();
   let lastActiveMidiForUI = null;
+
+  function getAppMidiBounds() {
+    const minMidi = noteNameToMidiC("C0");
+    const maxMidi = noteNameToMidiC("C8") + 11;
+    return { minMidi, maxMidi };
+  }
+
+  function normalizeNoteViewRange(lowMidi, highMidi) {
+    const { minMidi, maxMidi } = getAppMidiBounds();
+    let low = Number.isFinite(lowMidi) ? Math.round(lowMidi) : minMidi;
+    let high = Number.isFinite(highMidi) ? Math.round(highMidi) : maxMidi;
+    if (high < low) {
+      const temp = low;
+      low = high;
+      high = temp;
+    }
+    low = Math.max(minMidi, Math.min(maxMidi, low));
+    high = Math.max(minMidi, Math.min(maxMidi, high));
+    if (high < low) high = low;
+    if (high - low < NOTE_VIEW_MIN_SPAN_SEMITONES) {
+      high = Math.min(maxMidi, low + NOTE_VIEW_MIN_SPAN_SEMITONES);
+      if (high - low < NOTE_VIEW_MIN_SPAN_SEMITONES) {
+        low = Math.max(minMidi, high - NOTE_VIEW_MIN_SPAN_SEMITONES);
+      }
+    }
+    return { low, high };
+  }
+
+  function getGridRangeFromSelectors() {
+    const low = noteNameToMidiC(lowNoteSelect?.value || "C3");
+    const octaves = parseInt(rangeSelect?.value, 10) || 2;
+    const maxHigh = noteNameToMidiC("C8") + 11;
+    const high = Math.min(maxHigh, low + (octaves * 12) - 1);
+    return normalizeNoteViewRange(low, high);
+  }
+
+  function getFallbackNoteViewRangeFromGrid() {
+    const fallbackLow = Number.isFinite(gridLowestMidiC)
+      ? gridLowestMidiC
+      : noteNameToMidiC(lowNoteSelect?.value || "C3");
+    const fallbackRangeOct = parseInt(rangeSelect?.value, 10) || 2;
+    const fallbackHigh = Number.isFinite(gridHighestMidiLastNote)
+      ? gridHighestMidiLastNote
+      : (fallbackLow + (fallbackRangeOct * 12) - 1);
+    return normalizeNoteViewRange(fallbackLow, fallbackHigh);
+  }
+
+  function ensureNoteViewRangeState({ persist = false } = {}) {
+    const isLinked = currentSettings.noteViewRangeLinked !== false;
+    if (isLinked) {
+      const linkedRange = getGridRangeFromSelectors();
+      const linkedChanged =
+        currentSettings.noteViewLowMidi !== linkedRange.low ||
+        currentSettings.noteViewHighMidi !== linkedRange.high ||
+        currentSettings.noteViewRangeLinked !== true;
+      currentSettings.noteViewLowMidi = linkedRange.low;
+      currentSettings.noteViewHighMidi = linkedRange.high;
+      currentSettings.noteViewRangeLinked = true;
+      if (persist && linkedChanged) {
+        persistSettings(currentSettings);
+      }
+      return linkedRange;
+    }
+
+    const parsedLow = Number(currentSettings.noteViewLowMidi);
+    const parsedHigh = Number(currentSettings.noteViewHighMidi);
+    const hasStored = Number.isFinite(parsedLow) && Number.isFinite(parsedHigh);
+    const next = hasStored
+      ? normalizeNoteViewRange(parsedLow, parsedHigh)
+      : getFallbackNoteViewRangeFromGrid();
+    const changed =
+      currentSettings.noteViewLowMidi !== next.low ||
+      currentSettings.noteViewHighMidi !== next.high ||
+      currentSettings.noteViewRangeLinked !== false;
+    currentSettings.noteViewLowMidi = next.low;
+    currentSettings.noteViewHighMidi = next.high;
+    currentSettings.noteViewRangeLinked = false;
+    if (persist && changed) {
+      persistSettings(currentSettings);
+    }
+    return next;
+  }
+
+  function getNoteViewRangeBounds() {
+    return ensureNoteViewRangeState({ persist: false });
+  }
+
+  function setNoteViewRangeBounds(lowMidi, highMidi, { persist = true } = {}) {
+    const next = normalizeNoteViewRange(lowMidi, highMidi);
+    const changed = currentSettings.noteViewLowMidi !== next.low || currentSettings.noteViewHighMidi !== next.high;
+    currentSettings.noteViewLowMidi = next.low;
+    currentSettings.noteViewHighMidi = next.high;
+    if (persist && changed) {
+      persistSettings(currentSettings);
+    }
+    return changed;
+  }
 
   // Active note tracking
   let currentMidiHeld = null;
@@ -4397,7 +4782,9 @@
     { quote: "Stretch tuning (in Options) often produces a more ringing sound in upper registers and will blend better with a piano.", tip: true },
     { quote: "Set your instrument's transposition in Options.", tip: true },
     { quote: "Choose whether the tuning needle is vertical or horizontal in Options.", tip: true },
+    { quoteHtml: "Spacebar starts/stops listening instantly. <a href=\"#\" data-open-info=\"keyboardShortcuts\">View complete shortcut list</a>.", tip: true },
     { quote: "If your attacks aren't being recorded cleanly, try adjusting the Onset Filter in Options.", tip: true },
+    { quote: "Add Tonemap to your Home Screen for full-screen mode — tap the Share icon, then 'Add to Home Screen,' in Safari on iOS and iPadOS.", tip: true },
     { quote: "Block out background noise by adjusting the Volume Sensitivity filter in Options.", tip: true }
   ];
 
@@ -4439,18 +4826,19 @@
   const NOTE_VIEW_MIN_DURATION_MS = 25;      // Filter out notes shorter than Xms
   const NOTE_VIEW_OCTAVE_JUMP_SEMITONES = 12;
   const NOTE_VIEW_OCTAVE_JUMP_HOLD_MS = 70;
+  const NOTE_VIEW_MIN_SPAN_SEMITONES = 23;
   const NOTE_VIEW_BALLOON_RADIUS = 40;        // Baseline size; actual radius is clamped below
   const NOTE_VIEW_BALLOON_RADIUS_MIN = 25;    // Floor radius so dots are visible (50px diameter)
   const NOTE_VIEW_BALLOON_RADIUS_MAX = 80;    // Ceiling to avoid covering the whole staff
   const NOTE_VIEW_BALLOON_VERTICAL_DIVISOR = 1.0; // Smaller divisor = larger balloons
   const NOTE_VIEW_BALLOON_WIDTH_TAU = 10000;  // Inflation time constant (ms): controls how fast width grows
+  const NOTE_VIEW_RIBBON_MIN_WIDTH_FACTOR = 0.8;
   const NOTE_VIEW_HORIZONTAL_MARGIN = 30;     // Margin when laying out from the right
   const NOTE_VIEW_BALLOON_PADDING = 10;       // Horizontal padding between balloons
   const NOTE_VIEW_TEXT_COLOR = "white";
   const NOTE_VIEW_MERGE_GAP_TOLERANCE_MS = 150;
   const NOTE_VIEW_SCROLL_SNAP_EPSILON_PX = 16;
   const NOTE_VIEW_MIN_TIMELINE_WIDTH_PX = 0;
-  const NOTE_VIEW_MAX_PAGE_WIDTHS_FREE = 2;
   const NOTE_VIEW_VIRTUAL_BUFFER_PX = 260;
   const NOTE_VIEW_BALLOON_GAP_PX = 2;
   const NOTE_VIEW_RIGHT_EXPANSION_RESERVE_FACTOR = 2;
@@ -4474,6 +4862,43 @@
     scrollLerpX: null,
     resizeRenderRafId: null
   };
+
+  const noteViewScrollRatioByStyle = {
+    [NOTE_VIEW_STYLE_RIBBONS]: 1,
+    [NOTE_VIEW_STYLE_BALLOONS]: 1
+  };
+
+  function getNoteViewScrollProgressRatio() {
+    if (!noteViewContainer) return 1;
+    const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
+    if (maxScroll <= 0) return 1;
+    return Math.max(0, Math.min(1, noteViewContainer.scrollLeft / maxScroll));
+  }
+
+  function saveNoteViewScrollRatioForStyle(style) {
+    if (!style || !noteViewContainer) return;
+    noteViewScrollRatioByStyle[style] = running ? 1 : getNoteViewScrollProgressRatio();
+  }
+
+  function restoreNoteViewScrollRatioForStyle(style, { fallbackRatio } = {}) {
+    if (!style || !noteViewContainer) return;
+    const storedRatio = noteViewScrollRatioByStyle[style];
+    const baseRatio = Number.isFinite(storedRatio)
+      ? storedRatio
+      : (Number.isFinite(fallbackRatio) ? fallbackRatio : 1);
+    const ratio = Math.max(0, Math.min(1, baseRatio));
+    const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
+    const nextLeft = Math.round(maxScroll * ratio);
+    noteViewRenderState.scrollLerpX = nextLeft;
+    noteViewRenderState.programmaticScrollLeft = nextLeft;
+    noteViewContainer.scrollLeft = nextLeft;
+    noteViewLastObservedScrollLeft = nextLeft;
+    noteViewScrollRatioByStyle[style] = ratio;
+    if (!running) {
+      const atRight = (maxScroll - nextLeft) <= NOTE_VIEW_SCROLL_SNAP_EPSILON_PX;
+      noteViewRenderState.isLive = atRight;
+    }
+  }
 
   function scheduleNoteViewResizeRender() {
     if (!noteViewActive) return;
@@ -4697,6 +5122,9 @@
     transposition: "0",
     rowStart: "0",
     lowNote: "C3",
+    noteViewLowMidi: null,
+    noteViewHighMidi: null,
+    noteViewRangeLinked: true,
     history: "medium",
     stainHold: STAIN_HOLD_DEFAULT,
     needleDirection: "horizontal",
@@ -4754,15 +5182,6 @@
     if (!proUpgradeModal) return;
     proUpgradeModal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
-  }
-
-  function lockProChoice(type, fallbackValue) {
-    if (fallbackValue != null) {
-      if (type === "a4") {
-        setA4Value(Number(fallbackValue));
-      }
-    }
-    openProModal();
   }
 
   const OPTION_INFO_CONTENT = {
@@ -4842,6 +5261,36 @@
         "The bar to the right shows live RMS level.",
         "• Green: input is at or above threshold.",
         "• Gray: input is below threshold."
+      ]
+    },
+    keyboardShortcuts: {
+      title: "Keyboard Shortcuts",
+      summary: "Quick controls for transport, views, range, and Note View navigation.",
+      detail: [
+        "• Space: Start/stop microphone.",
+        "• R: Reset heatmap.",
+        "• O: Toggle Options.",
+        "• F: Toggle Full Screen / Window.",
+        "• C: Open Colors.",
+        "• G: Show Grid View.",
+        "• N: Show Note View (Ribbons).",
+        "• B: Show Note View (Balloons).",
+        "• V: Cycle view mode (Grid → Ribbons → Balloons).",
+        "• In Grid View: Left/Right Bracket and Semicolon/Quote adjust the grid in octaves.",
+        "• In Note View: Right/Left Bracket move the top edge by semitone.",
+        "• In Note View: Quote/Semicolon move the bottom edge by semitone.",
+        "• Grid auto-expands (by octave) when needed to include Note View range.",
+        "• ← / →: Scroll Note View timeline (hold Shift for faster scrolling)."
+      ]
+    },
+    safariEchoFix: {
+      title: "Safari 26.4+ Echo Bug Fix",
+      summary: "Automatic workaround for a Safari 26.4+ issue where pitch detection reads ~5% high for the first several seconds after starting the microphone.",
+      detail: [
+        "<strong>The Issue:</strong> Safari 26.4+ has a bug where, with echoCancellation=false, the AudioContext applies unexpected time-stretching during mic startup, causing pitch to read approximately 5% sharp (a semitone) for 4-10 seconds.",
+        "<strong>The Fix:</strong> Tonemap automatically applies brief 'shadow' echo-cancellation pulses at startup that prevent the bug from activating, without affecting audio quality.",
+        "<strong>Status:</strong> When this fix is active, you'll see 'Safari Bugfix: Applied' in the Status panel under System.",
+        "<strong>No action required:</strong> The fix is applied automatically on affected Safari versions. Your audio path remains clean (echoCancellation=false on the main stream)."
       ]
     }
   };
@@ -5692,13 +6141,10 @@
     const a4Val = currentSettings.a4 ?? A4 ?? 440;
     let stretchText = "No stretch";
     if (stretchSelect) {
-      const mode = stretchSelect.value;
+      const selected = stretchSelect.value;
+      const mode = FREE_ALLOWED.stretch.has(selected) ? selected : "minimal";
       if (mode === "minimal") {
         stretchText = "Min. Stretch";
-      } else if (mode === "medium") {
-        stretchText = "Med. Stretch";
-      } else if (mode === "full") {
-        stretchText = "Full Stretch";
       } else {
         stretchText = "No stretch";
       }
@@ -5714,9 +6160,8 @@
     }
     let modeText = "Medium Mode";
     if (sensitivitySelect) {
-      const val = sensitivitySelect.value;
+      const val = resolveMode(sensitivitySelect.value);
       if (val === "relaxed") modeText = "Relaxed Mode";
-      else if (val === "hard") modeText = "Hard Mode";
       else modeText = "Medium Mode";
     }
     quickLine2.textContent = `${keyText} • ${modeText}`;
@@ -5731,7 +6176,7 @@
       if (valueText && A_REF_PRESET_VALUES.includes(valueText)) {
         aRefSelect.value = valueText;
       } else {
-        aRefSelect.value = "440";
+        aRefSelect.value = A_REF_CUSTOM_VALUE;
       }
     }
   }
@@ -5918,6 +6363,31 @@
     }
     currentSettings.transposition = transposeVal;
 
+    const originalNoteViewLowMidi = settings.noteViewLowMidi;
+    const originalNoteViewHighMidi = settings.noteViewHighMidi;
+    const originalNoteViewRangeLinked = settings.noteViewRangeLinked;
+    const noteViewRangeLinked = originalNoteViewRangeLinked !== false;
+    currentSettings.noteViewRangeLinked = noteViewRangeLinked;
+    if (originalNoteViewRangeLinked !== undefined && originalNoteViewRangeLinked !== noteViewRangeLinked) {
+      needsPersist = true;
+    }
+    const parsedNoteViewLowMidi = Number(originalNoteViewLowMidi);
+    const parsedNoteViewHighMidi = Number(originalNoteViewHighMidi);
+    if (Number.isFinite(parsedNoteViewLowMidi) && Number.isFinite(parsedNoteViewHighMidi)) {
+      const normalizedNoteView = normalizeNoteViewRange(parsedNoteViewLowMidi, parsedNoteViewHighMidi);
+      currentSettings.noteViewLowMidi = normalizedNoteView.low;
+      currentSettings.noteViewHighMidi = normalizedNoteView.high;
+      if (normalizedNoteView.low !== parsedNoteViewLowMidi || normalizedNoteView.high !== parsedNoteViewHighMidi) {
+        needsPersist = true;
+      }
+    } else {
+      currentSettings.noteViewLowMidi = null;
+      currentSettings.noteViewHighMidi = null;
+      if (originalNoteViewLowMidi != null || originalNoteViewHighMidi != null) {
+        needsPersist = true;
+      }
+    }
+
     updateAttackSpeedValueUI(currentSettings.attackMs);
 
     if (needsPersist) {
@@ -5934,28 +6404,120 @@
     return tracks.some(t => t.readyState === "live");
   }
 
+  function getBufferPeakAbs(buf) {
+    if (!buf || !buf.length) return 0;
+    let peak = 0;
+    for (let i = 0; i < buf.length; i++) {
+      const abs = Math.abs(buf[i]);
+      if (abs > peak) peak = abs;
+    }
+    return peak;
+  }
+
+  function resetMicHealthWatchdog() {
+    micHealthySinceStart = false;
+    micStallAccumMs = 0;
+    micLastRecoveryAttemptMs = 0;
+  }
+
+  function setMicUiRunningState(isRunning) {
+    const on = !!isRunning;
+    if (micBtn) {
+      micBtn.classList.toggle("on", on);
+      micBtn.classList.toggle("paused", !on);
+    }
+    if (micBtnIcon) {
+      micBtnIcon.classList.toggle("playing", on);
+      micBtnIcon.classList.toggle("paused", !on);
+      micBtnIcon.textContent = on ? "⏸︎" : "▶︎";
+    }
+    if (miniMicBtn) {
+      miniMicBtn.classList.toggle("on", on);
+      miniMicBtn.classList.toggle("paused", !on);
+      const icon = miniMicBtn.querySelector(".icon-micstate");
+      if (icon) {
+        icon.classList.toggle("playing", on);
+        icon.classList.toggle("paused", !on);
+        icon.textContent = on ? "⏸︎" : "▶︎";
+      }
+    }
+    if (overlayPlayBtn) {
+      overlayPlayBtn.textContent = on ? "⏸︎" : "▶︎";
+    }
+  }
+
   function showMicWarning(message) {
     if (dbgGuidance) dbgGuidance.textContent = message;
     if (dbgListening) dbgListening.textContent = "Mic issue";
   }
 
-  async function handleMicLost(reason = "") {
-    if (micRestartInFlight) return;
+  async function handleMicLost(reason = "", { disableMic = false, message = "Mic unavailable — paused" } = {}) {
     if (!running) return;
-    micRestartInFlight = true;
-    micDisabled = true;
-    showMicWarning("Mic disabled");
-    stopMic({ markDisabled: true });
+    const reasonText = reason ? ` (${reason})` : "";
+    console.warn(`[Tonemap] Microphone interruption${reasonText}`);
+    showMicWarning(message);
+    stopMic({ markDisabled: disableMic });
     updateNoteReadoutText();
-    micRestartInFlight = false;
+  }
+
+  async function attemptMicRecovery(reason = "") {
+    if (!running) return false;
+    if (micRestartInFlight) return false;
+    const nowT = nowMs();
+    if ((nowT - micLastRecoveryAttemptMs) < MIC_RECOVERY_COOLDOWN_MS) return false;
+    micLastRecoveryAttemptMs = nowT;
+    micRestartInFlight = true;
+    try {
+      if (audioContext && audioContext.state !== "running" && document.visibilityState === "visible") {
+        try {
+          await audioContext.resume();
+        } catch (err) {
+          console.warn("[Tonemap] AudioContext resume failed during recovery:", err);
+        }
+      }
+
+      await new Promise(resolve => window.setTimeout(resolve, 180));
+
+      if (!running) return false;
+      const streamHealthy = isMicStreamLive(micStream);
+      const contextHealthy = !audioContext || audioContext.state === "running";
+      if (streamHealthy && contextHealthy) return true;
+
+      await handleMicLost(reason, { disableMic: false, message: "Mic unavailable — paused" });
+      return false;
+    } finally {
+      micRestartInFlight = false;
+    }
+  }
+
+  function onAudioContextStateChange() {
+    if (!running) return;
+    if (!audioContext) return;
+    if (audioContext.state === "running") return;
+    if (document.visibilityState !== "visible") return;
+    void attemptMicRecovery(`audio context ${audioContext.state || "unknown"}`);
   }
 
   function attachMicStreamWatchers(stream) {
     if (!stream) return;
-    stream.oninactive = () => handleMicLost("stream inactive");
+    stream.oninactive = () => {
+      if (!running) return;
+      void handleMicLost("stream inactive", { disableMic: false, message: "Mic unavailable — paused" });
+    };
     const tracks = stream.getTracks ? stream.getTracks() : [];
     tracks.forEach(track => {
-      track.onended = () => handleMicLost("track ended");
+      track.onended = () => {
+        if (!running) return;
+        void handleMicLost("track ended", { disableMic: false, message: "Mic unavailable — paused" });
+      };
+      track.onmute = () => {
+        if (!running) return;
+        if (document.visibilityState !== "visible") return;
+        void attemptMicRecovery("track muted");
+      };
+      track.onunmute = () => {
+        micStallAccumMs = 0;
+      };
     });
   }
 
@@ -5990,79 +6552,18 @@
     return Math.sqrt(sumSq / buf.length);
   }
 
-  function interpolateRailsbackCents(midi) {
-    if (!Number.isFinite(midi)) return 0;
-    const anchors = RAILSBACK_ANCHORS;
-    if (anchors.length === 0) return 0;
-    if (midi <= anchors[0].midi) return anchors[0].cents;
-    if (midi >= anchors[anchors.length - 1].midi) {
-      return anchors[anchors.length - 1].cents;
-    }
-
-    // Monotone cubic interpolation (PCHIP-like) over anchors
-    const n = anchors.length;
-    const xs = anchors.map(a => a.midi);
-    const ys = anchors.map(a => a.cents);
-
-    const h = new Array(n - 1);
-    const delta = new Array(n - 1);
-    for (let i = 0; i < n - 1; i++) {
-      h[i] = xs[i + 1] - xs[i];
-      delta[i] = (ys[i + 1] - ys[i]) / h[i];
-    }
-
-    const m = new Array(n);
-    m[0] = delta[0];
-    m[n - 1] = delta[n - 2];
-    for (let i = 1; i < n - 1; i++) {
-      if (delta[i - 1] * delta[i] <= 0) {
-        m[i] = 0;
-      } else {
-        m[i] = (delta[i - 1] * h[i] + delta[i] * h[i - 1]) / (h[i - 1] + h[i]);
-      }
-    }
-
-    for (let i = 0; i < n - 1; i++) {
-      if (delta[i] === 0) {
-        m[i] = 0;
-        m[i + 1] = 0;
-      }
-    }
-
-    function evalHermite(i, xVal) {
-      const t = (xVal - xs[i]) / h[i];
-      const t2 = t * t;
-      const t3 = t2 * t;
-      const h00 = (2 * t3) - (3 * t2) + 1;
-      const h10 = t3 - (2 * t2) + t;
-      const h01 = (-2 * t3) + (3 * t2);
-      const h11 = t3 - t2;
-      return h00 * ys[i] + h10 * h[i] * m[i] + h01 * ys[i + 1] + h11 * h[i] * m[i + 1];
-    }
-
-    for (let i = 0; i < n - 1; i++) {
-      if (midi >= xs[i] && midi <= xs[i + 1]) {
-        return evalHermite(i, midi);
-      }
-    }
-    return ys[ys.length - 1];
+  function getMinimalStretchCents(midi) {
+    if (!Number.isFinite(midi) || midi <= 69) return 0;
+    const clampedMidi = Math.max(69, Math.min(MINIMAL_STRETCH_MAX_MIDI, midi));
+    const t = (clampedMidi - 69) / (MINIMAL_STRETCH_MAX_MIDI - 69);
+    return MINIMAL_STRETCH_MAX_CENTS * t;
   }
 
   function getStretchCents(midi) {
-    if (!stretchSelect) return 0;
-    const mode = stretchSelect.value || "none";
-    if (mode === "full") {
-      return interpolateRailsbackCents(midi);
-    }
+    const selected = stretchSelect?.value || currentSettings?.stretch || "none";
+    const mode = FREE_ALLOWED.stretch.has(selected) ? selected : "minimal";
     if (mode === "minimal") {
-      const cents = interpolateRailsbackCents(midi);
-      // scale to 25% intensity and only apply above A4
-      return midi >= 69 ? 0.25 * cents : 0;
-    }
-    if (mode === "medium") {
-      const cents = interpolateRailsbackCents(midi);
-      // scale to 50% intensity and only apply above A4
-      return midi >= 69 ? 0.5 * cents : 0;
+      return getMinimalStretchCents(midi);
     }
     return 0;
   }
@@ -6132,8 +6633,8 @@
         dbgSens.textContent     = "Medium";
         dbgDeadZone.textContent = "~0.23%";
     } else {
-        dbgSens.textContent     = "Hard";
-        dbgDeadZone.textContent = "~0.12%";
+      dbgSens.textContent     = "Medium";
+      dbgDeadZone.textContent = "~0.23%";
     }
     dbgHold.textContent = formatAttackSpeedText(getCurrentMinHoldMs());
 
@@ -6351,57 +6852,7 @@
     }
   }
 
-  function queueGridRowTransition(edge, action) {
-    if (!noteGrid) return;
-    if ((edge !== "top" && edge !== "bottom") || (action !== "add" && action !== "remove")) {
-      pendingGridRowTransition = null;
-      return;
-    }
-    pendingGridRowTransition = { edge, action };
-  }
-
-  function injectRowRemovalGhost(transition) {
-    if (!noteGrid || !transition || transition.action !== "remove") return;
-    const cells = Array.from(noteGrid.children).filter(el => el.classList?.contains("grid-cell"));
-    if (cells.length < 12) return;
-
-    const oldRows = Math.max(1, Math.floor(cells.length / 12));
-    const rowCells = transition.edge === "top" ? cells.slice(0, 12) : cells.slice(cells.length - 12);
-    const existingGhosts = noteGrid.querySelectorAll(".grid-row-removal-ghost");
-    existingGhosts.forEach(ghost => ghost.remove());
-
-    const ghost = document.createElement("div");
-    ghost.className = `grid-row-removal-ghost ${transition.edge}`;
-    ghost.style.height = `${100 / oldRows}%`;
-
-    for (const cell of rowCells) {
-      const clone = cell.cloneNode(true);
-      clone.classList.remove("active", "range-row-add-top", "range-row-add-bottom");
-      ghost.appendChild(clone);
-    }
-
-    noteGrid.appendChild(ghost);
-    window.setTimeout(() => ghost.remove(), GRID_ROW_ANIM_MS + 80);
-  }
-
-  function animateInsertedRow(transition) {
-    if (!noteGrid || !transition || transition.action !== "add") return;
-    const cells = Array.from(noteGrid.children).filter(el => el.classList?.contains("grid-cell"));
-    if (cells.length < 12) return;
-    const target = transition.edge === "top" ? cells.slice(0, 12) : cells.slice(cells.length - 12);
-    const className = transition.edge === "top" ? "range-row-add-top" : "range-row-add-bottom";
-
-    for (const cell of target) {
-      cell.classList.add(className);
-    }
-    window.setTimeout(() => {
-      for (const cell of target) {
-        cell.classList.remove(className);
-      }
-    }, GRID_ROW_ANIM_MS + 40);
-  }
-
-  function buildGrid({ preserveStain = true, rowTransition = null } = {}) {
+  function buildGrid({ preserveStain = true } = {}) {
     const lowNoteName = lowNoteSelect.value;
     const numOct      = parseInt(rangeSelect.value, 10);
 
@@ -6424,11 +6875,12 @@
       gridHighestMidiLastNote = lowMidiC + 11;
     }
 
+    ensureNoteViewRangeState({ persist: false });
+
     if (!preserveStain) {
       resetMasterCellState();
     }
 
-    injectRowRemovalGhost(rowTransition);
     noteGrid.innerHTML = "";
     midiToCellEl = {};
     const nextCellState = {};
@@ -6465,7 +6917,6 @@
       }
     }
 
-    animateInsertedRow(rowTransition);
     cellState = nextCellState;
     markNoteViewDataDirty();
     recalcNoteViewPaintState();
@@ -6490,25 +6941,143 @@
     return options[nextIdx];
   }
 
+  function computeGridCoverageSelection(targetLowMidi, targetHighMidi) {
+    if (!lowNoteSelect || !rangeSelect) return null;
+
+    const options = getLowNoteOptionsList();
+    if (!options.length) return null;
+
+    const candidates = options.map(noteName => {
+      const lowMidi = noteNameToMidiC(noteName);
+      const { minOctaves, maxOctaves } = getRangeLimitsForLow(noteName);
+      return { noteName, lowMidi, minOctaves, maxOctaves };
+    });
+
+    const minPossibleLow = Math.min(...candidates.map(c => c.lowMidi));
+    const maxPossibleHigh = Math.max(...candidates.map(c => c.lowMidi + c.maxOctaves * 12 - 1));
+    const desiredLow = Math.max(minPossibleLow, Math.min(maxPossibleHigh, targetLowMidi));
+    const desiredHigh = Math.max(minPossibleLow, Math.min(maxPossibleHigh, targetHighMidi));
+    const clampedHigh = Math.max(desiredLow, desiredHigh);
+
+    const currentLowMidi = noteNameToMidiC(lowNoteSelect.value);
+    const currentRange = parseInt(rangeSelect.value, 10) || 2;
+
+    const viable = [];
+    for (const candidate of candidates) {
+      if (candidate.lowMidi > desiredLow) continue;
+      const requiredOctaves = Math.ceil((clampedHigh - candidate.lowMidi + 1) / 12);
+      const normalizedRange = Math.max(candidate.minOctaves, requiredOctaves);
+      if (normalizedRange > candidate.maxOctaves) continue;
+      viable.push({
+        noteName: candidate.noteName,
+        lowMidi: candidate.lowMidi,
+        range: normalizedRange
+      });
+    }
+
+    if (!viable.length) {
+      const floorCandidate = candidates[0];
+      return {
+        lowNote: floorCandidate.noteName,
+        range: floorCandidate.maxOctaves
+      };
+    }
+
+    viable.sort((a, b) => {
+      if (b.lowMidi !== a.lowMidi) return b.lowMidi - a.lowMidi;
+      const aRangeDelta = Math.abs(a.range - currentRange);
+      const bRangeDelta = Math.abs(b.range - currentRange);
+      if (aRangeDelta !== bRangeDelta) return aRangeDelta - bRangeDelta;
+      const aLowDelta = Math.abs(a.lowMidi - currentLowMidi);
+      const bLowDelta = Math.abs(b.lowMidi - currentLowMidi);
+      return aLowDelta - bLowDelta;
+    });
+
+    return {
+      lowNote: viable[0].noteName,
+      range: viable[0].range
+    };
+  }
+
+  function ensureGridCoversNoteViewRange() {
+    if (!lowNoteSelect || !rangeSelect) return false;
+    if (currentSettings.noteViewRangeLinked !== false) return false;
+    const noteViewRange = ensureNoteViewRangeState({ persist: false });
+    const selection = computeGridCoverageSelection(noteViewRange.low, noteViewRange.high);
+    if (!selection) return false;
+
+    const nextRangeStr = String(selection.range);
+    const changed = lowNoteSelect.value !== selection.lowNote || rangeSelect.value !== nextRangeStr;
+    if (!changed) return false;
+
+    lowNoteSelect.value = selection.lowNote;
+    rangeSelect.value = nextRangeStr;
+    currentSettings.lowNote = selection.lowNote;
+    currentSettings.range = nextRangeStr;
+    persistSettings(currentSettings);
+    return true;
+  }
+
+  function stepNoteViewEdgeBySemitone(edge, deltaSemitones) {
+    if (!Number.isFinite(deltaSemitones) || deltaSemitones === 0) return;
+    const { minMidi, maxMidi } = getAppMidiBounds();
+    const current = ensureNoteViewRangeState({ persist: false });
+    let nextLow = current.low;
+    let nextHigh = current.high;
+
+    if (edge === "top") {
+      nextHigh = Math.max(minMidi, Math.min(maxMidi, current.high + deltaSemitones));
+      if (nextHigh < nextLow + NOTE_VIEW_MIN_SPAN_SEMITONES) {
+        nextHigh = nextLow + NOTE_VIEW_MIN_SPAN_SEMITONES;
+      }
+      nextHigh = Math.min(maxMidi, nextHigh);
+    } else if (edge === "bottom") {
+      nextLow = Math.max(minMidi, Math.min(maxMidi, current.low + deltaSemitones));
+      if (nextLow > nextHigh - NOTE_VIEW_MIN_SPAN_SEMITONES) {
+        nextLow = nextHigh - NOTE_VIEW_MIN_SPAN_SEMITONES;
+      }
+      nextLow = Math.max(minMidi, nextLow);
+    } else {
+      return;
+    }
+
+    currentSettings.noteViewRangeLinked = false;
+    const changed = setNoteViewRangeBounds(nextLow, nextHigh, { persist: true });
+    if (!changed) return;
+    rebuildAll({ preserveStain: true });
+    if (noteViewActive && noteViewCanvas) {
+      renderNoteView();
+    }
+  }
+
   function updateEdgeControlStates({ rangeAlert = false, lowAlert = false } = {}) {
     if (!rangeGrowBtn || !rangeShrinkBtn || !lowNoteUpBtn || !lowNoteDownBtn) return;
     if (!lowNoteSelect || !rangeSelect) return;
 
-    const { minOctaves, maxOctaves } = getRangeLimitsForLow(lowNoteSelect.value);
-    const currentRange = parseInt(rangeSelect.value, 10) || minOctaves;
-    const atMaxRange = currentRange >= maxOctaves;
-    const atMinRange = currentRange <= minOctaves;
+    if (noteViewActive) {
+      const { minMidi, maxMidi } = getAppMidiBounds();
+      const noteViewRange = ensureNoteViewRangeState({ persist: false });
+      rangeGrowBtn.disabled = noteViewRange.high >= maxMidi;
+      rangeShrinkBtn.disabled = noteViewRange.high <= (noteViewRange.low + NOTE_VIEW_MIN_SPAN_SEMITONES);
+      lowNoteDownBtn.disabled = noteViewRange.low <= minMidi;
+      lowNoteUpBtn.disabled = noteViewRange.low >= (noteViewRange.high - NOTE_VIEW_MIN_SPAN_SEMITONES);
+    } else {
+      const { minOctaves, maxOctaves } = getRangeLimitsForLow(lowNoteSelect.value);
+      const currentRange = parseInt(rangeSelect.value, 10) || minOctaves;
+      const atMaxRange = currentRange >= maxOctaves;
+      const atMinRange = currentRange <= minOctaves;
 
-    const nextLowDown = getAdjacentLowNote(-1);
-    const nextLowUp = getAdjacentLowNote(1);
-    const canAddBottom = !!nextLowDown && (currentRange + 1) <= getRangeLimitsForLow(nextLowDown).maxOctaves;
-    const canRemoveBottom = !!nextLowUp && currentRange > minOctaves;
+      const nextLowDown = getAdjacentLowNote(-1);
+      const nextLowUp = getAdjacentLowNote(1);
+      const canAddBottom = !!nextLowDown && (currentRange + 1) <= getRangeLimitsForLow(nextLowDown).maxOctaves;
+      const canRemoveBottom = !!nextLowUp && currentRange > minOctaves;
 
-    rangeGrowBtn.disabled = atMaxRange;
-    rangeShrinkBtn.disabled = atMinRange;
+      rangeGrowBtn.disabled = atMaxRange;
+      rangeShrinkBtn.disabled = atMinRange;
 
-    lowNoteUpBtn.disabled = !canRemoveBottom;
-    lowNoteDownBtn.disabled = !canAddBottom;
+      lowNoteUpBtn.disabled = !canRemoveBottom;
+      lowNoteDownBtn.disabled = !canAddBottom;
+    }
 
     rangeGrowBtn.classList.toggle("alert", !!rangeAlert);
     lowNoteDownBtn.classList.toggle("alert", !!lowAlert);
@@ -6531,18 +7100,26 @@
   }
 
   function setRangeByStep(deltaOctaves) {
+    if (noteViewActive) {
+      stepNoteViewEdgeBySemitone("top", deltaOctaves > 0 ? 1 : -1);
+      return;
+    }
     if (!rangeSelect || !lowNoteSelect) return;
     const { minOctaves, maxOctaves } = getRangeLimitsForLow(lowNoteSelect.value);
     const currentRange = parseInt(rangeSelect.value, 10) || minOctaves;
     let nextRange = currentRange + deltaOctaves;
     nextRange = Math.max(minOctaves, Math.min(maxOctaves, nextRange));
     if (nextRange === currentRange) return;
-    queueGridRowTransition("top", deltaOctaves > 0 ? "add" : "remove");
+    currentSettings.noteViewRangeLinked = true;
     rangeSelect.value = String(nextRange);
     rangeSelect.dispatchEvent(new Event("change"));
   }
 
   function shiftLowNote(stepOctaves) {
+    if (noteViewActive) {
+      stepNoteViewEdgeBySemitone("bottom", stepOctaves > 0 ? 1 : -1);
+      return;
+    }
     if (!lowNoteSelect || !rangeSelect) return;
     const currentRange = parseInt(rangeSelect.value, 10) || 0;
     const { minOctaves } = getRangeLimitsForLow(lowNoteSelect.value);
@@ -6551,7 +7128,7 @@
       if (currentRange <= minOctaves) return;
       const nextHigher = getAdjacentLowNote(1);
       if (!nextHigher) return;
-      queueGridRowTransition("bottom", "remove");
+      currentSettings.noteViewRangeLinked = true;
       applyRangeAndLow(currentRange - 1, nextHigher);
     } else if (stepOctaves < 0) {
       const nextLower = getAdjacentLowNote(-1);
@@ -6559,7 +7136,7 @@
       const desiredRange = currentRange + 1;
       const { maxOctaves } = getRangeLimitsForLow(nextLower);
       if (desiredRange > maxOctaves) return;
-      queueGridRowTransition("bottom", "add");
+      currentSettings.noteViewRangeLinked = true;
       applyRangeAndLow(desiredRange, nextLower);
     }
   }
@@ -6635,44 +7212,10 @@
     }
   }
 
-  function biasHard(avgErrRatio) {
-    const base = currentPalette.center;
-    const sharpCol = currentPalette.sharp;
-    const flatCol  = currentPalette.flat;
-
-    const dz = HARD_DEADZONE_RATIO;
-    const scaledErr = avgErrRatio * HARD_ERR_SCALE;
-    const absErr = Math.abs(scaledErr);
-
-    if (absErr <= dz) {
-      return base;
-    } else {
-      const span = 8 * dz;
-      let t = span > 0 ? (absErr - dz) / span : 1;
-      if (t<0) t=0;
-      if (t>1) t=1;
-
-      if (scaledErr > 0) {
-        return {
-          r: lerp(base.r, sharpCol.r, t),
-          g: lerp(base.g, sharpCol.g, t),
-          b: lerp(base.b, sharpCol.b, t),
-        };
-      } else {
-        return {
-          r: lerp(base.r, flatCol.r, t),
-          g: lerp(base.g, flatCol.g, t),
-          b: lerp(base.b, flatCol.b, t),
-        };
-      }
-    }
-  }
-
   function computeColorBiasFromErr(avgErrRatio) {
-    const mode = sensitivitySelect.value;
+    const mode = resolveMode(sensitivitySelect?.value || "medium");
     if (mode === "relaxed") return biasRelaxed(avgErrRatio);
-    if (mode === "medium") return biasMedium(avgErrRatio);
-    return biasHard(avgErrRatio);
+    return biasMedium(avgErrRatio);
   }
 
   function updateCellColorMetadata(st, biasColor, intensity, { markStained = false } = {}) {
@@ -6703,7 +7246,7 @@
     let display = Math.max(0, Math.min(1, st.displayIntensity ?? 0));
     const lastUpdate = st.lastDisplayUpdateMs ?? nowTimeMs;
     const deltaMs = Math.max(0, nowTimeMs - lastUpdate);
-    const mode = sensitivitySelect?.value || "medium";
+    const mode = resolveMode(sensitivitySelect?.value || "medium");
     const stainedNow = st.justStained || stainedThisTick.has(st);
 
     if (baseIntensity <= 0) {
@@ -6723,7 +7266,7 @@
         }
         // No new stain this frame; display holds at current level
       } else {
-        // Medium/Hard: no stain fade-in EMA; display matches base immediately
+        // Medium: no stain fade-in EMA; display matches base immediately
         display = baseIntensity;
       }
 
@@ -6787,7 +7330,6 @@
 
   function resolveMode(modeRaw) {
     if (modeRaw === "relaxed") return "relaxed";
-    if (modeRaw === "hard") return "hard";
     return "medium";
   }
 
@@ -6816,8 +7358,7 @@
   function getCurrentDeadzoneRatio() {
     const mode = resolveMode(sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium");
     if (mode === "relaxed") return RELAXED_DEADZONE_RATIO;
-    if (mode === "medium") return MEDIUM_DEADZONE_RATIO;
-    return HARD_DEADZONE_RATIO;
+    return MEDIUM_DEADZONE_RATIO;
   }
 
   function getHistoryWindowSeconds() {
@@ -6942,6 +7483,7 @@
 
   if (noteViewContainer) {
     noteViewContainer.addEventListener("scroll", () => {
+      const currentStyle = currentSettings.noteViewStyle || NOTE_VIEW_STYLE_DEFAULT;
       const currentScrollLeft = noteViewContainer.scrollLeft;
       const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
       const atRight = (maxScroll - currentScrollLeft) <= NOTE_VIEW_SCROLL_SNAP_EPSILON_PX;
@@ -6949,6 +7491,20 @@
         ? 0
         : Math.abs(currentScrollLeft - noteViewLastObservedScrollLeft);
       noteViewLastObservedScrollLeft = currentScrollLeft;
+
+      if (running) {
+        noteViewRenderState.isLive = true;
+        noteViewScrollIsUserInitiated = false;
+        noteViewUserScrollUntilMs = 0;
+        if (!atRight) {
+          const lockedScroll = Math.round(maxScroll);
+          noteViewRenderState.scrollLerpX = lockedScroll;
+          noteViewRenderState.programmaticScrollLeft = lockedScroll;
+          noteViewContainer.scrollLeft = lockedScroll;
+          noteViewLastObservedScrollLeft = lockedScroll;
+        }
+        return;
+      }
 
       if (noteViewRenderState.programmaticScrollLeft != null) {
         const drift = Math.abs(currentScrollLeft - noteViewRenderState.programmaticScrollLeft);
@@ -6963,9 +7519,14 @@
       }
 
       const isUserWindowActive = noteViewScrollIsUserInitiated || nowMs() <= noteViewUserScrollUntilMs;
-      const userSessionActive = isUserWindowActive || !running;
 
-      if (userSessionActive && scrollDelta > 0.25) {
+      if (maxScroll > 0) {
+        noteViewScrollRatioByStyle[currentStyle] = Math.max(0, Math.min(1, currentScrollLeft / maxScroll));
+      } else {
+        noteViewScrollRatioByStyle[currentStyle] = 1;
+      }
+
+      if (scrollDelta > 0.25) {
         noteViewRenderState.isLive = atRight;
         if (!atRight) noteViewRenderState.scrollLerpX = null;
       }
@@ -6981,15 +7542,13 @@
         return;
       }
 
-      if (atRight && !noteViewRenderState.isLive) {
-        noteViewRenderState.isLive = true;
-        if (noteViewActive) renderNoteView();
-        return;
-      }
-
     }, { passive: true });
 
     noteViewContainer.addEventListener("wheel", (e) => {
+      if (running) {
+        e.preventDefault();
+        return;
+      }
       if (Math.abs(e.deltaX) > 0.01 || Math.abs(e.deltaY) > 0.01) {
         markNoteViewUserScrollIntent(280);
       }
@@ -7005,12 +7564,20 @@
     }, { passive: false });
 
     noteViewContainer.addEventListener("touchstart", (e) => {
+      if (running) {
+        noteViewContainer._touchStartX = null;
+        return;
+      }
       markNoteViewUserScrollIntent(420);
       noteViewContainer._touchStartX = e.touches[0].clientX;
     }, { passive: true });
 
     noteViewContainer.addEventListener("touchmove", (e) => {
-      if (!noteViewContainer._touchStartX) return;
+      if (running) {
+        e.preventDefault();
+        return;
+      }
+      if (noteViewContainer._touchStartX == null) return;
       markNoteViewUserScrollIntent(320);
       const deltaX = e.touches[0].clientX - noteViewContainer._touchStartX;
       const atLeft = noteViewContainer.scrollLeft === 0;
@@ -7025,17 +7592,28 @@
 
     noteViewContainer.addEventListener("touchend", () => {
       noteViewContainer._touchStartX = null;
+      if (running) {
+        noteViewScrollIsUserInitiated = false;
+        noteViewUserScrollUntilMs = 0;
+        return;
+      }
       noteViewScrollIsUserInitiated = false;
       noteViewUserScrollUntilMs = Math.max(noteViewUserScrollUntilMs, nowMs() + 180);
     }, { passive: true });
 
     // Scrollbar drag (desktop): pointerdown precedes the scroll event
     noteViewContainer.addEventListener("pointerdown", () => {
+      if (running) return;
       markNoteViewUserScrollIntent(420);
     }, { passive: true });
 
     // Safety reset: pointer released without causing a scroll (e.g. a tap) — clear the flag
     noteViewContainer.addEventListener("pointerup", () => {
+      if (running) {
+        noteViewScrollIsUserInitiated = false;
+        noteViewUserScrollUntilMs = 0;
+        return;
+      }
       noteViewScrollIsUserInitiated = false;
       noteViewUserScrollUntilMs = Math.max(noteViewUserScrollUntilMs, nowMs() + 180);
     }, { passive: true });
@@ -7052,7 +7630,7 @@
     // Calculate cumulative width for Ribbons mode
     let cumulativeX = leftMargin;
     let maxX = leftMargin;
-    const minRibbonWidth = balloonRadius;
+    const minRibbonWidth = balloonRadius * NOTE_VIEW_RIBBON_MIN_WIDTH_FACTOR;
     let previousNoteEndMs = null; // Track previous note end time for gap detection
 
     for (let i = 0; i < mergedNotes.length; i++) {
@@ -7181,7 +7759,7 @@
       }
 
       // Apply minimum width (use radius, not diameter)
-      const minRibbonWidth = balloonRadius;
+      const minRibbonWidth = balloonRadius * NOTE_VIEW_RIBBON_MIN_WIDTH_FACTOR;
       const ribbonWidth = Math.max(naturalRibbonWidth, minRibbonWidth);
 
       // Calculate scaling factor for segments if below minimum
@@ -7362,8 +7940,9 @@
     const containerHeight = noteViewContainer.clientHeight || window.innerHeight;
 
     // Calculate vertical positions and balloon radius
-    const lowestMidi = gridLowestMidiC || 36;
-    const highestMidi = gridHighestMidiLastNote || 84;
+    const noteViewRange = getNoteViewRangeBounds();
+    const lowestMidi = noteViewRange.low;
+    const highestMidi = noteViewRange.high;
     const numPitches = highestMidi - lowestMidi + 1;
     const verticalSpacing = containerHeight / Math.max(numPitches, 1);
     const radiusCandidate = verticalSpacing / NOTE_VIEW_BALLOON_VERTICAL_DIVISOR;
@@ -7448,7 +8027,6 @@
       containerWidth,
       NOTE_VIEW_MIN_TIMELINE_WIDTH_PX
     );
-    const cappedWidthCss = Math.min(desiredWidthCss, containerWidth * NOTE_VIEW_MAX_PAGE_WIDTHS_FREE);
 
     const rightmostKey = rightmostSeg
       ? `${rightmostSeg.midi}:${Math.round(rightmostSeg.startMs ?? 0)}`
@@ -7459,7 +8037,7 @@
     }
 
     if (noteViewTimelineSpacer) {
-      const nextWidth = `${cappedWidthCss}px`;
+      const nextWidth = `${desiredWidthCss}px`;
       if (noteViewTimelineSpacer.style.width !== nextWidth) {
         noteViewTimelineSpacer.style.width = nextWidth;
       }
@@ -7489,7 +8067,7 @@
     ctx.fillRect(0, 0, containerWidth, containerHeight);
     const scrollLeft = noteViewContainer.scrollLeft;
     const windowStart = Math.max(0, scrollLeft - NOTE_VIEW_VIRTUAL_BUFFER_PX);
-    const windowEnd = Math.min(cappedWidthCss, scrollLeft + containerWidth + NOTE_VIEW_VIRTUAL_BUFFER_PX);
+    const windowEnd = Math.min(desiredWidthCss, scrollLeft + containerWidth + NOTE_VIEW_VIRTUAL_BUFFER_PX);
 
     // Pitch guide lines — drawn behind notes, one per semitone
     const noteViewThemeStyles = getNoteViewThemeStyles();
@@ -7573,8 +8151,12 @@
         }
 
         ctx.font = `${Math.round(balloonRadius * 0.45)}px sans-serif`;
-        const durSec = (durMs / 1000).toFixed(1);
-        ctx.fillText(`${durSec}s`, xPos, yPos - balloonRadius * 0.55 - 1);
+        const durSecRaw = durMs / 1000;
+        const durSec = durSecRaw.toFixed(1);
+        const durSecDisplay = durSecRaw > 0 && durSecRaw < 1
+          ? durSec.replace(/^0/, "")
+          : durSec;
+        ctx.fillText(`${durSecDisplay}s`, xPos, yPos - balloonRadius * 0.55 - 1);
 
         ctx.font = `${Math.round(balloonRadius * 0.4)}px sans-serif`;
         const centsVal = 1200 * (Math.log(1 + rebasedErr) / Math.log(2));
@@ -7585,22 +8167,31 @@
       }
     }
 
-    if (noteViewRenderState.isLive) {
-      const targetScroll = Math.max(0, cappedWidthCss - containerWidth);
-      // Initialise lerp position from current scroll if not yet set
-      if (noteViewRenderState.scrollLerpX == null) {
-        noteViewRenderState.scrollLerpX = noteViewContainer.scrollLeft;
-      }
-      // Advance toward target each frame for smooth scroll without browser smooth-scroll
-      noteViewRenderState.scrollLerpX +=
-        (targetScroll - noteViewRenderState.scrollLerpX) * NOTE_VIEW_SCROLL_LERP_FACTOR;
-      // Snap when very close to avoid endless sub-pixel updates
-      if (Math.abs(noteViewRenderState.scrollLerpX - targetScroll) < 0.5) {
+    if (running && !noteViewRenderState.isLive) {
+      noteViewRenderState.isLive = true;
+    }
+
+    if (noteViewRenderState.isLive || running) {
+      const targetScroll = Math.max(0, desiredWidthCss - containerWidth);
+      if (running) {
         noteViewRenderState.scrollLerpX = targetScroll;
+      } else {
+        // Initialise lerp position from current scroll if not yet set
+        if (noteViewRenderState.scrollLerpX == null) {
+          noteViewRenderState.scrollLerpX = noteViewContainer.scrollLeft;
+        }
+        // Advance toward target each frame for smooth scroll without browser smooth-scroll
+        noteViewRenderState.scrollLerpX +=
+          (targetScroll - noteViewRenderState.scrollLerpX) * NOTE_VIEW_SCROLL_LERP_FACTOR;
+        // Snap when very close to avoid endless sub-pixel updates
+        if (Math.abs(noteViewRenderState.scrollLerpX - targetScroll) < 0.5) {
+          noteViewRenderState.scrollLerpX = targetScroll;
+        }
       }
       const scrollPos = Math.round(noteViewRenderState.scrollLerpX);
       noteViewRenderState.programmaticScrollLeft = scrollPos;
       noteViewContainer.scrollLeft = scrollPos;
+      noteViewLastObservedScrollLeft = scrollPos;
     }
   }
 
@@ -8157,14 +8748,24 @@
   function tick() {
     if (!running) return;
 
-    if (!isMicStreamLive(micStream)) {
-      handleMicLost("inactive stream");
+    if (!analyserNode || !dataBuffer || !detector) {
+      handleMicLost("missing audio pipeline", { disableMic: false, message: "Mic unavailable — paused" });
       return;
+    }
+
+    if (!isMicStreamLive(micStream)) {
+      handleMicLost("inactive stream", { disableMic: false, message: "Mic unavailable — paused" });
+      return;
+    }
+
+    if (audioContext && audioContext.state !== "running" && document.visibilityState === "visible") {
+      void attemptMicRecovery(`audio context ${audioContext.state || "unknown"}`);
     }
 
     analyserNode.getFloatTimeDomainData(dataBuffer);
 
     const rms = computeRMS(dataBuffer);
+    const peakAbs = getBufferPeakAbs(dataBuffer);
     const [pitch, clarity] = detector.findPitch(dataBuffer, sampleRate);
 
     const nowT = nowMs();
@@ -8177,6 +8778,33 @@
       clarity > 0.8 &&
       pitch > MIN_FREQ &&
       pitch < MAX_FREQ;
+
+    const healthyFrame = pitchValid || rms >= Math.max(volumeThreshold * 0.5, LED_MIN_FLOOR * 6);
+    if (healthyFrame) {
+      micHealthySinceStart = true;
+      micStallAccumMs = 0;
+    }
+
+    const runtimeMs = micStartTimeMs > 0 ? (nowT - micStartTimeMs) : 0;
+    const stalledFrame =
+      rms <= MIC_STALL_RMS_THRESHOLD &&
+      peakAbs <= MIC_STALL_PEAK_THRESHOLD &&
+      !pitchValid &&
+      clarity < 0.2;
+    if (
+      micHealthySinceStart &&
+      runtimeMs >= MIC_STALL_GRACE_MS &&
+      document.visibilityState === "visible" &&
+      stalledFrame
+    ) {
+      micStallAccumMs += Math.max(0, dtMs);
+      if (micStallAccumMs >= MIC_STALL_DETECT_MS) {
+        handleMicLost("zeroed audio frames", { disableMic: false, message: "Mic unavailable — paused" });
+        return;
+      }
+    } else if (!stalledFrame) {
+      micStallAccumMs = 0;
+    }
 
     updateRmsGauge(rms, volumeThreshold);
 
@@ -8205,9 +8833,7 @@
       let displayCents = cents;
       const tauMs = mode === "relaxed"
         ? RELAXED_NEEDLE_TAU_MS
-        : mode === "medium"
-          ? MEDIUM_NEEDLE_TAU_MS
-          : HARD_NEEDLE_TAU_MS;
+        : MEDIUM_NEEDLE_TAU_MS;
       if (tauMs > 0) {
         if (!relaxedSmoothingActive) {
           relaxedNeedleCents = cents;
@@ -8337,18 +8963,30 @@
   async function startMic() {
     try {
       micDisabled = false;
+      resetMicHealthWatchdog();
+      
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
+      if (typeof audioContext.addEventListener === "function") {
+        audioContext.addEventListener("statechange", onAudioContextStateChange);
+      } else {
+        audioContext.onstatechange = onAudioContextStateChange;
+      }
+
+      const audioConstraints = {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      };
 
       micStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
-        }
+        audio: audioConstraints
       });
       attachMicStreamWatchers(micStream);
+
+      // Apply Safari echo bug fix (persistent shadow stream)
+      applySafariEchoBugFix();
 
       const source = audioContext.createMediaStreamSource(micStream);
 
@@ -8361,24 +8999,12 @@
       dataBuffer = new Float32Array(analyserNode.fftSize);
 
       detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
+      micStartTimeMs = nowMs();
 
       running = true;
       syncUsageLock();
       await requestScreenWakeLock();
-      micBtn.classList.add("on");
-      micBtn.classList.remove("paused");
-      micBtnIcon.classList.remove("paused");
-      micBtnIcon.classList.add("playing");
-      micBtnIcon.textContent = "⏸︎";
-      if (miniMicBtn) {
-        miniMicBtn.classList.add("on");
-        const icon = miniMicBtn.querySelector(".icon-micstate");
-        if (icon) {
-          icon.classList.remove("paused");
-          icon.classList.add("playing");
-          icon.textContent = "⏸︎";
-        }
-      }
+      setMicUiRunningState(true);
 
       overlayVeil.style.display = "none";
       if (pendingMilestone) {
@@ -8388,6 +9014,21 @@
 
       lastFrameTime = nowMs();
 
+      noteViewRenderState.isLive = true;
+      noteViewRenderState.programmaticScrollLeft = null;
+      noteViewRenderState.scrollLerpX = null;
+      noteViewScrollIsUserInitiated = false;
+      noteViewUserScrollUntilMs = 0;
+      micStallAccumMs = 0;
+      if (noteViewActive && noteViewContainer) {
+        const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
+        const rightEdge = Math.round(maxScroll);
+        noteViewRenderState.scrollLerpX = rightEdge;
+        noteViewRenderState.programmaticScrollLeft = rightEdge;
+        noteViewContainer.scrollLeft = rightEdge;
+        noteViewLastObservedScrollLeft = rightEdge;
+      }
+
       updateDebugPanel({ freq: null, clarity: null, cents: null, rms: null });
       updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
       tick();
@@ -8395,22 +9036,9 @@
       console.error(err);
       running = false;
       micDisabled = true;
+      resetMicHealthWatchdog();
       releaseScreenWakeLock();
-      micBtn.classList.remove("on");
-      micBtn.classList.add("paused");
-      micBtnIcon.classList.remove("playing");
-      micBtnIcon.classList.add("paused");
-      micBtnIcon.textContent = "▶︎";
-      if (miniMicBtn) {
-        miniMicBtn.classList.remove("on");
-        miniMicBtn.classList.add("paused");
-        const icon = miniMicBtn.querySelector(".icon-micstate");
-        if (icon) {
-          icon.classList.remove("playing");
-          icon.classList.add("paused");
-          icon.textContent = "▶︎";
-        }
-      }
+      setMicUiRunningState(false);
       updateNoteReadoutText();
       // overlay remains if mic denied
     }
@@ -8418,6 +9046,9 @@
 
   function stopMic({ markDisabled = false } = {}) {
     running = false;
+    cancelSafariEchoBugFix();
+    noteViewRenderState.programmaticScrollLeft = null;
+    noteViewRenderState.scrollLerpX = null;
     releaseScreenWakeLock();
     forceStopUsageTimer(nowMs());
     releaseUsageLock();
@@ -8434,27 +9065,37 @@
       micStream.getTracks().forEach(track => track.stop());
       micStream = null;
     }
+    if (analyserNode) {
+      try {
+        analyserNode.disconnect();
+      } catch (err) {
+        console.warn("Analyser disconnect failed:", err);
+      }
+      analyserNode = null;
+    }
+    detector = null;
+    dataBuffer = null;
+    sampleRate = 0;
     if (audioContext) {
-      audioContext.suspend?.();
+      try {
+        if (typeof audioContext.removeEventListener === "function") {
+          audioContext.removeEventListener("statechange", onAudioContextStateChange);
+        }
+      } catch (err) {
+        console.warn("AudioContext listener removal failed:", err);
+      }
+      const ctxToClose = audioContext;
+      audioContext = null;
+      ctxToClose.close?.().catch(err => {
+        console.warn("AudioContext close failed:", err);
+      });
     }
 
-    micBtn.classList.remove("on");
-    micBtn.classList.add("paused");
-    micBtnIcon.classList.remove("playing");
-    micBtnIcon.classList.add("paused");
-    micBtnIcon.textContent = "▶︎";
-    if (miniMicBtn) {
-      miniMicBtn.classList.remove("on");
-      miniMicBtn.classList.add("paused");
-      const icon = miniMicBtn.querySelector(".icon-micstate");
-      if (icon) {
-        icon.classList.remove("playing");
-        icon.classList.add("paused");
-        icon.textContent = "▶︎";
-      }
-    }
+    setMicUiRunningState(false);
+    micStartTimeMs = 0;
 
     micDisabled = markDisabled ? true : micDisabled;
+    resetMicHealthWatchdog();
     updateNoteReadoutText();
     updateRmsGauge(0, volumeThreshold);
 
@@ -8529,7 +9170,9 @@
           console.warn("Wake lock restore failed:", err);
         });
         if (!isMicStreamLive(micStream)) {
-          handleMicLost("visibility resume");
+          handleMicLost("visibility resume", { disableMic: false, message: "Mic unavailable — paused" });
+        } else if (audioContext && audioContext.state !== "running") {
+          void attemptMicRecovery(`visibility resume (${audioContext.state || "unknown"})`);
         }
       }
     } else {
@@ -8537,6 +9180,31 @@
       handleUsageVisibilityPause();
     }
   });
+  window.addEventListener("pageshow", () => {
+    if (!running) return;
+    if (!isMicStreamLive(micStream)) {
+      handleMicLost("pageshow resume", { disableMic: false, message: "Mic unavailable — paused" });
+      return;
+    }
+    if (audioContext && audioContext.state !== "running") {
+      void attemptMicRecovery(`pageshow (${audioContext.state || "unknown"})`);
+    }
+  });
+  if (navigator.mediaDevices?.addEventListener) {
+    navigator.mediaDevices.addEventListener("devicechange", () => {
+      if (!running) return;
+      window.setTimeout(() => {
+        if (!running) return;
+        if (!isMicStreamLive(micStream)) {
+          handleMicLost("device change", { disableMic: false, message: "Mic unavailable — paused" });
+          return;
+        }
+        if (audioContext && audioContext.state !== "running") {
+          void attemptMicRecovery(`device change (${audioContext.state || "unknown"})`);
+        }
+      }, 150);
+    });
+  }
   window.addEventListener("pagehide", handleUsageVisibilityPause);
   window.addEventListener("beforeunload", handleUsageVisibilityPause);
   window.addEventListener("storage", handleUsageStorageEvent);
@@ -8552,11 +9220,46 @@
     }
   }
 
+  function triggerResetButtonAnimation() {
+    const targets = [resetBtn, miniResetBtn].filter(Boolean);
+    targets.forEach(btn => {
+      btn.classList.remove("reset-anim");
+      void btn.offsetWidth;
+      btn.classList.add("reset-anim");
+      if (btn._resetAnimTimeoutId) {
+        window.clearTimeout(btn._resetAnimTimeoutId);
+      }
+      btn._resetAnimTimeoutId = window.setTimeout(() => {
+        btn.classList.remove("reset-anim");
+        btn._resetAnimTimeoutId = null;
+      }, 280);
+    });
+  }
+
+  function handleResetAction() {
+    triggerResetButtonAnimation();
+    resetHeatmapOnly();
+  }
+
+  function triggerSidebarActionButtonAnimation(btn) {
+    if (!btn) return;
+    btn.classList.remove("action-anim");
+    void btn.offsetWidth;
+    btn.classList.add("action-anim");
+    if (btn._actionAnimTimeoutId) {
+      window.clearTimeout(btn._actionAnimTimeoutId);
+    }
+    btn._actionAnimTimeoutId = window.setTimeout(() => {
+      btn.classList.remove("action-anim");
+      btn._actionAnimTimeoutId = null;
+    }, 260);
+  }
+
   micBtn.addEventListener("click", handleMicToggle);
   overlayPlayBtn.addEventListener("click", handleMicToggle);
 
   resetBtn.addEventListener("click", () => {
-    resetHeatmapOnly();
+    handleResetAction();
   });
 
   if (resetUsageBtn) {
@@ -8580,11 +9283,11 @@
         return;
       }
       currentSettings.rowStart = String(idx);
+      currentSettings.noteViewRangeLinked = true;
       const chosenLow = rebuildLowNoteSelectOptions(idx);
       currentSettings.lowNote = chosenLow || currentSettings.lowNote;
       persistSettings(currentSettings);
-      rebuildRangeOptions({ forceDefault: false });
-      buildGrid({ preserveStain: true });
+      rebuildAll({ forceDefaultRange: false, preserveStain: true });
     });
   }
 
@@ -8650,6 +9353,7 @@
   }
 
   updateEdgeKeyVisibility();
+  refreshShortcutTooltips();
 
   if (optionsPaletteBtn) {
     optionsPaletteBtn.addEventListener("click", () => {
@@ -8715,11 +9419,19 @@
 
   if (optionsToggleBtn && optionsOverlay) {
     optionsToggleBtn.addEventListener("click", () => {
+      triggerSidebarActionButtonAnimation(optionsToggleBtn);
       if (optionsOverlay.classList.contains("open")) {
         closeOptionsOverlay();
       } else {
         openOptionsOverlay();
       }
+    });
+  }
+
+  if (focusModeBtn) {
+    focusModeBtn.addEventListener("click", () => {
+      triggerSidebarActionButtonAnimation(focusModeBtn);
+      toggleFocusMode();
     });
   }
 
@@ -8729,32 +9441,14 @@
     });
   }
 
-  if (proModalCloseBtn) {
-    proModalCloseBtn.addEventListener("click", closeProModal);
-  }
-
-  if (proUpgradeModal) {
-    proUpgradeModal.addEventListener("click", (event) => {
-      if (event.target === proUpgradeModal) closeProModal();
-    });
-  }
-
-  document.querySelectorAll("[data-open-pro-modal]").forEach((el) => {
-    el.addEventListener("click", (event) => {
-      event.preventDefault();
-      openProModal();
-    });
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && proUpgradeModal?.getAttribute("aria-hidden") === "false") {
-      closeProModal();
-    }
-  });
-
   if (noteViewToggleBtn && noteViewContainer && noteGrid) {
     noteViewToggleBtn.addEventListener("click", () => {
+      triggerSidebarActionButtonAnimation(noteViewToggleBtn);
       noteViewActive = !noteViewActive;
+      ensureNoteViewRangeState({ persist: false });
+      ensureGridCoversNoteViewRange();
+      updateEdgeControlStates();
+      refreshShortcutTooltips();
       if (noteViewActive) {
         // Finalize any active note before switching to score view
         if (currentMidiHeld != null) {
@@ -8810,7 +9504,7 @@
 
   if (miniResetBtn) {
     miniResetBtn.addEventListener("click", () => {
-      if (resetBtn) resetBtn.click();
+      handleResetAction();
     });
   }
 
@@ -8825,6 +9519,254 @@
       openOptionsOverlay();
     });
   }
+
+  /**********************
+   * GLOBAL KEYBOARD SHORTCUTS
+   **********************/
+  function isEditableTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return !!target.closest('input, textarea, select, [contenteditable], [contenteditable="true"], [contenteditable=""]');
+  }
+
+  function isInteractiveTarget(target) {
+    if (!(target instanceof Element)) return false;
+    return !!target.closest('button, a, [role="button"], summary, details');
+  }
+
+  function isAnyOverlayOpen() {
+    return !!(
+      optionsOverlay?.classList.contains("open") ||
+      statusOverlay?.classList.contains("open") ||
+      optionInfoOverlay?.classList.contains("open") ||
+      paletteOverlay?.classList.contains("open")
+    );
+  }
+
+  function setNoteViewStyle(style) {
+    if (!noteViewStyleSelect) return;
+    if (noteViewStyleSelect.value === style) return;
+    noteViewStyleSelect.value = style;
+    noteViewStyleSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function showGridView() {
+    if (!noteViewActive || !noteViewToggleBtn) return;
+    noteViewToggleBtn.click();
+  }
+
+  function showNoteViewWithStyle(style) {
+    setNoteViewStyle(style);
+    if (!noteViewActive && noteViewToggleBtn) {
+      noteViewToggleBtn.click();
+    }
+  }
+
+  function cycleViewMode() {
+    const currentStyle = currentSettings.noteViewStyle || NOTE_VIEW_STYLE_DEFAULT;
+    if (!noteViewActive) {
+      showNoteViewWithStyle(NOTE_VIEW_STYLE_RIBBONS);
+      return;
+    }
+    if (currentStyle === NOTE_VIEW_STYLE_RIBBONS) {
+      showNoteViewWithStyle(NOTE_VIEW_STYLE_BALLOONS);
+      return;
+    }
+    showGridView();
+  }
+
+  function scrollNoteViewBy(deltaPx) {
+    if (!noteViewActive || running || !noteViewContainer) return;
+    markNoteViewUserScrollIntent(420);
+    const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
+    const nextLeft = Math.max(0, Math.min(maxScroll, noteViewContainer.scrollLeft + deltaPx));
+    noteViewRenderState.isLive = false;
+    noteViewContainer.scrollLeft = nextLeft;
+  }
+
+  const EDGE_KEY_TO_BUTTON = Object.freeze({
+    BracketRight: () => rangeGrowBtn,
+    BracketLeft: () => rangeShrinkBtn,
+    Quote: () => lowNoteUpBtn,
+    Semicolon: () => lowNoteDownBtn
+  });
+
+  function setEdgeKeyActive(code, active) {
+    const getBtn = EDGE_KEY_TO_BUTTON[code];
+    if (!getBtn) return;
+    const btn = getBtn();
+    if (!btn) return;
+    btn.classList.toggle("key-active", !!active);
+  }
+
+  function clearAllEdgeKeyActive() {
+    for (const code of Object.keys(EDGE_KEY_TO_BUTTON)) {
+      setEdgeKeyActive(code, false);
+    }
+  }
+
+  function toggleOptionsOverlayFromShortcut() {
+    if (!optionsOverlay) return;
+    if (optionsOverlay.classList.contains("open")) {
+      closeOptionsOverlay();
+      return;
+    }
+    if (paletteOverlay?.classList.contains("open")) {
+      closePaletteOverlay({ apply: false });
+    }
+    openOptionsOverlay();
+  }
+
+  function togglePaletteOverlayFromShortcut() {
+    if (!paletteOverlay) return;
+    if (paletteOverlay.classList.contains("open")) {
+      closePaletteOverlay({ apply: false });
+      return;
+    }
+    if (optionsOverlay?.classList.contains("open")) {
+      closeOptionsOverlay();
+    }
+    openPaletteOverlay();
+  }
+
+  function isGlobalShortcutEvent(event, key) {
+    if (key === "o" || key === "f" || key === "c") return true;
+    if (key === "r" || key === "g" || key === "n" || key === "b" || key === "v") return true;
+    if (event.code === "Space") return true;
+    if (event.code === "BracketRight" || event.code === "BracketLeft") return true;
+    if (event.code === "Quote" || event.code === "Semicolon") return true;
+    if (event.code === "ArrowLeft" || event.code === "ArrowRight") return true;
+    return false;
+  }
+
+  document.addEventListener("keydown", event => {
+    if (event.defaultPrevented) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+    const key = (event.key || "").toLowerCase();
+
+    if (isEditableTarget(event.target)) return;
+    if (isInteractiveTarget(event.target) && !isGlobalShortcutEvent(event, key)) return;
+
+    if (key === "o") {
+      event.preventDefault();
+      triggerSidebarActionButtonAnimation(optionsToggleBtn);
+      toggleOptionsOverlayFromShortcut();
+      return;
+    }
+
+    if (key === "f") {
+      event.preventDefault();
+      triggerSidebarActionButtonAnimation(focusModeBtn);
+      focusModeBtn?.click();
+      return;
+    }
+
+    if (key === "c") {
+      event.preventDefault();
+      togglePaletteOverlayFromShortcut();
+      return;
+    }
+
+    if (event.code === "Quote") {
+      event.preventDefault();
+    }
+
+    if (isAnyOverlayOpen()) return;
+
+    if (event.code === "Space") {
+      event.preventDefault();
+      handleMicToggle();
+      return;
+    }
+
+    if (key === "r") {
+      event.preventDefault();
+      handleResetAction();
+      return;
+    }
+
+    if (key === "g") {
+      event.preventDefault();
+      showGridView();
+      return;
+    }
+
+    if (key === "n") {
+      event.preventDefault();
+      showNoteViewWithStyle(NOTE_VIEW_STYLE_RIBBONS);
+      return;
+    }
+
+    if (key === "b") {
+      event.preventDefault();
+      showNoteViewWithStyle(NOTE_VIEW_STYLE_BALLOONS);
+      return;
+    }
+
+    if (key === "v") {
+      event.preventDefault();
+      triggerSidebarActionButtonAnimation(noteViewToggleBtn);
+      cycleViewMode();
+      return;
+    }
+
+    if (event.code === "BracketRight") {
+      event.preventDefault();
+      setEdgeKeyActive(event.code, true);
+      if (rangeGrowBtn && !rangeGrowBtn.disabled) rangeGrowBtn.click();
+      return;
+    }
+
+    if (event.code === "BracketLeft") {
+      event.preventDefault();
+      setEdgeKeyActive(event.code, true);
+      if (rangeShrinkBtn && !rangeShrinkBtn.disabled) rangeShrinkBtn.click();
+      return;
+    }
+
+    if (event.code === "Quote") {
+      event.preventDefault();
+      setEdgeKeyActive(event.code, true);
+      if (lowNoteUpBtn && !lowNoteUpBtn.disabled) lowNoteUpBtn.click();
+      return;
+    }
+
+    if (event.code === "Semicolon") {
+      event.preventDefault();
+      setEdgeKeyActive(event.code, true);
+      if (lowNoteDownBtn && !lowNoteDownBtn.disabled) lowNoteDownBtn.click();
+      return;
+    }
+
+    if (event.code === "ArrowLeft") {
+      event.preventDefault();
+      scrollNoteViewBy(event.shiftKey ? -240 : -90);
+      return;
+    }
+
+    if (event.code === "ArrowRight") {
+      event.preventDefault();
+      scrollNoteViewBy(event.shiftKey ? 240 : 90);
+    }
+  });
+
+  document.addEventListener("keyup", event => {
+    setEdgeKeyActive(event.code, false);
+  });
+
+  document.addEventListener("keypress", event => {
+    if (event.defaultPrevented) return;
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (isEditableTarget(event.target)) return;
+    if (isInteractiveTarget(event.target)) return;
+    if (event.code === "Quote") {
+      event.preventDefault();
+    }
+  });
+
+  window.addEventListener("blur", () => {
+    clearAllEdgeKeyActive();
+  });
 
   // Load mini UI state on page load
   loadMiniUIState();
@@ -8853,6 +9795,20 @@
         const key = btn.dataset.infoKey;
         openOptionInfo(key);
       });
+    });
+  }
+
+  if (overlayQuoteText) {
+    overlayQuoteText.addEventListener("click", event => {
+      const linkEl = event.target instanceof Element
+        ? event.target.closest("[data-open-info]")
+        : null;
+      if (!linkEl) return;
+      event.preventDefault();
+      const key = linkEl.getAttribute("data-open-info");
+      if (key) {
+        openOptionInfo(key);
+      }
     });
   }
 
@@ -8908,6 +9864,31 @@
         return;
       }
       const parsed = parseFloat(value);
+        if (proModalCloseBtn) {
+          proModalCloseBtn.addEventListener("click", closeProModal);
+        }
+
+        if (proUpgradeModal) {
+          proUpgradeModal.addEventListener("click", event => {
+            if (event.target === proUpgradeModal) {
+              closeProModal();
+            }
+          });
+        }
+
+        document.querySelectorAll("[data-open-pro-modal]").forEach(el => {
+          el.addEventListener("click", event => {
+            event.preventDefault();
+            openProModal();
+          });
+        });
+
+        document.addEventListener("keydown", event => {
+          if (event.key === "Escape" && proUpgradeModal?.getAttribute("aria-hidden") === "false") {
+            closeProModal();
+          }
+        });
+
       if (!Number.isNaN(parsed)) {
         setA4Value(parsed);
       }
@@ -8954,10 +9935,13 @@
   initUsageTracking();
 
   function rebuildAll({forceDefaultRange=false, preserveStain=true} = {}) {
-    const rowTransition = pendingGridRowTransition;
-    pendingGridRowTransition = null;
     rebuildRangeOptions({forceDefault: forceDefaultRange, desiredRange: currentSettings.range});
-    buildGrid({ preserveStain, rowTransition });
+    ensureNoteViewRangeState({ persist: false });
+    if (ensureGridCoversNoteViewRange()) {
+      rebuildRangeOptions({forceDefault: false, desiredRange: currentSettings.range});
+      ensureNoteViewRangeState({ persist: false });
+    }
+    buildGrid({ preserveStain });
     highlightGridCell(null, 0);
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
     renderHeatmap();
@@ -8965,21 +9949,17 @@
   }
 
   lowNoteSelect.addEventListener("change", () => {
+    currentSettings.noteViewRangeLinked = true;
     currentSettings.lowNote = lowNoteSelect.value;
     persistSettings(currentSettings);
     rebuildAll();
   });
 
   rangeSelect.addEventListener("change", () => {
-    const rowTransition = pendingGridRowTransition;
-    pendingGridRowTransition = null;
+    currentSettings.noteViewRangeLinked = true;
     currentSettings.range = rangeSelect.value;
     persistSettings(currentSettings);
-    buildGrid({ preserveStain: true, rowTransition });
-    highlightGridCell(null, 0);
-    updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
-    renderHeatmap();
-    updateEdgeKeyVisibility();
+    rebuildAll({ forceDefaultRange: false, preserveStain: true });
   });
 
   // Mode change = full reset (new session/clears stain)
@@ -9014,11 +9994,20 @@
 
   if (noteViewStyleSelect) {
     noteViewStyleSelect.addEventListener("change", () => {
+      const previousStyle = currentSettings.noteViewStyle || NOTE_VIEW_STYLE_DEFAULT;
+      const previousRatio = getNoteViewScrollProgressRatio();
+      saveNoteViewScrollRatioForStyle(previousStyle);
       currentSettings.noteViewStyle = noteViewStyleSelect.value;
       persistSettings(currentSettings);
       markNoteViewDataDirty();
       if (noteViewActive) {
         renderNoteView();
+        if (running) {
+          noteViewScrollRatioByStyle[currentSettings.noteViewStyle] = 1;
+        } else {
+          restoreNoteViewScrollRatioForStyle(currentSettings.noteViewStyle, { fallbackRatio: previousRatio });
+          renderNoteView();
+        }
       }
       syncSegmentedOptionControls();
     });
@@ -9170,6 +10159,8 @@
   **********************/
   setOverlayQuote();
   updateGridAppearanceForViewport();
+  syncFocusModeButton();
+  applyFocusModeClass();
   rebuildAll({forceDefaultRange:true});
 
   dbgRange.textContent = RANGE_GATE_TEXT;
@@ -9186,6 +10177,5 @@
   updateNoteReadoutText();
 
 </script>
-<script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
 </body>
 </html>
