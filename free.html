@@ -2935,11 +2935,17 @@
   window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
   plausible.init()
 </script>
+<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
 </head>
 <body>
 
 <script>
   window.APP_VERSION = "1.7";
+  // If the user already has a Pro auth cookie, send them straight to /pro.
+  // The Worker will do the real HMAC verification; this is just a UX shortcut.
+  if (document.cookie.split(';').some(c => c.trim().startsWith('tm_pro='))) {
+    window.location.replace('/pro');
+  }
 </script>
 
 <div class="page">
@@ -3601,7 +3607,7 @@
         <li>Rows start with any note</li>
       </ul>
       <p class="pro-modal-support">Your subscription supports ongoing development of Tonemap.</p>
-      <a id="proModalCTA" class="pro-modal-btn" href="https://eevs.lemonsqueezy.com/checkout/buy/4c47a015-d4b5-4062-8411-635e34ccd7db?embed=1&logo=0&discount=0">
+      <a id="proModalCTA" class="pro-modal-btn lemonsqueezy-button" href="https://eevs.lemonsqueezy.com/checkout/buy/4c47a015-d4b5-4062-8411-635e34ccd7db?embed=1&logo=0&discount=0">
         Start Free Trial →
       </a>
       <div class="pro-modal-or">Already purchased? <a href="/activate">Activate your license →</a></div>
@@ -9881,6 +9887,11 @@
             event.preventDefault();
             openProModal();
           });
+        });
+
+        // Close pro modal before LS overlay opens
+        document.getElementById("proModalCTA")?.addEventListener("click", () => {
+          closeProModal();
         });
 
         document.addEventListener("keydown", event => {
