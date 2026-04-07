@@ -16,9 +16,25 @@ pattern = "tonemap.live/pro"
 zone_name = "tonemap.live"
 
 [[routes]]
+pattern = "tonemap.live/deactivate"
+zone_name = "tonemap.live"
+
+[[routes]]
+pattern = "tonemap.live/license-info"
+zone_name = "tonemap.live"
+
+[[routes]]
 pattern = "www.tonemap.live/activate"
 zone_name = "tonemap.live"
 
 [[routes]]
 pattern = "www.tonemap.live/pro"
+zone_name = "tonemap.live"
+
+[[routes]]
+pattern = "www.tonemap.live/deactivate"
+zone_name = "tonemap.live"
+
+[[routes]]
+pattern = "www.tonemap.live/license-info"
 zone_name = "tonemap.live"

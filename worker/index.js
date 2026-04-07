@@ -9,6 +9,8 @@
 const COOKIE_NAME    = 'tm_pro';
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
 const LS_VALIDATE    = 'https://api.lemonsqueezy.com/v1/licenses/validate';
+const LS_ACTIVATE    = 'https://api.lemonsqueezy.com/v1/licenses/activate';
+const LS_DEACTIVATE  = 'https://api.lemonsqueezy.com/v1/licenses/deactivate';
 const REVALIDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const REVALIDATE_GRACE_MS    = 6 * 60 * 60 * 1000;
 
@@ -23,6 +25,14 @@ export default {
 
     if (url.pathname === '/pro' && request.method === 'GET') {
       return handlePro(request, env);
+    }
+
+    if (url.pathname === '/deactivate' && request.method === 'POST') {
+      return handleDeactivate(request, env);
+    }
+
+    if (url.pathname === '/license-info' && request.method === 'GET') {
+      return handleLicenseInfo(request, env);
     }
 
     return new Response('Not found', { status: 404 });
@@ -49,15 +59,15 @@ async function handleActivate(request, env) {
   }
   licenseKey = licenseKey.trim();
 
-  const check = await validateLicenseKey(licenseKey);
+  const check = await activateLicenseKey(licenseKey);
   if (check.networkError) {
     return jsonError('Could not reach license server — try again', 502);
   }
   if (!check.valid) {
-    return jsonError(check.error || 'Invalid license key', 401);
+    return jsonError(check.error || 'Invalid or already fully activated license key', 401);
   }
 
-  const token = await createToken(licenseKey, Date.now(), env.HMAC_SECRET);
+  const token = await createToken(licenseKey, Date.now(), check.activationId, env.HMAC_SECRET);
   const cookie = buildAuthCookie(token);
 
   return new Response(null, {
@@ -157,7 +167,7 @@ async function handlePro(request, env) {
     }
 
     if (!recheck.networkError && recheck.valid) {
-      const nextToken = await createToken(auth.licenseKey, Date.now(), env.HMAC_SECRET);
+      const nextToken = await createToken(auth.licenseKey, Date.now(), auth.activationId, env.HMAC_SECRET);
       refreshedCookie = buildAuthCookie(nextToken);
     }
 
@@ -187,6 +197,46 @@ async function handlePro(request, env) {
   });
 }
 
+async function handleLicenseInfo(request, env) {
+  if (!env.HMAC_SECRET) return jsonError('Server misconfigured', 500);
+  const token = getCookie(request, COOKIE_NAME);
+  const auth = token ? await verifyToken(token, env.HMAC_SECRET) : null;
+  if (!auth) return jsonError('Unauthorized', 401);
+
+  const result = await validateLicenseKey(auth.licenseKey);
+  if (result.networkError) return jsonError('Could not reach license server', 502);
+  if (!result.valid) return jsonError('License not valid', 401);
+
+  return Response.json({
+    activations_count: result.activationsCount,
+    activation_limit:  result.activationLimit,
+  });
+}
+
+async function handleDeactivate(request, env) {
+  if (!env.HMAC_SECRET) {
+    return jsonError('Server misconfigured — missing HMAC secret', 500);
+  }
+  const token = getCookie(request, COOKIE_NAME);
+  const auth = token ? await verifyToken(token, env.HMAC_SECRET) : null;
+  if (auth?.licenseKey && auth?.activationId) {
+    try {
+      await fetch(LS_DEACTIVATE, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ license_key: auth.licenseKey, instance_id: auth.activationId }),
+      });
+    } catch {
+      // best-effort — clear cookie regardless
+    }
+  }
+
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json', 'Set-Cookie': clearAuthCookie() },
+  });
+}
+
 async function validateLicenseKey(licenseKey) {
   try {
     const lsRes = await fetch(LS_VALIDATE, {
@@ -205,13 +255,39 @@ async function validateLicenseKey(licenseKey) {
       valid: Boolean(data?.valid),
       error: data?.error || null,
       networkError: false,
+      activationsCount: data?.license_key?.activation_usage  ?? null,
+      activationLimit:  data?.license_key?.activation_limit  ?? null,
     };
   } catch {
     return {
       valid: false,
       error: 'Could not reach license server — try again',
       networkError: true,
+      activationsCount: null,
+      activationLimit: null,
     };
+  }
+}
+
+async function activateLicenseKey(licenseKey) {
+  try {
+    const lsRes = await fetch(LS_ACTIVATE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ license_key: licenseKey, instance_name: 'tonemap.live' }),
+    });
+    const data = await lsRes.json().catch(() => ({}));
+    if (data?.activated && data?.instance?.id) {
+      return { valid: true, activationId: data.instance.id, error: null, networkError: false };
+    }
+    return {
+      valid: false,
+      activationId: null,
+      error: data?.error || 'License key could not be activated',
+      networkError: false,
+    };
+  } catch {
+    return { valid: false, activationId: null, error: 'Could not reach license server — try again', networkError: true };
   }
 }
 
@@ -231,27 +307,29 @@ async function signMessage(message, secret) {
   return btoa(String.fromCharCode(...new Uint8Array(sig)));
 }
 
-async function createToken(licenseKey, lastValidatedAt, secret) {
+async function createToken(licenseKey, lastValidatedAt, activationId, secret) {
   const keyB64 = btoa(licenseKey);
   const ts = `${Math.floor(lastValidatedAt)}`;
-  const sigB64 = await signMessage(`${keyB64}.${ts}`, secret);
-  return `${keyB64}.${ts}.${sigB64}`;
+  const actIdB64 = btoa(activationId || '');
+  const sigB64 = await signMessage(`${keyB64}.${ts}.${actIdB64}`, secret);
+  return `${keyB64}.${ts}.${actIdB64}.${sigB64}`;
 }
 
 async function verifyToken(token, secret) {
   try {
     const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const [keyB64, ts, sigB64] = parts;
+    if (parts.length !== 4) return null;
+    const [keyB64, ts, actIdB64, sigB64] = parts;
     const lastValidatedAt = Number(ts);
     if (!Number.isFinite(lastValidatedAt)) return null;
 
-    const expectedSig = await signMessage(`${keyB64}.${ts}`, secret);
+    const expectedSig = await signMessage(`${keyB64}.${ts}.${actIdB64}`, secret);
     if (!timingSafeEqual(expectedSig, sigB64)) return null;
 
     const licenseKey = atob(keyB64);
     if (!licenseKey) return null;
-    return { licenseKey, lastValidatedAt };
+    const activationId = atob(actIdB64);
+    return { licenseKey, lastValidatedAt, activationId };
   } catch {
     return null;
   }

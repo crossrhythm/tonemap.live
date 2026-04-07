@@ -8,8 +8,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tonemap — Real-Time Intonation Visualizer for Musicians</title>
-<meta name="description" content="Tonemap is a free real-time intonation visualizer for musicians. See your pitch tendencies mapped live in your browser — no app download required." />
+<title>Tonemap Pro — Real-Time Intonation Visualizer for Musicians</title>
+<meta name="description" content="Tonemap Pro is a professional real-time intonation visualizer for musicians. See your pitch tendencies mapped live in your browser — no app download required." />
 <link rel="canonical" href="https://tonemap.live/" />
 <link rel="icon" href="tonemapicon.png" type="image/png" />
 <meta property="og:url" content="https://tonemap.live/" />
@@ -285,6 +285,38 @@
     background: var(--grid-bg);
     pointer-events: none;
     z-index: 2;
+  }
+
+  .note-view-entry-notice {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% - 10px));
+    width: min(30rem, calc(100% - 3rem));
+    padding: 0.75rem 0.95rem;
+    border-radius: 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--grid-line) 55%, transparent);
+    background: color-mix(in srgb, var(--bg-main) 86%, transparent);
+    color: var(--text-lite);
+    box-shadow: 0 14px 36px rgba(2, 6, 23, 0.26);
+    backdrop-filter: blur(10px);
+    font-size: 0.94rem;
+    line-height: 1.4;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 4;
+    transition: opacity 280ms ease, transform 280ms ease;
+  }
+
+  .note-view-entry-notice.is-visible {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .note-view-entry-notice.is-fading {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 8px));
   }
 
   .note-view-timeline-spacer {
@@ -1048,10 +1080,10 @@
 
   .a-ref-control {
     width: 100%;
-    gap: 0.5rem;
+    gap: 0.9rem;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .a-ref-inline {
@@ -1081,18 +1113,24 @@
     flex: 0 0 auto;
     min-width: 0;
     flex-wrap: nowrap;
-    margin-left: auto;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
   .a-ref-preset #aRefSelect {
-    width: 6.2ch;
-    min-width: 6.2ch;
+    width: 8.4ch;
+    min-width: 8.4ch;
+    padding-right: 1.6rem;
+    background-image:
+      linear-gradient(to left, rgba(148,163,184,0.12), rgba(148,163,184,0.12)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f8fafc' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat, no-repeat;
+    background-size: 1.65rem 100%, 0.6rem 0.4rem;
+    background-position: right 0 top 0, right 0.55rem center;
   }
 
   .preset-label {
     font-size: 0.75rem;
-    color: var(--text-dim);
+    color: var(--text-lite);
     white-space: nowrap;
   }
 
@@ -1405,20 +1443,27 @@
   .options-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 1.25rem;
+    row-gap: 1.5625rem;
     column-gap: 1.5625rem;
   }
 
   .options-section-label {
     grid-column: 1 / -1;
     margin: 0;
-    padding: 0.1rem 0 0.15rem;
-    font-size: 0.72rem;
+    padding: 0.12rem 0 0.18rem;
+    font-size: 0.76rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: rgba(241,245,249,0.82);
     border-bottom: 1px solid var(--ui-overlay-card-border);
+  }
+
+  .options-grid #optMode,
+  .options-grid #optPerformancePitch,
+  .options-grid #optNoteViewStyle,
+  .options-grid #optOnsetFilter {
+    margin-top: -0.7rem;
   }
 
   .options-grid .option-field {
@@ -1616,7 +1661,11 @@
   }
 
   .options-overlay-footer .overlay-button-stack {
+    display: flex;
     width: 100%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
     justify-content: space-between;
   }
 
@@ -1624,13 +1673,17 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.4rem;
+    gap: 0.5rem;
   }
 
   .option-field .opt-label {
     justify-content: flex-start;
     text-align: left;
     font-weight: 600;
+  }
+
+  .options-grid .option-field .opt-label {
+    color: rgba(241,245,249,0.88);
   }
 
   .option-field .opt-control,
@@ -1744,7 +1797,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.4rem;
+    gap: 0.5rem;
     width: 100%;
   }
 
@@ -1856,7 +1909,7 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-lite);
-    margin-bottom: 0.75rem;
+    margin: 0 0 0.75rem;
   }
 
   .status-row {
@@ -1929,7 +1982,7 @@
   }
 
   @media (orientation: landscape) and (max-width: 800px) {
-    .overlay-button-stack {
+    .overlay-actions .overlay-button-stack {
       flex-direction: column;
       gap: 0.5rem;
     }
@@ -2416,7 +2469,10 @@
       max-width: 160px;
     }
     :root {
-      --note-font-size: 1.68rem; /* 70% of base size for compact landscape header */
+      --note-font-size: 1.56rem; /* slightly smaller to prevent clipping in compact landscape */
+    }
+    #pitchBlockFixedSlot {
+      padding-left: 4px;
     }
     .mic-btn,
     .reset-btn {
@@ -2441,12 +2497,12 @@
     }
 
     /* Always stack Note View / Options buttons in narrow landscape sidebar */
-    .overlay-button-stack {
+    .overlay-actions .overlay-button-stack {
       flex-direction: column;
       gap: 0.5rem;
       width: 100%;
     }
-    .right-scroll .overlay-button-stack button {
+    .right-scroll .overlay-actions .overlay-button-stack button {
       width: 100%;
       min-width: 0;
     }
@@ -2459,14 +2515,17 @@
     .status-grid {
       grid-template-columns: 1fr;
     }
-    .options-grid {
-      grid-template-columns: 1fr;
-    }
     .palette-grid {
       grid-template-columns: 1fr;
     }
     .palette-card .options-overlay-body {
       padding: 0 1rem 1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .options-grid {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -2869,7 +2928,7 @@
         </div>
         
         <div class="footer-line">Thank you for supporting Tonemap Pro! ★</div>
-        <div class="footer-line">© 2026 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a></div>
+        <div class="footer-line">© 2026 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> · <a href="/terms" target="_blank" rel="noopener">Terms</a></div>
       </div>
 
     </div> <!-- /.right-scroll  -->
@@ -2920,7 +2979,7 @@
                 type="number"
                 min="100"
                 max="1000"
-                step="1"
+                step="any"
                 inputmode="decimal"
                 aria-label="Custom performance pitch in Hz"
                 placeholder="Custom Hz"
@@ -3119,7 +3178,7 @@
 
         <div class="option-field" id="optHistory">
           <div class="opt-label-row">
-            <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
+            <label id="historyLabel" class="opt-label" for="historySelect">History (per-cell memory)</label>
             <button class="info-btn" type="button" data-info-key="history" aria-label="Learn about History memory">i</button>
           </div>
           <div class="opt-control">
@@ -3302,6 +3361,24 @@
         <div class="status-row">
           <span class="status-key">FFT Size</span>
           <span class="status-val" id="dbgFft">2048</span>
+        </div>
+      </section>
+
+      <section class="status-section">
+        <h3 class="status-section-title">License</h3>
+        <div class="status-row" id="licenseActivationsRow" style="display:none;">
+          <span class="status-key">Activations used</span>
+          <span class="status-val" id="licenseActivationsVal">--</span>
+        </div>
+        <div class="status-row" id="licenseAvailableRow" style="display:none;">
+          <span class="status-key">Slots remaining</span>
+          <span class="status-val" id="licenseAvailableVal">--</span>
+        </div>
+        <div class="status-row">
+          <button id="deactivateDeviceBtn" class="status-btn" type="button">Deactivate this device</button>
+        </div>
+        <div class="status-row" id="deactivateMsgRow" style="display:none;">
+          <span id="deactivateMsg" style="font-size:0.8rem; color:var(--err-color);"></span>
         </div>
       </section>
       </div>
@@ -3487,10 +3564,18 @@
   const noteViewContainer = document.getElementById("noteViewContainer");
   const noteViewCanvas = document.getElementById("noteViewCanvas");
   let noteViewTimelineSpacer = null;
+  let noteViewEntryNotice = null;
+  let noteViewEntryNoticeFadeTimer = null;
+  let noteViewEntryNoticeHideTimer = null;
   if (noteViewContainer && noteViewCanvas) {
     noteViewTimelineSpacer = document.createElement("div");
     noteViewTimelineSpacer.className = "note-view-timeline-spacer";
     noteViewContainer.insertBefore(noteViewTimelineSpacer, noteViewCanvas);
+    noteViewEntryNotice = document.createElement("div");
+    noteViewEntryNotice.className = "note-view-entry-notice";
+    noteViewEntryNotice.hidden = true;
+    noteViewEntryNotice.setAttribute("aria-live", "polite");
+    noteViewContainer.appendChild(noteViewEntryNotice);
   }
   const optionInfoOverlay = document.getElementById("optionInfoOverlay");
   const optionInfoTitle = document.getElementById("optionInfoTitle");
@@ -3915,6 +4000,32 @@
     if (statusCloseBtn) {
       statusCloseBtn.focus();
     }
+    // Fetch live activation counts
+    fetch('/license-info').then(async r => {
+      const body = await r.json().catch(() => ({}));
+      console.log('[license-info] status:', r.status, 'body:', body);
+      if (!r.ok) return null;
+      return body;
+    }).then(data => {
+      if (!data) return;
+      const used  = data.activations_count;
+      const limit = data.activation_limit;
+      console.log('[license-info] used:', used, 'limit:', limit);
+      const activationsRow = document.getElementById('licenseActivationsRow');
+      const availableRow   = document.getElementById('licenseAvailableRow');
+      const activationsVal = document.getElementById('licenseActivationsVal');
+      const availableVal   = document.getElementById('licenseAvailableVal');
+      if (activationsVal && used != null && limit != null) {
+        activationsVal.textContent = `${used} of ${limit}`;
+        if (activationsRow) activationsRow.style.display = '';
+      }
+      if (availableVal && used != null && limit != null) {
+        const remaining = limit - used;
+        availableVal.textContent = remaining;
+        availableVal.style.color = remaining <= 1 ? 'var(--warn-color)' : '';
+        if (availableRow) availableRow.style.display = '';
+      }
+    }).catch(err => { console.error('[license-info] fetch error:', err); });
   }
 
   function closeStatusOverlay() {
@@ -4574,7 +4685,7 @@
     { quote: "Choose whether the tuning needle is vertical or horizontal in Options.", tip: true },
     { quoteHtml: "Spacebar starts/stops listening instantly. <a href=\"#\" data-open-info=\"keyboardShortcuts\">View complete shortcut list</a>.", tip: true },
     { quote: "If your attacks aren't being recorded cleanly, try adjusting the Onset Filter in Options.", tip: true },
-    { quote: "Add Tonemap to your Home Screen for full-screen mode — tap the Share icon, then 'Add to Home Screen,' in Safari on iOS and iPadOS.", tip: true },
+    { quote: "Add Tonemap to your iOS Home Screen for full-screen mode — tap the Share icon, then 'Add to Home Screen,' in Safari on iOS and iPadOS.", tip: true },
     { quote: "Block out background noise by adjusting the Volume Sensitivity filter in Options.", tip: true }
   ];
 
@@ -9118,6 +9229,30 @@
     });
   }
 
+  const deactivateDeviceBtn = document.getElementById('deactivateDeviceBtn');
+  if (deactivateDeviceBtn) {
+    deactivateDeviceBtn.addEventListener('click', async () => {
+      const btn = deactivateDeviceBtn;
+      const msgEl = document.getElementById('deactivateMsg');
+      const msgRow = document.getElementById('deactivateMsgRow');
+      btn.disabled = true;
+      btn.textContent = 'Deactivating…';
+      if (msgRow) msgRow.style.display = 'none';
+      try {
+        const res = await fetch('/deactivate', { method: 'POST' });
+        if (res.ok) { window.location.href = '/activate'; return; }
+        const data = await res.json().catch(() => ({}));
+        if (msgEl) msgEl.textContent = data.error || 'Deactivation failed. Try again.';
+        if (msgRow) msgRow.style.display = '';
+      } catch {
+        if (msgEl) msgEl.textContent = 'Network error. Try again.';
+        if (msgRow) msgRow.style.display = '';
+      }
+      btn.disabled = false;
+      btn.textContent = 'Deactivate this device';
+    });
+  }
+
   if (noteGrid) {
     noteGrid.addEventListener("click", handleGridCellClick);
     noteGrid.addEventListener("touchend", handleGridCellClick, { passive: true });
@@ -9310,11 +9445,13 @@
         noteViewUserScrollUntilMs = 0;
         noteViewLastObservedScrollLeft = noteViewContainer.scrollLeft;
         renderNoteView();
+        showNoteViewEntryNotice("Pause the mic to scroll through your Note View history.");
       } else {
         noteGrid.style.display = "grid";
         noteViewContainer.style.display = "none";
         noteViewToggleBtn.textContent = "Note View";
         updateMiniViewIcon();
+        hideNoteViewEntryNotice({ immediate: true });
       }
     });
   }
@@ -9397,6 +9534,43 @@
   function showGridView() {
     if (!noteViewActive || !noteViewToggleBtn) return;
     noteViewToggleBtn.click();
+  }
+
+  function hideNoteViewEntryNotice({ immediate = false } = {}) {
+    if (!noteViewEntryNotice) return;
+    if (noteViewEntryNoticeFadeTimer) {
+      clearTimeout(noteViewEntryNoticeFadeTimer);
+      noteViewEntryNoticeFadeTimer = null;
+    }
+    if (noteViewEntryNoticeHideTimer) {
+      clearTimeout(noteViewEntryNoticeHideTimer);
+      noteViewEntryNoticeHideTimer = null;
+    }
+    if (immediate) {
+      noteViewEntryNotice.classList.remove("is-visible", "is-fading");
+      noteViewEntryNotice.hidden = true;
+      return;
+    }
+    noteViewEntryNotice.classList.remove("is-visible");
+    noteViewEntryNotice.classList.add("is-fading");
+    noteViewEntryNoticeHideTimer = setTimeout(() => {
+      noteViewEntryNotice.classList.remove("is-fading");
+      noteViewEntryNotice.hidden = true;
+      noteViewEntryNoticeHideTimer = null;
+    }, 320);
+  }
+
+  function showNoteViewEntryNotice(message) {
+    if (!noteViewEntryNotice) return;
+    hideNoteViewEntryNotice({ immediate: true });
+    noteViewEntryNotice.textContent = message;
+    noteViewEntryNotice.hidden = false;
+    void noteViewEntryNotice.offsetWidth;
+    noteViewEntryNotice.classList.add("is-visible");
+    noteViewEntryNoticeFadeTimer = setTimeout(() => {
+      noteViewEntryNoticeFadeTimer = null;
+      hideNoteViewEntryNotice();
+    }, 3000);
   }
 
   function showNoteViewWithStyle(style) {

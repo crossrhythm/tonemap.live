@@ -8,7 +8,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tonemap — Real-Time Intonation Visualizer for Musicians</title>
+<title>Tonemap — Free Real-Time Intonation Visualizer for Musicians</title>
 <meta name="description" content="Tonemap is a free real-time intonation visualizer for musicians. See your pitch tendencies mapped live in your browser — no app download required." />
 <link rel="canonical" href="https://tonemap.live/" />
 <link rel="icon" href="tonemapicon.png" type="image/png" />
@@ -285,6 +285,38 @@
     background: var(--grid-bg);
     pointer-events: none;
     z-index: 2;
+  }
+
+  .note-view-entry-notice {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% - 10px));
+    width: min(30rem, calc(100% - 3rem));
+    padding: 0.75rem 0.95rem;
+    border-radius: 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--grid-line) 55%, transparent);
+    background: color-mix(in srgb, var(--bg-main) 86%, transparent);
+    color: var(--text-lite);
+    box-shadow: 0 14px 36px rgba(2, 6, 23, 0.26);
+    backdrop-filter: blur(10px);
+    font-size: 0.94rem;
+    line-height: 1.4;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 4;
+    transition: opacity 280ms ease, transform 280ms ease;
+  }
+
+  .note-view-entry-notice.is-visible {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .note-view-entry-notice.is-fading {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 8px));
   }
 
   .note-view-timeline-spacer {
@@ -1049,10 +1081,10 @@
 
   .a-ref-control {
     width: 100%;
-    gap: 0.5rem;
+    gap: 0.9rem;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .a-ref-inline {
@@ -1075,6 +1107,12 @@
     padding-right: 0.35rem;
   }
 
+  .a-ref-control .a-ref-input[readonly] {
+    cursor: default;
+    caret-color: transparent;
+    pointer-events: none;
+  }
+
   .a-ref-preset {
     display: flex;
     align-items: center;
@@ -1082,18 +1120,24 @@
     flex: 0 0 auto;
     min-width: 0;
     flex-wrap: nowrap;
-    margin-left: auto;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
   .a-ref-preset #aRefSelect {
-    width: 6.2ch;
-    min-width: 6.2ch;
+    width: 7.6ch;
+    min-width: 7.6ch;
+    padding-right: 1.6rem;
+    background-image:
+      linear-gradient(to left, rgba(148,163,184,0.12), rgba(148,163,184,0.12)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f8fafc' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat, no-repeat;
+    background-size: 1.65rem 100%, 0.6rem 0.4rem;
+    background-position: right 0 top 0, right 0.55rem center;
   }
 
   .preset-label {
     font-size: 0.75rem;
-    color: var(--text-dim);
+    color: var(--text-lite);
     white-space: nowrap;
   }
 
@@ -1406,20 +1450,27 @@
   .options-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    row-gap: 1.25rem;
+    row-gap: 1.5625rem;
     column-gap: 1.5625rem;
   }
 
   .options-section-label {
     grid-column: 1 / -1;
     margin: 0;
-    padding: 0.1rem 0 0.15rem;
-    font-size: 0.72rem;
+    padding: 0.12rem 0 0.18rem;
+    font-size: 0.76rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: rgba(241,245,249,0.82);
     border-bottom: 1px solid var(--ui-overlay-card-border);
+  }
+
+  .options-grid #optMode,
+  .options-grid #optPerformancePitch,
+  .options-grid #optNoteViewStyle,
+  .options-grid #optOnsetFilter {
+    margin-top: -0.7rem;
   }
 
   .options-grid .option-field {
@@ -1663,7 +1714,11 @@
   }
 
   .options-overlay-footer .overlay-button-stack {
+    display: flex;
     width: 100%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
     justify-content: space-between;
   }
 
@@ -1671,13 +1726,17 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.4rem;
+    gap: 0.5rem;
   }
 
   .option-field .opt-label {
     justify-content: flex-start;
     text-align: left;
     font-weight: 600;
+  }
+
+  .options-grid .option-field .opt-label {
+    color: rgba(241,245,249,0.88);
   }
 
   .option-field .opt-control,
@@ -1790,9 +1849,25 @@
   .opt-label-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.4rem;
+    justify-content: flex-start;
+    gap: 0.5rem;
     width: 100%;
+  }
+
+  .opt-label-row .opt-label {
+    order: 1;
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+
+  .opt-label-row .pro-badge {
+    order: 2;
+  }
+
+  .opt-label-row .info-btn {
+    order: 3;
+    margin-left: auto;
+    flex: 0 0 auto;
   }
 
   .upgrade-pro-btn {
@@ -1804,6 +1879,7 @@
     padding: 0.4rem 0.95rem;
     font-size: 0.75rem;
     font-weight: 700;
+    white-space: nowrap;
     cursor: pointer;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
   }
@@ -1815,24 +1891,39 @@
     outline: none;
   }
 
+  .pro-brand {
+    color: #dcc56f;
+    text-shadow: 0 0 6px rgba(250,204,21,0.1);
+    white-space: nowrap;
+  }
+
+  .pro-brand-title {
+    color: #e4cd79;
+    text-shadow: 0 0 10px rgba(250,204,21,0.12);
+  }
+
   .pro-badge {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(34,197,94,0.55);
-    background: rgba(34,197,94,0.12);
-    color: var(--text-lite);
+    border: 1px solid rgba(220,197,111,0.24);
+    background: rgba(220,197,111,0.05);
+    color: #dcc56f;
     border-radius: 999px;
     padding: 0.08rem 0.45rem;
     font-size: 0.68rem;
     font-weight: 700;
     line-height: 1.35;
+    white-space: nowrap;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
     cursor: pointer;
     user-select: none;
   }
 
   .pro-locked-choice {
     opacity: 0.56;
+    white-space: nowrap;
   }
 
   .pro-locked-control {
@@ -1881,8 +1972,39 @@
 
   .pro-modal-body {
     overflow-y: auto;
-    padding: 1rem 1.2rem 1.2rem;
+    padding: 1rem 1.2rem 0.4rem;
     color: var(--text-dim);
+  }
+
+  /* Suppress the generic scroll-fade-y bottom pseudo; handled by pro-modal-footer::before */
+  .pro-modal-body::after {
+    display: none;
+  }
+
+  .pro-modal-footer {
+    flex-shrink: 0;
+    padding: 0.6rem 1.2rem 1.2rem;
+    position: relative;
+    z-index: 2;
+    background: rgba(15,23,42,0.95);
+  }
+
+  .pro-modal-footer::before {
+    content: "";
+    position: absolute;
+    top: calc(-1.6rem - 10px);
+    left: 0;
+    right: 0;
+    height: calc(1.6rem + 10px);
+    background: linear-gradient(to top, rgba(15,23,42,0.95), transparent);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .pro-modal-body.can-scroll-down + .pro-modal-footer::before {
+    opacity: 1;
   }
 
   .pro-modal-body p {
@@ -1908,7 +2030,7 @@
     display: block;
     width: 100%;
     box-sizing: border-box;
-    margin-top: 0.8rem;
+    margin-top: 0;
     padding: 0.74rem;
     background: linear-gradient(135deg, #22c55e, #16a34a);
     color: #fff;
@@ -1934,6 +2056,17 @@
 
   .pro-modal-or a {
     color: var(--text-lite);
+  }
+
+  @keyframes pro-feature-glow-fade {
+    0%   { color: #fff; text-shadow: 0 0 8px #ffd700, 0 0 22px #ffd700, 0 0 44px rgba(184,134,11,0.9); }
+    20%  { color: #fff; text-shadow: 0 0 12px #ffd700, 0 0 32px #ffd700, 0 0 60px rgba(184,134,11,0.8); }
+    65%  { color: var(--text-lite); text-shadow: 0 0 6px rgba(255,215,0,0.4), 0 0 16px rgba(184,134,11,0.3); }
+    100% { color: var(--text-dim); text-shadow: none; }
+  }
+
+  .pro-feature-glow {
+    animation: pro-feature-glow-fade 3.5s ease-out forwards;
   }
 
   .info-btn {
@@ -2117,7 +2250,7 @@
   }
 
   @media (orientation: landscape) and (max-width: 800px) {
-    .overlay-button-stack {
+    .overlay-actions .overlay-button-stack {
       flex-direction: column;
       gap: 0.5rem;
     }
@@ -2604,7 +2737,10 @@
       max-width: 160px;
     }
     :root {
-      --note-font-size: 1.68rem; /* 70% of base size for compact landscape header */
+      --note-font-size: 1.56rem; /* slightly smaller to prevent clipping in compact landscape */
+    }
+    #pitchBlockFixedSlot {
+      padding-left: 4px;
     }
     .mic-btn,
     .reset-btn {
@@ -2629,12 +2765,12 @@
     }
 
     /* Always stack Note View / Options buttons in narrow landscape sidebar */
-    .overlay-button-stack {
+    .overlay-actions .overlay-button-stack {
       flex-direction: column;
       gap: 0.5rem;
       width: 100%;
     }
-    .right-scroll .overlay-button-stack button {
+    .right-scroll .overlay-actions .overlay-button-stack button {
       width: 100%;
       min-width: 0;
     }
@@ -2647,14 +2783,17 @@
     .status-grid {
       grid-template-columns: 1fr;
     }
-    .options-grid {
-      grid-template-columns: 1fr;
-    }
     .palette-grid {
       grid-template-columns: 1fr;
     }
     .palette-card .options-overlay-body {
       padding: 0 1rem 1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .options-grid {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -3065,9 +3204,9 @@
 
         
         <div class="footer-line">
-          <button class="upgrade-pro-btn" type="button" data-open-pro-modal>Upgrade to ★ Pro</button>
+          <button class="upgrade-pro-btn" type="button" data-open-pro-modal>Upgrade to <span class="pro-brand">★ Pro</span></button>
         </div>
-        <div class="footer-line">© 2026 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a></div>
+        <div class="footer-line">© 2026 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> · <a href="/terms" target="_blank" rel="noopener">Terms</a></div>
       </div>
 
     </div> <!-- /.right-scroll  -->
@@ -3108,7 +3247,7 @@
           <div class="opt-label-row">
             <label class="opt-label" for="aRefSelect">Performance Pitch</label>
             <button class="info-btn" type="button" data-info-key="a4" aria-label="Learn about Performance Pitch (A4)">i</button>
-            <span class="pro-badge" data-open-pro-modal>★ Pro</span>
+            
           </div>
           <div class="opt-control a-ref-control">
             <div class="a-ref-inline">
@@ -3119,21 +3258,23 @@
                 type="number"
                 min="100"
                 max="1000"
-                step="1"
+                step="any"
                 inputmode="decimal"
-                aria-label="Custom performance pitch in Hz"
-                placeholder="Custom Hz"
+                aria-label="Performance pitch in Hz, controlled by presets"
+                aria-readonly="true"
+                readonly
+                tabindex="-1"
                 value="440"
               />
             </div>
             <div class="a-ref-preset">
               <span class="preset-label" id="presetLabel">Presets:</span>
               <select id="aRefSelect" class="pro-locked-control" aria-labelledby="presetLabel">
-                <option value="392">392</option>
-                <option value="415">415</option>
-                <option value="430">430</option>
-                <option value="432">432</option>
-                <option value="438">438</option>
+                <option value="392">392 ★ Pro</option>
+                <option value="415">415 ★ Pro</option>
+                <option value="430">430 ★ Pro</option>
+                <option value="432">432 ★ Pro</option>
+                <option value="438">438 ★ Pro</option>
                 <option value="440" selected>440</option>
                 <option value="441">441</option>
                 <option value="442">442</option>
@@ -3165,7 +3306,7 @@
               </div>
               <div class="theme-mode-item">
                 <input id="sensitivityModeHard" class="theme-mode-radio" type="radio" name="sensitivityMode" value="hard" />
-                <label class="theme-mode-label pro-locked-choice" for="sensitivityModeHard" title="Fast response with smallest dead zone">Hard ★ Pro</label>
+                <label class="theme-mode-label pro-locked-choice" for="sensitivityModeHard" title="Fast response with smallest dead zone">Hard <span class="pro-brand">★ Pro</span></label>
               </div>
             </div>
             <select id="sensitivitySelect" class="select-replaced-hidden" aria-hidden="true">
@@ -3238,7 +3379,7 @@
           <div class="opt-label-row">
             <label class="opt-label" for="rowStartSelect">Rows start with note</label>
             <button class="info-btn" type="button" data-info-key="rowStart" aria-label="Learn about row start">i</button>
-            <span class="pro-badge" data-open-pro-modal>★ Pro</span>
+            <span class="pro-badge" data-open-pro-modal data-pro-feature="rowStart">★ Pro</span>
           </div>
           <div class="opt-control">
             <select id="rowStartSelect" class="pro-locked-control"></select>
@@ -3249,7 +3390,7 @@
           <div class="opt-label-row">
             <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
             <button class="info-btn" type="button" data-info-key="stretch" aria-label="Learn about Stretch Tuning">i</button>
-            <span class="pro-badge" data-open-pro-modal>★ Pro</span>
+            <span class="pro-badge" data-open-pro-modal data-pro-feature="stretch">★ Pro</span>
           </div>
           <div class="opt-control">
             <select id="stretchSelect" class="pro-locked-control">
@@ -3288,7 +3429,7 @@
           <div class="opt-label-row">
             <label class="opt-label" for="transpositionSelect">Transposition</label>
             <button class="info-btn" type="button" data-info-key="transposition" aria-label="Learn about Transposition">i</button>
-            <span class="pro-badge" data-open-pro-modal>★ Pro</span>
+            <span class="pro-badge" data-open-pro-modal data-pro-feature="transposition">★ Pro</span>
           </div>
           <div class="opt-control">
             <select id="transpositionSelect" class="pro-locked-control">
@@ -3321,9 +3462,9 @@
 
         <div class="option-field" id="optHistory">
           <div class="opt-label-row">
-            <label id="historyLabel" class="opt-label" for="historySelect">History (per-pitch memory)</label>
+            <label id="historyLabel" class="opt-label" for="historySelect">History (per-cell memory)</label>
             <button class="info-btn" type="button" data-info-key="history" aria-label="Learn about History memory">i</button>
-            <span class="pro-badge" data-open-pro-modal>★ Pro</span>
+            <span class="pro-badge" data-open-pro-modal data-pro-feature="history">★ Pro</span>
           </div>
           <div class="opt-control">
             <select id="historySelect" class="pro-locked-control">
@@ -3339,7 +3480,7 @@
           <div class="opt-label-row">
             <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
             <button class="info-btn" type="button" data-info-key="stainHold" aria-label="Learn about Color Hold Before Fade">i</button>
-            <span class="pro-badge" data-open-pro-modal>★ Pro</span>
+            <span class="pro-badge" data-open-pro-modal data-pro-feature="stainHold">★ Pro</span>
           </div>
           <div class="opt-control">
             <select id="stainHoldSelect" class="pro-locked-control">
@@ -3592,21 +3733,23 @@
 <div id="proUpgradeModal" class="pro-modal-overlay" aria-hidden="true">
   <div class="pro-modal-card" role="dialog" aria-modal="true" aria-labelledby="proModalTitle">
     <div class="pro-modal-header">
-      <span id="proModalTitle">★ Unlock Tonemap Pro</span>
+      <span id="proModalTitle" class="pro-brand-title">★ Unlock Tonemap Pro</span>
       <button id="proModalClose" class="options-close-btn" type="button" aria-label="Close upgrade modal">✕</button>
     </div>
-    <div class="pro-modal-body">
+    <div class="pro-modal-body scroll-fade-y">
       <p>Start your <strong>7-day free trial</strong>, then $9.99/year (~83¢/month). Cancel anytime.</p>
       <ul class="pro-modal-features">
-        <li>Hard Mode — tight deadzone, fast response</li>
-        <li>All transpositions (Bb, Eb, F, and more)</li>
-        <li>Medium and Full Railsback stretch tuning</li>
-        <li>All A4 reference frequencies (392–470 Hz + custom)</li>
-        <li>Long and Unlimited pitch history</li>
-        <li>Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
-        <li>Rows start with any note</li>
+        <li data-feature="sensitivity">Hard Mode — tight deadzone, fast response</li>
+        <li data-feature="transposition">All transpositions (Bb, Eb, F, and more)</li>
+        <li data-feature="stretch">Medium and Full Railsback stretch tuning</li>
+        <li data-feature="a4">All A4 reference frequencies (392–470 Hz + custom)</li>
+        <li data-feature="history">Long and Unlimited pitch history</li>
+        <li data-feature="stainHold">Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
+        <li data-feature="rowStart">Rows start with any note</li>
       </ul>
       <p class="pro-modal-support">Your subscription supports ongoing development of Tonemap.</p>
+    </div>
+    <div class="pro-modal-footer">
       <a id="proModalCTA" class="pro-modal-btn lemonsqueezy-button" href="https://eevs.lemonsqueezy.com/checkout/buy/4c47a015-d4b5-4062-8411-635e34ccd7db?embed=1&logo=0&discount=0">
         Start Free Trial →
       </a>
@@ -3717,10 +3860,18 @@
   const noteViewContainer = document.getElementById("noteViewContainer");
   const noteViewCanvas = document.getElementById("noteViewCanvas");
   let noteViewTimelineSpacer = null;
+  let noteViewEntryNotice = null;
+  let noteViewEntryNoticeFadeTimer = null;
+  let noteViewEntryNoticeHideTimer = null;
   if (noteViewContainer && noteViewCanvas) {
     noteViewTimelineSpacer = document.createElement("div");
     noteViewTimelineSpacer.className = "note-view-timeline-spacer";
     noteViewContainer.insertBefore(noteViewTimelineSpacer, noteViewCanvas);
+    noteViewEntryNotice = document.createElement("div");
+    noteViewEntryNotice.className = "note-view-entry-notice";
+    noteViewEntryNotice.hidden = true;
+    noteViewEntryNotice.setAttribute("aria-live", "polite");
+    noteViewContainer.appendChild(noteViewEntryNotice);
   }
   const optionInfoOverlay = document.getElementById("optionInfoOverlay");
   const optionInfoTitle = document.getElementById("optionInfoTitle");
@@ -3764,6 +3915,7 @@
   const edgeKeyBlock = document.getElementById("edgeKeyBlock");
   const rowStartSelect = document.getElementById("rowStartSelect");
   const proUpgradeModal = document.getElementById("proUpgradeModal");
+  const proModalBodyEl = document.querySelector(".pro-modal-body");
   const proModalCloseBtn = document.getElementById("proModalClose");
 
   // Mini UI elements
@@ -4790,7 +4942,7 @@
     { quote: "Choose whether the tuning needle is vertical or horizontal in Options.", tip: true },
     { quoteHtml: "Spacebar starts/stops listening instantly. <a href=\"#\" data-open-info=\"keyboardShortcuts\">View complete shortcut list</a>.", tip: true },
     { quote: "If your attacks aren't being recorded cleanly, try adjusting the Onset Filter in Options.", tip: true },
-    { quote: "Add Tonemap to your Home Screen for full-screen mode — tap the Share icon, then 'Add to Home Screen,' in Safari on iOS and iPadOS.", tip: true },
+    { quote: "Add Tonemap to your iOS Home Screen for full-screen mode — tap the Share icon, then 'Add to Home Screen,' in Safari on iOS and iPadOS.", tip: true },
     { quote: "Block out background noise by adjusting the Volume Sensitivity filter in Options.", tip: true }
   ];
 
@@ -5178,16 +5330,40 @@
     return !allowed.has(raw);
   }
 
-  function openProModal() {
+  function openProModal(featureKey) {
     if (!proUpgradeModal) return;
     proUpgradeModal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    if (proModalBodyEl) {
+      proModalBodyEl.scrollTop = 0;
+      attachScrollFade(proModalBodyEl);
+    }
+    if (featureKey) {
+      const li = proUpgradeModal.querySelector(`li[data-feature="${featureKey}"]`);
+      if (li) {
+        li.classList.remove("pro-feature-glow");
+        void li.offsetWidth;
+        li.classList.add("pro-feature-glow");
+        if (li._proGlowTimer) clearTimeout(li._proGlowTimer);
+        li._proGlowTimer = setTimeout(() => {
+          li.classList.remove("pro-feature-glow");
+          li._proGlowTimer = null;
+        }, 3700);
+      }
+    }
   }
 
   function closeProModal() {
     if (!proUpgradeModal) return;
     proUpgradeModal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    proUpgradeModal.querySelectorAll(".pro-feature-glow").forEach(el => {
+      el.classList.remove("pro-feature-glow");
+      if (el._proGlowTimer) {
+        clearTimeout(el._proGlowTimer);
+        el._proGlowTimer = null;
+      }
+    });
   }
 
   const OPTION_INFO_CONTENT = {
@@ -6215,24 +6391,6 @@
     if (persist) {
       persistSettings(currentSettings);
     }
-  }
-
-  function handleARefInputChange() {
-    if (!aRefInput) return;
-    const raw = aRefInput.value.trim();
-    const parsed = Number(raw);
-    if (!raw || !isValidARefValue(parsed)) {
-      showARefError(A_REF_ERROR_MESSAGE);
-      if (aRefSelect) aRefSelect.value = A_REF_CUSTOM_VALUE;
-      return;
-    }
-    if (isProLockedValue("a4", parsed)) {
-      showARefError("Custom A4 is available in Pro.");
-      setA4Value(440);
-      openProModal();
-      return;
-    }
-    setA4Value(parsed);
   }
 
   function applySettingsToUI(settings) {
@@ -7481,6 +7639,9 @@
   let noteViewScrollIsUserInitiated = false;
   let noteViewUserScrollUntilMs = 0;
   let noteViewLastObservedScrollLeft = null;
+  let noteViewScrollBackCount = 0;
+  let noteViewScrollBackLastMs = 0;
+  let noteViewScrollBackOverlayLastMs = 0;
 
   function markNoteViewUserScrollIntent(extraMs = 220) {
     noteViewScrollIsUserInitiated = true;
@@ -7526,6 +7687,17 @@
 
       const isUserWindowActive = noteViewScrollIsUserInitiated || nowMs() <= noteViewUserScrollUntilMs;
 
+      if (isUserWindowActive) {
+        const freeScrollMinLeft = getNoteViewFreeScrollMinLeft();
+        if (currentScrollLeft < freeScrollMinLeft - 1) {
+          noteViewRenderState.isLive = false;
+          noteViewContainer.scrollLeft = freeScrollMinLeft;
+          openNoteViewHistoryUpsell();
+          if (noteViewActive) renderNoteView();
+          return;
+        }
+      }
+
       if (maxScroll > 0) {
         noteViewScrollRatioByStyle[currentStyle] = Math.max(0, Math.min(1, currentScrollLeft / maxScroll));
       } else {
@@ -7564,6 +7736,11 @@
       const scrollingLeft = effectiveHorizontalDelta < 0;
       const scrollingRight = effectiveHorizontalDelta > 0;
 
+      if (scrollingLeft && blockNoteViewFreeScroll(noteViewContainer.scrollLeft + effectiveHorizontalDelta)) {
+        e.preventDefault();
+        return;
+      }
+
       if ((atLeft && scrollingLeft) || (atRight && scrollingRight)) {
         e.preventDefault();
       }
@@ -7590,6 +7767,11 @@
       const atRight = noteViewContainer.scrollLeft + noteViewContainer.clientWidth >= noteViewContainer.scrollWidth - 1;
       const swipingRight = deltaX > 0;
       const swipingLeft = deltaX < 0;
+
+      if (swipingRight && recordNoteViewScrollBackAttempt()) {
+        e.preventDefault();
+        return;
+      }
 
       if ((atLeft && swipingRight) || (atRight && swipingLeft)) {
         e.preventDefault();
@@ -8970,6 +9152,9 @@
     try {
       micDisabled = false;
       resetMicHealthWatchdog();
+      noteViewScrollBackCount = 0;
+      noteViewScrollBackLastMs = 0;
+      noteViewScrollBackOverlayLastMs = 0;
       
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
@@ -9285,7 +9470,7 @@
       const idx = Number.isFinite(val) ? ((val % 12) + 12) % 12 : 0;
       if (isProLockedValue("rowStart", String(idx))) {
         rowStartSelect.value = currentSettings.rowStart || "0";
-        openProModal();
+        openProModal("rowStart");
         return;
       }
       currentSettings.rowStart = String(idx);
@@ -9471,11 +9656,13 @@
         noteViewUserScrollUntilMs = 0;
         noteViewLastObservedScrollLeft = noteViewContainer.scrollLeft;
         renderNoteView();
+        showNoteViewEntryNotice("Pause the mic to scroll through your Note View history. Full history is available in Pro.");
       } else {
         noteGrid.style.display = "grid";
         noteViewContainer.style.display = "none";
         noteViewToggleBtn.textContent = "Note View";
         updateMiniViewIcon();
+        hideNoteViewEntryNotice({ immediate: true });
       }
     });
   }
@@ -9560,6 +9747,43 @@
     noteViewToggleBtn.click();
   }
 
+  function hideNoteViewEntryNotice({ immediate = false } = {}) {
+    if (!noteViewEntryNotice) return;
+    if (noteViewEntryNoticeFadeTimer) {
+      clearTimeout(noteViewEntryNoticeFadeTimer);
+      noteViewEntryNoticeFadeTimer = null;
+    }
+    if (noteViewEntryNoticeHideTimer) {
+      clearTimeout(noteViewEntryNoticeHideTimer);
+      noteViewEntryNoticeHideTimer = null;
+    }
+    if (immediate) {
+      noteViewEntryNotice.classList.remove("is-visible", "is-fading");
+      noteViewEntryNotice.hidden = true;
+      return;
+    }
+    noteViewEntryNotice.classList.remove("is-visible");
+    noteViewEntryNotice.classList.add("is-fading");
+    noteViewEntryNoticeHideTimer = setTimeout(() => {
+      noteViewEntryNotice.classList.remove("is-fading");
+      noteViewEntryNotice.hidden = true;
+      noteViewEntryNoticeHideTimer = null;
+    }, 320);
+  }
+
+  function showNoteViewEntryNotice(message) {
+    if (!noteViewEntryNotice) return;
+    hideNoteViewEntryNotice({ immediate: true });
+    noteViewEntryNotice.textContent = message;
+    noteViewEntryNotice.hidden = false;
+    void noteViewEntryNotice.offsetWidth;
+    noteViewEntryNotice.classList.add("is-visible");
+    noteViewEntryNoticeFadeTimer = setTimeout(() => {
+      noteViewEntryNoticeFadeTimer = null;
+      hideNoteViewEntryNotice();
+    }, 3000);
+  }
+
   function showNoteViewWithStyle(style) {
     setNoteViewStyle(style);
     if (!noteViewActive && noteViewToggleBtn) {
@@ -9580,11 +9804,52 @@
     showGridView();
   }
 
+  function recordNoteViewScrollBackAttempt() {
+    const ATTEMPT_GAP_MS = 180;
+    const nowT = nowMs();
+    if (nowT - noteViewScrollBackLastMs >= ATTEMPT_GAP_MS) {
+      noteViewScrollBackLastMs = nowT;
+      noteViewScrollBackCount++;
+    }
+    if (noteViewScrollBackCount >= 2) {
+      return openNoteViewHistoryUpsell();
+    }
+    return false;
+  }
+
+  function getNoteViewFreeScrollMinLeft() {
+    if (!noteViewContainer) return 0;
+    const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
+    return Math.max(0, maxScroll - (noteViewContainer.clientWidth / 2));
+  }
+
+  function openNoteViewHistoryUpsell() {
+    const OVERLAY_COOLDOWN_MS = 800;
+    const nowT = nowMs();
+    if (nowT - noteViewScrollBackOverlayLastMs < OVERLAY_COOLDOWN_MS) {
+      return true;
+    }
+    noteViewScrollBackOverlayLastMs = nowT;
+    openProModal("history");
+    return true;
+  }
+
+  function blockNoteViewFreeScroll(nextLeft) {
+    if (!noteViewContainer) return false;
+    const freeScrollMinLeft = getNoteViewFreeScrollMinLeft();
+    if (nextLeft >= freeScrollMinLeft - 1) return false;
+    noteViewRenderState.isLive = false;
+    noteViewContainer.scrollLeft = freeScrollMinLeft;
+    openNoteViewHistoryUpsell();
+    return true;
+  }
+
   function scrollNoteViewBy(deltaPx) {
     if (!noteViewActive || running || !noteViewContainer) return;
     markNoteViewUserScrollIntent(420);
     const maxScroll = Math.max(0, noteViewContainer.scrollWidth - noteViewContainer.clientWidth);
     const nextLeft = Math.max(0, Math.min(maxScroll, noteViewContainer.scrollLeft + deltaPx));
+    if (deltaPx < 0 && blockNoteViewFreeScroll(nextLeft)) return;
     noteViewRenderState.isLive = false;
     noteViewContainer.scrollLeft = nextLeft;
   }
@@ -9856,59 +10121,55 @@
     });
   }
 
+  if (proModalCloseBtn) {
+    proModalCloseBtn.addEventListener("click", closeProModal);
+  }
+
+  if (proUpgradeModal) {
+    proUpgradeModal.addEventListener("click", event => {
+      if (event.target === proUpgradeModal) {
+        closeProModal();
+      }
+    });
+  }
+
+  document.querySelectorAll("[data-open-pro-modal]").forEach(el => {
+    el.addEventListener("click", event => {
+      event.preventDefault();
+      openProModal(el.dataset.proFeature || null);
+    });
+  });
+
+  // Close pro modal before LS overlay opens
+  document.getElementById("proModalCTA")?.addEventListener("click", () => {
+    closeProModal();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && proUpgradeModal?.getAttribute("aria-hidden") === "false") {
+      closeProModal();
+    }
+  });
+
   if (aRefSelect) {
     aRefSelect.addEventListener("change", () => {
       const value = aRefSelect.value;
       if (value === A_REF_CUSTOM_VALUE) {
-        openProModal();
+        openProModal("a4");
         aRefSelect.value = String(currentSettings.a4 || 440);
         return;
       }
       if (isProLockedValue("a4", Number(value))) {
-        openProModal();
+        openProModal("a4");
         aRefSelect.value = String(currentSettings.a4 || 440);
         return;
       }
       const parsed = parseFloat(value);
-        if (proModalCloseBtn) {
-          proModalCloseBtn.addEventListener("click", closeProModal);
-        }
-
-        if (proUpgradeModal) {
-          proUpgradeModal.addEventListener("click", event => {
-            if (event.target === proUpgradeModal) {
-              closeProModal();
-            }
-          });
-        }
-
-        document.querySelectorAll("[data-open-pro-modal]").forEach(el => {
-          el.addEventListener("click", event => {
-            event.preventDefault();
-            openProModal();
-          });
-        });
-
-        // Close pro modal before LS overlay opens
-        document.getElementById("proModalCTA")?.addEventListener("click", () => {
-          closeProModal();
-        });
-
-        document.addEventListener("keydown", event => {
-          if (event.key === "Escape" && proUpgradeModal?.getAttribute("aria-hidden") === "false") {
-            closeProModal();
-          }
-        });
-
       if (!Number.isNaN(parsed)) {
         setA4Value(parsed);
       }
       updateQuickState();
     });
-  }
-
-  if (aRefInput) {
-    aRefInput.addEventListener("input", handleARefInputChange);
   }
 
   volThreshEl.addEventListener("input", () => {
@@ -9978,7 +10239,7 @@
     if (isProLockedValue("sensitivity", sensitivitySelect.value)) {
       sensitivitySelect.value = currentSettings.sensitivity || "medium";
       syncSegmentedOptionControls();
-      openProModal();
+      openProModal("sensitivity");
       return;
     }
     currentSettings.sensitivity = sensitivitySelect.value;
@@ -9995,7 +10256,7 @@
       if (isProLockedValue("sensitivity", input.value)) {
         input.checked = false;
         syncSegmentedOptionControls();
-        openProModal();
+        openProModal("sensitivity");
         return;
       }
       sensitivitySelect.value = input.value;
@@ -10036,7 +10297,7 @@
     stretchSelect.addEventListener("change", () => {
       if (isProLockedValue("stretch", stretchSelect.value)) {
         stretchSelect.value = currentSettings.stretch || "minimal";
-        openProModal();
+        openProModal("stretch");
         return;
       }
       currentSettings.stretch = stretchSelect.value;
@@ -10117,7 +10378,7 @@
   historySelect.addEventListener("change", () => {
     if (isProLockedValue("history", historySelect.value)) {
       historySelect.value = currentSettings.history || "medium";
-      openProModal();
+      openProModal("history");
       return;
     }
     currentSettings.history = historySelect.value;
@@ -10130,7 +10391,7 @@
     stainHoldSelect.addEventListener("change", () => {
       if (isProLockedValue("stainHold", stainHoldSelect.value)) {
         stainHoldSelect.value = currentSettings.stainHold || "30";
-        openProModal();
+        openProModal("stainHold");
         return;
       }
       currentSettings.stainHold = stainHoldSelect.value;
@@ -10143,7 +10404,7 @@
     transpositionSelect.addEventListener("change", () => {
       if (isProLockedValue("transposition", transpositionSelect.value)) {
         transpositionSelect.value = currentSettings.transposition || "0";
-        openProModal();
+        openProModal("transposition");
         return;
       }
       const oldOffset = parseInt(currentSettings.transposition ?? "0", 10) || 0;
