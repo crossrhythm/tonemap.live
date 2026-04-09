@@ -4160,23 +4160,31 @@
   const MIC_STALL_PEAK_THRESHOLD = 4e-6;
   const MIC_RECOVERY_COOLDOWN_MS = 2500;
 
+  // Maps a raw amplitude value (same scale as sliderToThreshold output) to a
+  // 0–1 gauge position using the inverse log scale: pos = (log10(v)/3 + 1) / 0.9
+  // Slider range is [0, 0.9] → threshold range [0.001, ~0.5], so 0.9 normalises
+  // the position so the slider's max value (0.9) fills the gauge to 100%.
+  function ampToGaugePos(v) {
+    if (!v || v <= 0) return 0;
+    return Math.max(0, Math.min(1, (Math.log10(v) / 3 + 1) / 0.9));
+  }
+
   function updateRmsGaugeThresholdMarker(threshold) {
     if (!rmsGaugeThresholdEl) return;
-    const gate = Number.isFinite(threshold) ? threshold : 0;
-    const clamped = Math.max(0, Math.min(1, gate));
-    rmsGaugeThresholdEl.style.left = `${(clamped * 100).toFixed(1)}%`;
+    const gate = Number.isFinite(threshold) && threshold > 0 ? threshold : 1e-4;
+    rmsGaugeThresholdEl.style.left = `${(ampToGaugePos(gate) * 100).toFixed(1)}%`;
   }
 
   function updateRmsGauge(rms, threshold) {
     if (!rmsGaugeFillEl) return;
     const safeRms = Number.isFinite(rms) ? rms : 0;
-    const normalized = Math.max(0, Math.min(1, safeRms));
-    const percent = normalized * 100;
-    const gate = Number.isFinite(threshold) ? threshold : 0;
+    const gate = Number.isFinite(threshold) && threshold > 0 ? threshold : 1e-4;
+    const rmsPos = ampToGaugePos(safeRms);
+    const gatePos = ampToGaugePos(gate);
 
-    rmsGaugeFillEl.style.width = `${percent.toFixed(1)}%`;
-    rmsGaugeFillEl.classList.toggle("green", normalized >= gate);
-    rmsGaugeFillEl.classList.toggle("gray", normalized < gate);
+    rmsGaugeFillEl.style.width = `${(rmsPos * 100).toFixed(1)}%`;
+    rmsGaugeFillEl.classList.toggle("green", rmsPos >= gatePos);
+    rmsGaugeFillEl.classList.toggle("gray", rmsPos < gatePos);
     updateRmsGaugeThresholdMarker(gate);
   }
 
