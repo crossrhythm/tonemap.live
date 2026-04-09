@@ -2,15 +2,15 @@
  * Tonemap Pro — Cloudflare Worker
  *
  * Routes:
- *   POST /activate  — validate a Lemon Squeezy license key, set HMAC-signed cookie
+ *   POST /activate  — validate a Polar license key, set HMAC-signed cookie
  *   GET  /pro       — serve Pro HTML from KV if cookie is valid, else redirect
  */
 
-const COOKIE_NAME    = 'tm_pro';
-const COOKIE_MAX_AGE = 365 * 24 * 60 * 60;
-const LS_VALIDATE    = 'https://api.lemonsqueezy.com/v1/licenses/validate';
-const LS_ACTIVATE    = 'https://api.lemonsqueezy.com/v1/licenses/activate';
-const LS_DEACTIVATE  = 'https://api.lemonsqueezy.com/v1/licenses/deactivate';
+const COOKIE_NAME      = 'tm_pro';
+const COOKIE_MAX_AGE   = 365 * 24 * 60 * 60;
+const POLAR_VALIDATE   = 'https://api.polar.sh/v1/license-keys/validate';
+const POLAR_ACTIVATE   = 'https://api.polar.sh/v1/license-keys/activate';
+const POLAR_DEACTIVATE = 'https://api.polar.sh/v1/license-keys/deactivate';
 const REVALIDATE_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const REVALIDATE_GRACE_MS    = 6 * 60 * 60 * 1000;
 
@@ -59,7 +59,7 @@ async function handleActivate(request, env) {
   }
   licenseKey = licenseKey.trim();
 
-  const check = await activateLicenseKey(licenseKey);
+  const check = await activateLicenseKey(licenseKey, env);
   if (check.networkError) {
     return jsonError('Could not reach license server — try again', 502);
   }
@@ -77,10 +77,6 @@ async function handleActivate(request, env) {
 }
 
 async function handleActivatePage(request, env) {
-  const url = new URL(request.url);
-  const keyFromUrl = url.searchParams.get('key') || '';
-  const autoSubmit = keyFromUrl ? 'true' : 'false';
-
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -105,11 +101,11 @@ async function handleActivatePage(request, env) {
 <body>
   <div class="card">
     <h1>Activate Tonemap Pro</h1>
-    <p>Enter the license key from your purchase receipt.</p>
+    <p>Enter the license key from your Polar confirmation email.</p>
     <form id="form" method="POST" action="/activate">
       <input id="key" name="license_key" type="text"
              placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-             value="${escapeHtml(keyFromUrl)}" autocomplete="off" spellcheck="false" required>
+             value="" autocomplete="off" spellcheck="false" required>
       <button type="submit">Activate</button>
       <div id="msg"></div>
     </form>
@@ -117,7 +113,6 @@ async function handleActivatePage(request, env) {
   <script>
     const form = document.getElementById('form');
     const msg  = document.getElementById('msg');
-    if (${autoSubmit} && document.getElementById('key').value) form.requestSubmit();
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       msg.textContent = 'Checking\u2026';
@@ -154,7 +149,7 @@ async function handlePro(request, env) {
   let refreshedCookie = null;
   const ageMs = Date.now() - auth.lastValidatedAt;
   if (ageMs >= REVALIDATE_INTERVAL_MS) {
-    const recheck = await validateLicenseKey(auth.licenseKey);
+    const recheck = await validateLicenseKey(auth.licenseKey, env);
 
     if (!recheck.networkError && !recheck.valid) {
       return new Response(null, {
@@ -203,7 +198,7 @@ async function handleLicenseInfo(request, env) {
   const auth = token ? await verifyToken(token, env.HMAC_SECRET) : null;
   if (!auth) return jsonError('Unauthorized', 401);
 
-  const result = await validateLicenseKey(auth.licenseKey);
+  const result = await validateLicenseKey(auth.licenseKey, env);
   if (result.networkError) return jsonError('Could not reach license server', 502);
   if (!result.valid) return jsonError('License not valid', 401);
 
@@ -221,10 +216,18 @@ async function handleDeactivate(request, env) {
   const auth = token ? await verifyToken(token, env.HMAC_SECRET) : null;
   if (auth?.licenseKey && auth?.activationId) {
     try {
-      await fetch(LS_DEACTIVATE, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ license_key: auth.licenseKey, instance_id: auth.activationId }),
+      await fetch(POLAR_DEACTIVATE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${env.POLAR_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+          key: auth.licenseKey,
+          organization_id: env.POLAR_ORGANIZATION_ID,
+          activation_id: auth.activationId,
+        }),
       });
     } catch {
       // best-effort — clear cookie regardless
@@ -237,26 +240,27 @@ async function handleDeactivate(request, env) {
   });
 }
 
-async function validateLicenseKey(licenseKey) {
+async function validateLicenseKey(licenseKey, env) {
   try {
-    const lsRes = await fetch(LS_VALIDATE, {
+    const res = await fetch(POLAR_VALIDATE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Authorization': `Bearer ${env.POLAR_ACCESS_TOKEN}`,
       },
       body: JSON.stringify({
-        license_key: licenseKey,
-        instance_name: 'tonemap.live',
+        key: licenseKey,
+        organization_id: env.POLAR_ORGANIZATION_ID,
       }),
     });
-    const data = await lsRes.json().catch(() => ({}));
+    const data = await res.json().catch(() => ({}));
     return {
-      valid: Boolean(data?.valid),
-      error: data?.error || null,
+      valid: data?.status === 'granted',
+      error: data?.detail || null,
       networkError: false,
-      activationsCount: data?.license_key?.activation_usage  ?? null,
-      activationLimit:  data?.license_key?.activation_limit  ?? null,
+      activationsCount: data?.usage         ?? null,
+      activationLimit:  data?.limit_activations ?? null,
     };
   } catch {
     return {
@@ -269,21 +273,29 @@ async function validateLicenseKey(licenseKey) {
   }
 }
 
-async function activateLicenseKey(licenseKey) {
+async function activateLicenseKey(licenseKey, env) {
   try {
-    const lsRes = await fetch(LS_ACTIVATE, {
+    const res = await fetch(POLAR_ACTIVATE, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ license_key: licenseKey, instance_name: 'tonemap.live' }),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${env.POLAR_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({
+        key: licenseKey,
+        organization_id: env.POLAR_ORGANIZATION_ID,
+        label: 'tonemap.live',
+      }),
     });
-    const data = await lsRes.json().catch(() => ({}));
-    if (data?.activated && data?.instance?.id) {
-      return { valid: true, activationId: data.instance.id, error: null, networkError: false };
+    const data = await res.json().catch(() => ({}));
+    if (data?.license_key?.status === 'granted' && data?.id) {
+      return { valid: true, activationId: data.id, error: null, networkError: false };
     }
     return {
       valid: false,
       activationId: null,
-      error: data?.error || 'License key could not be activated',
+      error: data?.detail || 'License key could not be activated',
       networkError: false,
     };
   } catch {
