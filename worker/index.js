@@ -77,6 +77,33 @@ async function handleActivate(request, env) {
 }
 
 async function handleActivatePage(request, env) {
+  const url = new URL(request.url);
+  const customerSessionToken = url.searchParams.get('customer_session_token');
+
+  // Auto-activate when Polar redirects here after purchase
+  if (customerSessionToken && env.HMAC_SECRET) {
+    try {
+      const keysRes = await fetch('https://api.polar.sh/v1/customer-portal/license-keys/', {
+        headers: { 'Authorization': `Bearer ${customerSessionToken}` },
+      });
+      const keysData = await keysRes.json().catch(() => ({}));
+      const grantedKey = keysData?.items?.find(k => k.status === 'granted');
+      if (grantedKey?.key) {
+        const check = await activateLicenseKey(grantedKey.key, env);
+        if (check.valid) {
+          const token = await createToken(grantedKey.key, Date.now(), check.activationId, env.HMAC_SECRET);
+          const cookie = buildAuthCookie(token);
+          return new Response(null, {
+            status: 302,
+            headers: { Location: '/pro', 'Set-Cookie': cookie },
+          });
+        }
+      }
+    } catch {
+      // fall through to manual form
+    }
+  }
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>

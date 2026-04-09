@@ -8,7 +8,7 @@ id = "25916307ce9d4005b0998afe806127e2"
 preview_id = "bd9e6294c23846f794e96bb3b8acc9d8"
 
 [[routes]]
-pattern = "tonemap.live/activate"
+pattern = "tonemap.live/activate*"
 zone_name = "tonemap.live"
 
 [[routes]]
@@ -24,7 +24,7 @@ pattern = "tonemap.live/license-info"
 zone_name = "tonemap.live"
 
 [[routes]]
-pattern = "www.tonemap.live/activate"
+pattern = "www.tonemap.live/activate*"
 zone_name = "tonemap.live"
 
 [[routes]]
