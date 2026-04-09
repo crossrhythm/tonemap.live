@@ -229,8 +229,24 @@ async function handleLicenseInfo(request, env) {
   if (result.networkError) return jsonError('Could not reach license server', 502);
   if (!result.valid) return jsonError('License not valid', 401);
 
+  // Fetch activation count from the license key's activations array
+  let activationsCount = null;
+  if (result.licenseKeyId) {
+    try {
+      const lkRes = await fetch(`https://api.polar.sh/v1/license-keys/${result.licenseKeyId}`, {
+        headers: { 'Authorization': `Bearer ${env.POLAR_ACCESS_TOKEN}` },
+      });
+      const lkData = await lkRes.json().catch(() => ({}));
+      if (Array.isArray(lkData?.activations)) {
+        activationsCount = lkData.activations.length;
+      }
+    } catch {
+      // non-fatal — leave null
+    }
+  }
+
   return Response.json({
-    activations_count: result.activationsCount,
+    activations_count: activationsCount,
     activation_limit:  result.activationLimit,
   });
 }
@@ -286,15 +302,15 @@ async function validateLicenseKey(licenseKey, env) {
       valid: data?.status === 'granted',
       error: data?.detail || null,
       networkError: false,
-      activationsCount: data?.usage         ?? null,
-      activationLimit:  data?.limit_activations ?? null,
+      licenseKeyId:    data?.id             ?? null,
+      activationLimit: data?.limit_activations ?? null,
     };
   } catch {
     return {
       valid: false,
       error: 'Could not reach license server — try again',
       networkError: true,
-      activationsCount: null,
+      licenseKeyId: null,
       activationLimit: null,
     };
   }
