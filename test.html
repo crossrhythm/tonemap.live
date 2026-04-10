@@ -2267,17 +2267,21 @@
       flex: 1 1 auto;
       flex-direction: column;
       min-height: calc(625px - 1.5rem);
-      height: calc(100vh - 1.5rem);
+      height: auto;
       gap: 0.75rem;
       overflow: visible;
     }
     .left-col {
       flex: 1 1 auto;
-      min-height: 0;
+      min-height: clamp(280px, 52vh, 640px);
+      height: auto;
+    }
+    .grid-shell {
+      min-height: 100%;
       height: auto;
     }
     .grid-surface {
-      min-height: clamp(220px, 48vh, 560px);
+      min-height: 100%;
     }
     .right-col {
       flex: 0 0 auto;
