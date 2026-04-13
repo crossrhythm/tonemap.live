@@ -7,7 +7,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Tonemap — Free Real-Time Intonation Visualizer for Musicians</title>
 <meta name="description" content="Tonemap is a free real-time intonation visualizer for musicians. See your pitch tendencies mapped live in your browser — no app download required." />
 <link rel="canonical" href="https://tonemap.live/" />
@@ -55,6 +55,10 @@
     --bg-main: #0f172a;
     --bg-panel: #1e293b;
     --veil-bg: rgba(15,23,42,0.8);
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
 
     --text-dim: #94a3b8;
     --text-lite: #f8fafc;
@@ -2549,6 +2553,20 @@
       gap: 0.75rem;
       overflow: visible;
     }
+    body.ios-portrait-scroll-shell {
+      padding-top: max(0.75rem, calc(var(--safe-area-top) + 0.5rem));
+      padding-right: max(0.75rem, calc(var(--safe-area-right) + 0.75rem));
+      padding-bottom: max(0.75rem, calc(var(--safe-area-bottom) + 0.75rem));
+      padding-left: max(0.75rem, calc(var(--safe-area-left) + 0.75rem));
+      overflow: hidden;
+    }
+    body.ios-portrait-scroll-shell .page {
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+    }
     .left-col {
       flex: 1 1 auto;
       min-height: min(640px, max(320px, 70vh));
@@ -4058,21 +4076,27 @@
   function attachPortraitPageFade() {
     if (!pageEl) return;
     const isPortrait = () => window.matchMedia("(max-aspect-ratio: 1/1)").matches;
+    const getPortraitScrollEl = () => document.body.classList.contains("ios-portrait-scroll-shell")
+      ? pageEl
+      : (document.scrollingElement || document.documentElement);
     function update() {
+      const useIOSScrollShell = isIOSWebKitLike() && !isStandaloneDisplayMode() && isPortrait();
+      document.body.classList.toggle("ios-portrait-scroll-shell", useIOSScrollShell);
       if (!isPortrait()) {
         pageEl.classList.remove("can-scroll-down");
         return;
       }
-      const scrollingEl = document.scrollingElement || document.documentElement;
+      const scrollingEl = getPortraitScrollEl();
       const scrollTop = scrollingEl.scrollTop;
       const scrollHeight = scrollingEl.scrollHeight;
-      const clientHeight = window.visualViewport?.height || document.documentElement.clientHeight;
+      const clientHeight = scrollingEl.clientHeight || window.visualViewport?.height || document.documentElement.clientHeight;
       const epsilon = 1;
       const totalOverflow = Math.max(0, scrollHeight - clientHeight);
       const bottom = totalOverflow - scrollTop;
       const hasPageScroll = totalOverflow > epsilon;
       pageEl.classList.toggle("can-scroll-down", hasPageScroll && bottom > epsilon);
     }
+    pageEl.addEventListener("scroll", update, { passive: true });
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update, { passive: true });
     if (window.visualViewport) {
