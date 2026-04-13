@@ -874,8 +874,14 @@
     border-color: var(--err-color);
   }
 
-  .mic-btn.android-chrome-paused-fix.paused {
+  .mic-btn.android-chrome-mic-icon-fix {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  .mic-btn.android-chrome-mic-icon-fix .icon-micstate svg {
+    display: block;
+    width: 0.82em;
+    height: 0.96em;
   }
 
   .mic-btn:disabled,
@@ -3524,8 +3530,9 @@
   const micBtnIcon    = micBtn.querySelector(".icon-micstate");
   const resetBtn      = document.getElementById("resetBtn");
   const resetIcon     = resetBtn.querySelector(".icon-reset");
+  const useAndroidChromeMainMicSvg = !!(micBtn && isAndroidChromeLike());
   if (micBtn) micBtn.classList.add("paused");
-  if (micBtn && isAndroidChromeLike()) micBtn.classList.add("android-chrome-paused-fix");
+  if (useAndroidChromeMainMicSvg) micBtn.classList.add("android-chrome-mic-icon-fix");
 
   const aRefSelect    = document.getElementById("aRefSelect");
   const aRefInput     = document.getElementById("aRefInput");
@@ -6305,17 +6312,26 @@
     micLastRecoveryAttemptMs = 0;
   }
 
+  const MAIN_MIC_PAUSE_SVG = '<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="M10,8h4v16h-4V8z M18,8v16h4V8H18z"/></svg>';
+
+  function setMainMicIcon(isRunning) {
+    if (!micBtnIcon) return;
+    micBtnIcon.classList.toggle("playing", isRunning);
+    micBtnIcon.classList.toggle("paused", !isRunning);
+    if (useAndroidChromeMainMicSvg && isRunning) {
+      micBtnIcon.innerHTML = MAIN_MIC_PAUSE_SVG;
+      return;
+    }
+    micBtnIcon.textContent = isRunning ? "⏸︎" : "▶︎";
+  }
+
   function setMicUiRunningState(isRunning) {
     const on = !!isRunning;
     if (micBtn) {
       micBtn.classList.toggle("on", on);
       micBtn.classList.toggle("paused", !on);
     }
-    if (micBtnIcon) {
-      micBtnIcon.classList.toggle("playing", on);
-      micBtnIcon.classList.toggle("paused", !on);
-      micBtnIcon.textContent = on ? "⏸︎" : "▶︎";
-    }
+    setMainMicIcon(on);
     if (miniMicBtn) {
       miniMicBtn.classList.toggle("on", on);
       miniMicBtn.classList.toggle("paused", !on);
