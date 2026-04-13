@@ -875,61 +875,24 @@
     border-color: var(--err-color);
   }
 
+  .mic-btn.android-chrome-paused-fix.paused {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   .mic-btn:disabled,
   .reset-btn:disabled {
     opacity: .4;
     cursor: not-allowed;
   }
 
-  /* Draw play/pause icons in CSS so mobile browsers do not substitute colored emoji glyphs. */
-  .icon-micstate {
-    position: relative;
-    display: inline-block;
-    overflow: hidden;
-    white-space: nowrap;
-    text-indent: -9999px;
-    vertical-align: middle;
-    color: inherit;
-    flex: 0 0 auto;
-  }
-
-  .icon-micstate::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    margin: auto;
-    text-indent: 0;
-  }
-
-  .icon-micstate.playing { /* pause icon */
-    width: 0.82em;
-    height: 0.96em;
+  /* Per-icon tweaks */
+  .icon-micstate.playing { /* pause glyph */
     font-size: 2.25rem;
     line-height: 1;
   }
-
-  .icon-micstate.playing::before {
-    width: 0.2em;
-    height: 0.96em;
-    border-radius: 0.06em;
-    background: currentColor;
-    box-shadow: 0.42em 0 0 currentColor;
-  }
-
-  .icon-micstate.paused {  /* play icon */
-    width: 0.78em;
-    height: 0.96em;
+  .icon-micstate.paused {  /* play glyph (smaller so it doesn’t look huge) */
     font-size: 1.98rem;
     line-height: 1;
-  }
-
-  .icon-micstate.paused::before {
-    width: 0;
-    height: 0;
-    border-top: 0.48em solid transparent;
-    border-bottom: 0.48em solid transparent;
-    border-left: 0.78em solid currentColor;
-    transform: translateX(0.04em);
   }
 
   .icon-reset {
@@ -3858,6 +3821,7 @@
   const resetBtn      = document.getElementById("resetBtn");
   const resetIcon     = resetBtn.querySelector(".icon-reset");
   if (micBtn) micBtn.classList.add("paused");
+  if (micBtn && isAndroidChromeLike()) micBtn.classList.add("android-chrome-paused-fix");
 
   const aRefSelect    = document.getElementById("aRefSelect");
   const aRefInput     = document.getElementById("aRefInput");
@@ -4139,6 +4103,14 @@
     const isAppleMobile = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const isSafariLike = /^((?!chrome|android).)*safari/i.test(ua);
     return isAppleMobile && isSafariLike;
+  }
+
+  function isAndroidChromeLike() {
+    const ua = navigator.userAgent || "";
+    const isAndroid = /android/i.test(ua);
+    const isChrome = /\b(?:chrome|chromium)\//i.test(ua);
+    const isExcludedBrowser = /\b(?:edg|opr|opera|samsungbrowser|firefox)\//i.test(ua);
+    return isAndroid && isChrome && !isExcludedBrowser;
   }
 
   function showHomeScreenInstallHintOnce() {
