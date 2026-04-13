@@ -881,14 +881,55 @@
     cursor: not-allowed;
   }
 
-  /* Per-icon tweaks */
-  .icon-micstate.playing { /* pause glyph */
+  /* Draw play/pause icons in CSS so mobile browsers do not substitute colored emoji glyphs. */
+  .icon-micstate {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-indent: -9999px;
+    vertical-align: middle;
+    color: inherit;
+    flex: 0 0 auto;
+  }
+
+  .icon-micstate::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    text-indent: 0;
+  }
+
+  .icon-micstate.playing { /* pause icon */
+    width: 0.82em;
+    height: 0.96em;
     font-size: 2.25rem;
     line-height: 1;
   }
-  .icon-micstate.paused {  /* play glyph (smaller so it doesn’t look huge) */
+
+  .icon-micstate.playing::before {
+    width: 0.2em;
+    height: 0.96em;
+    border-radius: 0.06em;
+    background: currentColor;
+    box-shadow: 0.42em 0 0 currentColor;
+  }
+
+  .icon-micstate.paused {  /* play icon */
+    width: 0.78em;
+    height: 0.96em;
     font-size: 1.98rem;
     line-height: 1;
+  }
+
+  .icon-micstate.paused::before {
+    width: 0;
+    height: 0;
+    border-top: 0.48em solid transparent;
+    border-bottom: 0.48em solid transparent;
+    border-left: 0.78em solid currentColor;
+    transform: translateX(0.04em);
   }
 
   .icon-reset {
