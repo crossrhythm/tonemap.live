@@ -263,6 +263,300 @@
     grid-template-columns: 1fr var(--edge-col-width);
   }
 
+  .recording-launcher-shell {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 34px;
+    height: 30px;
+    z-index: 35;
+    transition: opacity 220ms ease, transform 220ms ease;
+  }
+
+  .recording-launcher {
+    width: 34px;
+    height: 30px;
+    border: 2px solid var(--border-dim);
+    border-left: none;
+    border-radius: 0 0.45rem 0.45rem 0;
+    background: var(--bg-panel);
+    cursor: pointer;
+    padding: 0 0 0 3px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+    color: var(--text-lite);
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+
+  .recording-launcher:hover,
+  .recording-launcher:focus-visible {
+    background: color-mix(in srgb, var(--bg-panel) 82%, white);
+    border-color: var(--accent-green);
+    outline: none;
+  }
+
+  .recording-launcher-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239,68,68,0.4);
+    flex: 0 0 auto;
+  }
+
+  .recorder-arrow-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 8px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    transform: translateY(-0.5px);
+  }
+
+  .recording-launcher-arrow {
+    transform: translateY(-0.5px);
+  }
+
+  .left-col.recorder-expanded .recording-launcher-shell {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+  }
+
+  .recording-dock {
+    flex: 0 0 auto;
+    height: 0;
+    min-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0 0.6rem;
+    border-top: 1px solid rgba(148,163,184,0.14);
+    background: linear-gradient(180deg, rgba(15,23,42,0.92), rgba(15,23,42,0.84));
+    transition: height 220ms ease, opacity 220ms ease, padding 220ms ease;
+  }
+
+  .left-col.recorder-expanded .recording-dock {
+    height: 30px;
+    opacity: 1;
+    pointer-events: auto;
+    padding: 2px 0.6rem 2px 0.28rem;
+  }
+
+  .recording-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    flex: 0 0 auto;
+  }
+
+  .recording-collapse-btn {
+    margin-right: 0.08rem;
+  }
+
+  .recorder-btn {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-lite);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    transition: opacity 180ms ease, background-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+
+  .recorder-btn:hover,
+  .recorder-btn:focus-visible {
+    background: rgba(255,255,255,0.08);
+    outline: none;
+  }
+
+  .recorder-btn:active {
+    transform: translateY(1px);
+  }
+
+  .recorder-btn:disabled {
+    opacity: 0.34;
+    cursor: not-allowed;
+  }
+
+  .recorder-btn-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    color: currentColor;
+    flex: 0 0 auto;
+  }
+
+  .recorder-btn-icon-record {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 10px rgba(239,68,68,0.42);
+    transition: border-radius 120ms ease, transform 120ms ease;
+  }
+
+  .recorder-btn.is-recording .recorder-btn-icon-record {
+    border-radius: 2px;
+    transform: scale(0.96);
+  }
+
+  .recorder-btn-icon-play {
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 10px solid currentColor;
+    margin-left: 2px;
+    transition: border-color 120ms ease, transform 120ms ease;
+  }
+
+  .recorder-btn.is-playing .recorder-btn-icon-play {
+    width: 12px;
+    height: 12px;
+    border: none;
+    margin-left: 0;
+  }
+
+  .recorder-btn.is-playing .recorder-btn-icon-play::before,
+  .recorder-btn.is-playing .recorder-btn-icon-play::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 3px;
+    height: 12px;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .recorder-btn.is-playing .recorder-btn-icon-play::before {
+    left: 2px;
+  }
+
+  .recorder-btn.is-playing .recorder-btn-icon-play::after {
+    right: 2px;
+  }
+
+  .recorder-btn-icon-download::before,
+  .recorder-btn-icon-download::after {
+    content: "";
+    position: absolute;
+  }
+
+  .recorder-btn-icon-download {
+    width: 14px;
+    height: 14px;
+    background: linear-gradient(currentColor 0 0) center bottom / 10px 2px no-repeat;
+  }
+
+  .recorder-btn-icon-download::before {
+    width: 2px;
+    height: 7px;
+    top: 1px;
+    left: 6px;
+    border-radius: 999px;
+  }
+
+  .recorder-btn-icon-download::after {
+    width: 6px;
+    height: 6px;
+    left: 4px;
+    top: 4px;
+    background: transparent;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+
+  .recording-timeline-wrap {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .recording-timeline-canvas {
+    width: 100%;
+    height: 22px;
+    display: block;
+    border-radius: 0.45rem;
+    background: rgba(2,6,23,0.26);
+    cursor: pointer;
+  }
+
+  .recording-timeline-empty {
+    position: absolute;
+    inset: 50% auto auto 0.55rem;
+    transform: translateY(-50%);
+    font-size: 0.64rem;
+    letter-spacing: 0.02em;
+    color: rgba(248,250,252,0.55);
+    pointer-events: none;
+  }
+
+  .recording-tip-overlay {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 38px;
+    z-index: 34;
+    width: min(21rem, calc(100% - 1.8rem));
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.8rem;
+    border: 1px solid rgba(148,163,184,0.18);
+    background: rgba(15,23,42,0.92);
+    color: var(--text-lite);
+    line-height: 1.35;
+    box-shadow: 0 10px 24px rgba(2,6,23,0.3);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: auto;
+    transition: opacity 220ms ease, transform 220ms ease;
+  }
+
+  .recording-tip-title {
+    margin: 0 0 0.35rem;
+    padding-bottom: 0.18rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(241,245,249,0.82);
+    border-bottom: 1px solid var(--ui-overlay-card-border);
+  }
+
+  .recording-tip-body {
+    margin: 0;
+  }
+
+  .recording-tip-overlay.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .recording-tip-overlay.is-fading {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
   /* Score View Styles */
   .note-view-container {
     position: absolute;
@@ -2302,14 +2596,15 @@
     .left-col {
       flex: 1 1 auto;
       min-height: min(640px, max(320px, 70vh));
-      height: auto;
+      height: min(640px, max(320px, 70vh));
     }
     .grid-shell {
-      min-height: 100%;
-      height: auto;
+      min-height: 0;
+      height: 100%;
     }
     .grid-surface {
-      min-height: 100%;
+      min-height: 0;
+      height: 100%;
     }
     .right-col {
       flex: 0 0 auto;
@@ -2895,6 +3190,36 @@
         </div>
       </div>
     </div>
+    <div id="recordingDock" class="recording-dock" aria-hidden="true">
+      <div class="recording-controls">
+        <button id="recordingCollapseBtn" class="recorder-btn recording-collapse-btn" type="button" aria-label="Close recorder" title="Close recorder">
+          <span class="recorder-btn-icon recorder-arrow-icon" aria-hidden="true">&lt;</span>
+        </button>
+        <button id="recordingRecordBtn" class="recorder-btn" type="button" aria-label="Start recording" title="Record">
+          <span class="recorder-btn-icon recorder-btn-icon-record" aria-hidden="true"></span>
+        </button>
+        <button id="recordingPlayBtn" class="recorder-btn" type="button" aria-label="Play recording" title="Play" disabled>
+          <span class="recorder-btn-icon recorder-btn-icon-play" aria-hidden="true"></span>
+        </button>
+        <button id="recordingDownloadBtn" class="recorder-btn" type="button" aria-label="Download recording" title="Download" disabled>
+          <span class="recorder-btn-icon recorder-btn-icon-download" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="recording-timeline-wrap">
+        <canvas id="recordingTimelineCanvas" class="recording-timeline-canvas" width="400" height="22" aria-label="Recording timeline"></canvas>
+        <div id="recordingTimelineEmpty" class="recording-timeline-empty">No take yet</div>
+      </div>
+    </div>
+    <div id="recordingTipOverlay" class="recording-tip-overlay" hidden>
+      <p class="recording-tip-title">Quick Recorder</p>
+      <p class="recording-tip-body">Record yourself, play it back, and repeat, up to 5 minutes. Save any takes you want to keep.  Use shortcut key Z to start/stop recording and X to play/pause.</p>
+    </div>
+    <div id="recordingLauncherShell" class="recording-launcher-shell">
+      <button id="recordingLauncher" class="recording-launcher" type="button" aria-label="Open recorder" title="Recorder">
+        <span class="recording-launcher-dot" aria-hidden="true"></span>
+        <span class="recorder-arrow-icon recording-launcher-arrow" aria-hidden="true">&gt;</span>
+      </button>
+    </div>
   </div>
 
   <!-- RIGHT: CONTROLS / INFO -->
@@ -2958,7 +3283,7 @@
         </div>
         
         <div class="footer-line">Thank you for supporting Tonemap Pro! ★</div>
-        <div class="footer-line">© 2026 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> · <a href="/terms" target="_blank" rel="noopener">Terms</a></div>
+        <div class="footer-line">© 2026 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> · <a href="/terms.html" target="_blank" rel="noopener">Terms</a></div>
       </div>
 
     </div> <!-- /.right-scroll  -->
@@ -3579,6 +3904,16 @@
 
   const noteGrid      = document.getElementById("noteGrid");
   const gridWrapper   = document.getElementById("gridWrapper");
+  const recordingDockEl = document.getElementById("recordingDock");
+  const recordingLauncherShellEl = document.getElementById("recordingLauncherShell");
+  const recordingLauncherEl = document.getElementById("recordingLauncher");
+  const recordingTipOverlayEl = document.getElementById("recordingTipOverlay");
+  const recordingCollapseBtn = document.getElementById("recordingCollapseBtn");
+  const recordingRecordBtn = document.getElementById("recordingRecordBtn");
+  const recordingPlayBtn = document.getElementById("recordingPlayBtn");
+  const recordingDownloadBtn = document.getElementById("recordingDownloadBtn");
+  const recordingTimelineCanvas = document.getElementById("recordingTimelineCanvas");
+  const recordingTimelineEmptyEl = document.getElementById("recordingTimelineEmpty");
 
   const pitchBlockEl          = document.getElementById("pitchBlock");
   const pitchBlockFixedSlot   = document.getElementById("pitchBlockFixedSlot");
@@ -3699,6 +4034,31 @@
   let isSafariEchoBug = false;
   let safariEchoFixApplied = false;
 
+  function updateSafariEchoFixStatus(state) {
+    const statusRow = document.getElementById('safariFixStatusRow');
+    const statusVal = document.getElementById('dbgSafariFix');
+    if (!statusRow || !statusVal) return;
+
+    if (!isSafariEchoBug) {
+      statusRow.style.display = 'none';
+      statusVal.textContent = 'Unavailable';
+      return;
+    }
+
+    statusRow.style.display = '';
+
+    if (state === 'applied') {
+      statusVal.textContent = 'Applied (persistent)';
+      return;
+    }
+    if (state === 'failed') {
+      statusVal.textContent = 'Failed';
+      return;
+    }
+
+    statusVal.textContent = 'Standby';
+  }
+
   function detectSafariEchoBug() {
     const ua = navigator.userAgent;
     // Check for Safari (not Chrome/Chromium)
@@ -3722,24 +4082,29 @@
   let safariShadowStream = null;
   
   async function applySafariEchoBugFix() {
-    if (!isSafariEchoBug) return;
-    
-    safariEchoFixApplied = true;
+    if (!isSafariEchoBug) return false;
+
+    if (safariShadowStream && isMicStreamLive(safariShadowStream)) {
+      safariEchoFixApplied = true;
+      updateSafariEchoFixStatus('applied');
+      return true;
+    }
+
     console.log('[Tonemap] Safari echo bugfix: opening persistent shadow stream');
-    
-    // Update status display
-    const statusRow = document.getElementById('safariFixStatusRow');
-    const statusVal = document.getElementById('dbgSafariFix');
-    if (statusRow) statusRow.style.display = '';
-    if (statusVal) statusVal.textContent = 'Applied (persistent)';
-    
+
     try {
       safariShadowStream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
       });
+      safariEchoFixApplied = true;
+      updateSafariEchoFixStatus('applied');
       console.log('[Tonemap] Safari echo bugfix: shadow stream opened (will stay open)');
+      return true;
     } catch (err) {
+      safariEchoFixApplied = false;
+      updateSafariEchoFixStatus('failed');
       console.warn('[Tonemap] Safari echo bugfix: shadow stream failed', err);
+      return false;
     }
   }
   
@@ -3749,6 +4114,8 @@
       safariShadowStream = null;
       console.log('[Tonemap] Safari echo bugfix: shadow stream closed');
     }
+    safariEchoFixApplied = false;
+    updateSafariEchoFixStatus('standby');
   }
 
   // Detect Safari echo bug on load
@@ -3757,6 +4124,7 @@
   if (isSafariEchoBug) {
     console.log('[Tonemap] Safari echo bug detected (26.4+) - automatic fix will be applied on mic start');
   }
+  updateSafariEchoFixStatus('standby');
 
   /*************
    * SCROLL FADE
@@ -4375,8 +4743,22 @@
   let midiToCellEl = {};
   let cellState = {};
   let masterCellState = {};
+  const RECORDER_MAX_DURATION_MS = 5 * 60 * 1000;
+  const RECORDER_TIMELINE_TICK_MS = 10 * 1000;
+  const RECORDER_SPECTRUM_POINTS = 48;
+  const RECORDER_SPECTRUM_MIN_HZ = 80;
+  const RECORDER_SPECTRUM_MAX_HZ = 8000;
+  const RECORDER_SPECTRUM_EMA_ALPHA = 0.15;
+  const RECORDER_TIP_STORAGE_KEY = "tonemap.live.recorderTipSeen";
   const MASTER_MIDI_MIN = 0;
   const MASTER_MIDI_MAX = 127;
+  let micSourceNode = null;
+  let recorderProcessorNode = null;
+  let recorderMonitorGainNode = null;
+  let playbackSourceNode = null;
+  let playbackAnalysisActive = false;
+  let analysisSourceMode = "mic";
+  let micStartRequestToken = 0;
   let micRestartInFlight = false;
   let suppressHeatmapRender = false;
   let easterEggRunning = false;
@@ -4391,6 +4773,35 @@
   let micLastRecoveryAttemptMs = 0;
   let silentAdvanceAccumMs = 0; // track how much silence has advanced the active clock (capped)
   const CONFETTI_PRIMARY_COLORS = ["#ff3b30", "#2563eb", "#facc15", "#10b981", "#a855f7", "#22d3ee"];
+
+  function loadRecorderTipSeen() {
+    return false;
+  }
+
+  const recorderState = {
+    expanded: false,
+    tipSeen: loadRecorderTipSeen(),
+    tipHideTimer: null,
+    tipAutoHideTimer: null,
+    tipShownAtMs: 0,
+    tipDismissHandler: null,
+    drawRaf: 0,
+    isRecording: false,
+    isPlaying: false,
+    autoStopQueued: false,
+    pcmChunks: [],
+    totalSamples: 0,
+    sampleRate: 0,
+    pcmData: null,
+    waveformPeaks: [],
+    durationMs: 0,
+    currentBlob: null,
+    downloadName: "",
+    playbackOffsetMs: 0,
+    playbackStartedAtMs: 0,
+    spectrumSmoothed: null,
+    spectrumFreqBuffer: null,
+  };
 
   const EDGE_SHORTCUT_LABELS = Object.freeze({
     topGrow: "[Right Bracket]",
@@ -5201,7 +5612,9 @@
         "• In Note View: Right/Left Bracket move the top edge by semitone.",
         "• In Note View: Quote/Semicolon move the bottom edge by semitone.",
         "• Grid auto-expands (by octave) when needed to include Note View range.",
-        "• ← / →: Scroll Note View timeline (hold Shift for faster scrolling)."
+        "• ← / →: Scroll Note View timeline (hold Shift for faster scrolling).",
+        "• Z: Start/stop recording (opens recorder if needed).",
+        "• X: Play/pause recording."
       ]
     },
     safariEchoFix: {
@@ -5209,8 +5622,8 @@
       summary: "Automatic workaround for a Safari 26.4+ issue where pitch detection reads ~5% high for the first several seconds after starting the microphone.",
       detail: [
         "<strong>The Issue:</strong> Safari 26.4+ has a bug where, with echoCancellation=false, the AudioContext applies unexpected time-stretching during mic startup, causing pitch to read approximately 5% sharp (a semitone) for 4-10 seconds.",
-        "<strong>The Fix:</strong> Tonemap automatically applies brief 'shadow' echo-cancellation pulses at startup that prevent the bug from activating, without affecting audio quality.",
-        "<strong>Status:</strong> When this fix is active, you'll see 'Safari Bugfix: Applied' in the Status panel under System.",
+        "<strong>The Fix:</strong> On affected Safari builds, Tonemap first opens a small hidden 'shadow' microphone stream with echoCancellation enabled, then starts the real analysis stream with echoCancellation disabled while keeping the shadow stream alive in the background.",
+        "<strong>Status:</strong> The Status panel shows Standby before mic start, Applied while the shadow stream is active, and Failed if Safari blocks the workaround.",
         "<strong>No action required:</strong> The fix is applied automatically on affected Safari versions. Your audio path remains clean (echoCancellation=false on the main stream)."
       ]
     }
@@ -6334,6 +6747,560 @@
     micHealthySinceStart = false;
     micStallAccumMs = 0;
     micLastRecoveryAttemptMs = 0;
+  }
+
+  function persistRecorderTipSeen() {
+    // Keep the helper overlay to one display per page load rather than once forever.
+  }
+
+  function detachRecorderTipDismissListeners() {
+    if (!recorderState.tipDismissHandler) return;
+    document.removeEventListener("pointerdown", recorderState.tipDismissHandler, true);
+    document.removeEventListener("touchstart", recorderState.tipDismissHandler, true);
+    recorderState.tipDismissHandler = null;
+  }
+
+  function hideRecorderTip({ immediate = false } = {}) {
+    if (!recordingTipOverlayEl) return;
+    detachRecorderTipDismissListeners();
+    if (recorderState.tipAutoHideTimer) {
+      clearTimeout(recorderState.tipAutoHideTimer);
+      recorderState.tipAutoHideTimer = null;
+    }
+    if (recorderState.tipHideTimer) {
+      clearTimeout(recorderState.tipHideTimer);
+      recorderState.tipHideTimer = null;
+    }
+    if (immediate) {
+      recordingTipOverlayEl.classList.remove("is-visible", "is-fading");
+      recordingTipOverlayEl.hidden = true;
+      return;
+    }
+    recordingTipOverlayEl.classList.remove("is-visible");
+    recordingTipOverlayEl.classList.add("is-fading");
+    recorderState.tipHideTimer = window.setTimeout(() => {
+      recordingTipOverlayEl.classList.remove("is-fading");
+      recordingTipOverlayEl.hidden = true;
+      recorderState.tipHideTimer = null;
+    }, 260);
+  }
+
+  function showRecorderTip() {
+    if (!recordingTipOverlayEl || recorderState.tipSeen) return;
+    hideRecorderTip({ immediate: true });
+    recorderState.tipShownAtMs = performance.now();
+    recordingTipOverlayEl.hidden = false;
+    void recordingTipOverlayEl.offsetWidth;
+    recordingTipOverlayEl.classList.add("is-visible");
+    recorderState.tipAutoHideTimer = window.setTimeout(() => {
+      recorderState.tipAutoHideTimer = null;
+      recorderState.tipSeen = true;
+      persistRecorderTipSeen();
+      hideRecorderTip();
+    }, 10000);
+    recorderState.tipDismissHandler = event => {
+      if ((performance.now() - recorderState.tipShownAtMs) < 180) return;
+      if (recordingTipOverlayEl.hidden) return;
+      recorderState.tipSeen = true;
+      persistRecorderTipSeen();
+      hideRecorderTip();
+    };
+    document.addEventListener("pointerdown", recorderState.tipDismissHandler, true);
+    document.addEventListener("touchstart", recorderState.tipDismissHandler, true);
+  }
+
+  function setRecorderExpanded(expanded, { skipTip = false } = {}) {
+    recorderState.expanded = !!expanded;
+    if (gridWrapper) {
+      gridWrapper.classList.toggle("recorder-expanded", recorderState.expanded);
+    }
+    if (recordingDockEl) {
+      recordingDockEl.setAttribute("aria-hidden", recorderState.expanded ? "false" : "true");
+    }
+    if (recordingLauncherEl) {
+      recordingLauncherEl.setAttribute("aria-expanded", recorderState.expanded ? "true" : "false");
+    }
+    if (recorderState.expanded && !skipTip) {
+      showRecorderTip();
+    } else if (!recorderState.expanded) {
+      hideRecorderTip({ immediate: true });
+    }
+    window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
+    queueRecorderTimelineDraw();
+  }
+
+  function collapseRecorderUi() {
+    if (recorderState.isPlaying) {
+      pauseRecorderPlayback({ resetCursor: false });
+    }
+    if (recorderState.isRecording) {
+      stopRecording();
+    }
+    setRecorderExpanded(false, { skipTip: true });
+  }
+
+  function sampleRecorderWaveform(peaks, bins) {
+    if (!Array.isArray(peaks) || !peaks.length || bins <= 0) return [];
+    if (peaks.length <= bins) return peaks.slice();
+    const sampled = [];
+    const stride = peaks.length / bins;
+    for (let index = 0; index < bins; index += 1) {
+      const start = Math.floor(index * stride);
+      const end = Math.max(start + 1, Math.floor((index + 1) * stride));
+      let maxPeak = 0;
+      for (let i = start; i < end && i < peaks.length; i += 1) {
+        maxPeak = Math.max(maxPeak, peaks[i]);
+      }
+      sampled.push(maxPeak);
+    }
+    return sampled;
+  }
+
+  function getRecorderCursorMs() {
+    if (!recorderState.isPlaying) return recorderState.playbackOffsetMs;
+    const elapsed = performance.now() - recorderState.playbackStartedAtMs;
+    return Math.min(recorderState.durationMs, recorderState.playbackOffsetMs + elapsed);
+  }
+
+  function queueRecorderTimelineDraw() {
+    if (!recordingTimelineCanvas || recorderState.drawRaf) return;
+    recorderState.drawRaf = window.requestAnimationFrame(() => {
+      recorderState.drawRaf = 0;
+      drawRecorderTimeline();
+    });
+  }
+
+  function drawRecorderTimeline() {
+    if (!recordingTimelineCanvas) return;
+    const rect = recordingTimelineCanvas.getBoundingClientRect();
+    if (rect.width < 2 || rect.height < 2) return;
+    const dpr = window.devicePixelRatio || 1;
+    const displayWidth = Math.max(1, Math.round(rect.width));
+    const displayHeight = Math.max(1, Math.round(rect.height));
+    if (recordingTimelineCanvas.width !== Math.round(displayWidth * dpr) || recordingTimelineCanvas.height !== Math.round(displayHeight * dpr)) {
+      recordingTimelineCanvas.width = Math.round(displayWidth * dpr);
+      recordingTimelineCanvas.height = Math.round(displayHeight * dpr);
+    }
+    const ctx = recordingTimelineCanvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+    ctx.fillStyle = "rgba(2,6,23,0.18)";
+    ctx.fillRect(0, 0, displayWidth, displayHeight);
+
+    const totalMs = recorderState.durationMs;
+    const activeTotalMs = recorderState.isRecording ? Math.max(recorderState.durationMs, 1000) : totalMs;
+    const midY = Math.round(displayHeight / 2);
+    ctx.strokeStyle = "rgba(148,163,184,0.18)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, midY + 0.5);
+    ctx.lineTo(displayWidth, midY + 0.5);
+    ctx.stroke();
+
+    if (activeTotalMs > 0) {
+      ctx.strokeStyle = "rgba(148,163,184,0.26)";
+      ctx.lineWidth = 1;
+      for (let tickMs = RECORDER_TIMELINE_TICK_MS; tickMs < activeTotalMs; tickMs += RECORDER_TIMELINE_TICK_MS) {
+        const x = (tickMs / activeTotalMs) * displayWidth;
+        ctx.beginPath();
+        ctx.moveTo(x + 0.5, 2);
+        ctx.lineTo(x + 0.5, displayHeight - 2);
+        ctx.stroke();
+      }
+
+      const peaks = sampleRecorderWaveform(recorderState.waveformPeaks, Math.max(1, Math.floor(displayWidth / 2)));
+      if (peaks.length) {
+        ctx.strokeStyle = recorderState.isRecording ? "rgba(248,113,113,0.88)" : "rgba(248,250,252,0.82)";
+        ctx.lineWidth = 1;
+        peaks.forEach((peak, index) => {
+          const normalized = Math.max(0.04, Math.min(1, peak || 0));
+          const x = (index / Math.max(1, peaks.length - 1)) * displayWidth;
+          const halfHeight = Math.max(1, normalized * (displayHeight * 0.42));
+          ctx.beginPath();
+          ctx.moveTo(x + 0.5, midY - halfHeight);
+          ctx.lineTo(x + 0.5, midY + halfHeight);
+          ctx.stroke();
+        });
+      }
+
+      const cursorMs = recorderState.isRecording ? recorderState.durationMs : getRecorderCursorMs();
+      const playheadX = Math.max(0, Math.min(displayWidth, (cursorMs / activeTotalMs) * displayWidth));
+      ctx.strokeStyle = recorderState.isRecording ? "#ef4444" : "rgba(34,197,94,0.95)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(playheadX + 0.5, 0);
+      ctx.lineTo(playheadX + 0.5, displayHeight);
+      ctx.stroke();
+    }
+  }
+
+  function buildRecorderFilename() {
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+    return `tonemap-take-${stamp}.wav`;
+  }
+
+  function mergeRecorderChunks(chunks, totalSamples) {
+    const merged = new Float32Array(totalSamples);
+    let offset = 0;
+    for (const chunk of chunks) {
+      merged.set(chunk, offset);
+      offset += chunk.length;
+    }
+    return merged;
+  }
+
+  function encodeRecorderWav(samples, wavSampleRate) {
+    const buffer = new ArrayBuffer(44 + samples.length * 2);
+    const view = new DataView(buffer);
+    const writeString = (offset, value) => {
+      for (let i = 0; i < value.length; i += 1) {
+        view.setUint8(offset + i, value.charCodeAt(i));
+      }
+    };
+    writeString(0, "RIFF");
+    view.setUint32(4, 36 + samples.length * 2, true);
+    writeString(8, "WAVE");
+    writeString(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, wavSampleRate, true);
+    view.setUint32(28, wavSampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, "data");
+    view.setUint32(40, samples.length * 2, true);
+    let offset = 44;
+    for (let i = 0; i < samples.length; i += 1) {
+      const sample = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      offset += 2;
+    }
+    return new Blob([buffer], { type: "audio/wav" });
+  }
+
+  function clearRecorderTake() {
+    recorderState.currentBlob = null;
+    recorderState.downloadName = "";
+    recorderState.pcmData = null;
+    recorderState.waveformPeaks = [];
+    recorderState.durationMs = 0;
+    recorderState.playbackOffsetMs = 0;
+    recorderState.sampleRate = 0;
+  }
+
+  function stopRecorderCaptureGraph() {
+    if (recorderProcessorNode) {
+      recorderProcessorNode.onaudioprocess = null;
+      try {
+        recorderProcessorNode.disconnect();
+      } catch (err) {
+        console.warn("Recorder processor disconnect failed:", err);
+      }
+      recorderProcessorNode = null;
+    }
+    if (recorderMonitorGainNode) {
+      try {
+        recorderMonitorGainNode.disconnect();
+      } catch (err) {
+        console.warn("Recorder monitor disconnect failed:", err);
+      }
+      recorderMonitorGainNode = null;
+    }
+  }
+
+  function detachAudioContextStateListener(ctx) {
+    if (!ctx) return;
+    try {
+      if (typeof ctx.removeEventListener === "function") {
+        ctx.removeEventListener("statechange", onAudioContextStateChange);
+      }
+    } catch (err) {
+      console.warn("AudioContext listener removal failed:", err);
+    }
+  }
+
+  function disposeAnalysisGraph() {
+    stopRecorderCaptureGraph();
+    if (playbackSourceNode) {
+      playbackSourceNode.onended = null;
+      try {
+        playbackSourceNode.stop();
+      } catch (err) {
+        console.warn("Playback stop failed:", err);
+      }
+      try {
+        playbackSourceNode.disconnect();
+      } catch (err) {
+        console.warn("Playback disconnect failed:", err);
+      }
+      playbackSourceNode = null;
+    }
+    if (micSourceNode) {
+      try {
+        micSourceNode.disconnect();
+      } catch (err) {
+        console.warn("Mic source disconnect failed:", err);
+      }
+      micSourceNode = null;
+    }
+    if (analyserNode) {
+      try {
+        analyserNode.disconnect();
+      } catch (err) {
+        console.warn("Analyser disconnect failed:", err);
+      }
+      analyserNode = null;
+    }
+    detector = null;
+    dataBuffer = null;
+    sampleRate = 0;
+    if (audioContext) {
+      const ctxToClose = audioContext;
+      audioContext = null;
+      detachAudioContextStateListener(ctxToClose);
+      ctxToClose.close?.().catch(err => {
+        console.warn("AudioContext close failed:", err);
+      });
+    }
+  }
+
+  function updateRecorderUi() {
+    const hasTake = !!recorderState.currentBlob;
+    if (recordingRecordBtn) {
+      recordingRecordBtn.classList.toggle("is-recording", recorderState.isRecording);
+      recordingRecordBtn.setAttribute("aria-label", recorderState.isRecording ? "Stop recording" : "Start recording");
+      recordingRecordBtn.title = recorderState.isRecording ? "Stop" : "Record";
+    }
+    if (recordingPlayBtn) {
+      recordingPlayBtn.disabled = !hasTake || recorderState.isRecording;
+      recordingPlayBtn.classList.toggle("is-playing", recorderState.isPlaying);
+      recordingPlayBtn.setAttribute("aria-label", recorderState.isPlaying ? "Pause playback" : "Play recording");
+      recordingPlayBtn.title = recorderState.isPlaying ? "Pause" : "Play";
+    }
+    if (recordingDownloadBtn) {
+      recordingDownloadBtn.disabled = !hasTake || recorderState.isRecording;
+    }
+    if (recordingTimelineEmptyEl) {
+      recordingTimelineEmptyEl.hidden = hasTake || recorderState.isRecording;
+      recordingTimelineEmptyEl.textContent = recorderState.isRecording ? "Recording..." : "Quick Recorder";
+    }
+    queueRecorderTimelineDraw();
+  }
+
+  function stopRecording() {
+    if (!recorderState.isRecording) return false;
+    recorderState.isRecording = false;
+    recorderState.autoStopQueued = false;
+    stopRecorderCaptureGraph();
+    if (!recorderState.totalSamples || !recorderState.pcmChunks.length) {
+      recorderState.pcmChunks = [];
+      recorderState.totalSamples = 0;
+      updateRecorderUi();
+      return false;
+    }
+    const merged = mergeRecorderChunks(recorderState.pcmChunks, recorderState.totalSamples);
+    recorderState.pcmChunks = [];
+    recorderState.totalSamples = 0;
+    recorderState.pcmData = merged;
+    recorderState.durationMs = Math.round((merged.length / recorderState.sampleRate) * 1000);
+    recorderState.currentBlob = encodeRecorderWav(merged, recorderState.sampleRate);
+    recorderState.downloadName = buildRecorderFilename();
+    recorderState.playbackOffsetMs = 0;
+    updateRecorderUi();
+    return true;
+  }
+
+  async function startRecording() {
+    setRecorderExpanded(true);
+    if (recorderState.isPlaying || playbackAnalysisActive) {
+      stopMic();
+    }
+    if (!running || analysisSourceMode !== "mic") {
+      await startMic();
+    }
+    if (!running || !audioContext || !micSourceNode || typeof audioContext.createScriptProcessor !== "function") {
+      showMicWarning("Recording is unavailable in this browser.");
+      return;
+    }
+
+    clearRecorderTake();
+    recorderState.isRecording = true;
+    recorderState.autoStopQueued = false;
+    recorderState.pcmChunks = [];
+    recorderState.totalSamples = 0;
+    recorderState.sampleRate = audioContext.sampleRate;
+    recorderState.durationMs = 0;
+    recorderState.waveformPeaks = [];
+    recorderState.spectrumSmoothed = new Float32Array(RECORDER_SPECTRUM_POINTS);
+    recorderState.spectrumFreqBuffer = analyserNode
+      ? new Uint8Array(analyserNode.frequencyBinCount)
+      : null;
+
+    recorderProcessorNode = audioContext.createScriptProcessor(4096, 1, 1);
+    recorderMonitorGainNode = audioContext.createGain();
+    recorderMonitorGainNode.gain.value = 0;
+
+    recorderProcessorNode.onaudioprocess = event => {
+      if (!recorderState.isRecording) return;
+      const input = event.inputBuffer.getChannelData(0);
+      const maxSamples = Math.floor((RECORDER_MAX_DURATION_MS / 1000) * recorderState.sampleRate);
+      let copyLength = input.length;
+      if (recorderState.totalSamples + copyLength > maxSamples) {
+        copyLength = Math.max(0, maxSamples - recorderState.totalSamples);
+      }
+      if (copyLength > 0) {
+        const chunk = new Float32Array(copyLength);
+        chunk.set(input.subarray(0, copyLength));
+        recorderState.pcmChunks.push(chunk);
+        recorderState.totalSamples += chunk.length;
+        let peak = 0;
+        for (let i = 0; i < chunk.length; i += 1) {
+          peak = Math.max(peak, Math.abs(chunk[i]));
+        }
+        recorderState.waveformPeaks.push(peak);
+        recorderState.durationMs = Math.round((recorderState.totalSamples / recorderState.sampleRate) * 1000);
+      }
+      if (!recorderState.autoStopQueued && recorderState.totalSamples >= maxSamples) {
+        recorderState.autoStopQueued = true;
+        window.setTimeout(() => {
+          if (recorderState.isRecording) stopRecording();
+        }, 0);
+      }
+      queueRecorderTimelineDraw();
+    };
+
+    micSourceNode.connect(recorderProcessorNode);
+    recorderProcessorNode.connect(recorderMonitorGainNode);
+    recorderMonitorGainNode.connect(audioContext.destination);
+
+    updateRecorderUi();
+  }
+
+  async function ensurePlaybackAnalysisPipeline() {
+    if (!recorderState.pcmData || !recorderState.sampleRate) return false;
+    audioContext = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: "interactive" });
+    if (typeof audioContext.addEventListener === "function") {
+      audioContext.addEventListener("statechange", onAudioContextStateChange);
+    } else {
+      audioContext.onstatechange = onAudioContextStateChange;
+    }
+    analyserNode = audioContext.createAnalyser();
+    analyserNode.fftSize = 2048;
+    analyserNode.smoothingTimeConstant = 0;
+    dataBuffer = new Float32Array(analyserNode.fftSize);
+    detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
+    sampleRate = audioContext.sampleRate;
+    try {
+      await audioContext.resume?.();
+    } catch (err) {
+      console.warn("Playback AudioContext resume failed:", err);
+    }
+    return true;
+  }
+
+  function pauseRecorderPlayback({ resetCursor = false } = {}) {
+    if (recorderState.isPlaying) {
+      recorderState.playbackOffsetMs = Math.min(
+        recorderState.durationMs,
+        recorderState.playbackOffsetMs + (performance.now() - recorderState.playbackStartedAtMs)
+      );
+    }
+    if (resetCursor) {
+      recorderState.playbackOffsetMs = 0;
+    }
+    recorderState.isPlaying = false;
+    playbackAnalysisActive = false;
+    analysisSourceMode = "mic";
+    disposeAnalysisGraph();
+    updateRecorderUi();
+  }
+
+  async function startRecorderPlayback(offsetMs = recorderState.playbackOffsetMs) {
+    if (!recorderState.pcmData || recorderState.durationMs <= 0) return;
+    if (recorderState.isRecording) {
+      stopRecording();
+    }
+    if (running) {
+      stopMic();
+    }
+    if (playbackAnalysisActive) {
+      pauseRecorderPlayback({ resetCursor: false });
+    }
+    const ready = await ensurePlaybackAnalysisPipeline();
+    if (!ready || !audioContext || !analyserNode) return;
+
+    const playbackBuffer = audioContext.createBuffer(1, recorderState.pcmData.length, recorderState.sampleRate);
+    playbackBuffer.copyToChannel(recorderState.pcmData, 0);
+
+    playbackSourceNode = audioContext.createBufferSource();
+    playbackSourceNode.buffer = playbackBuffer;
+    playbackSourceNode.connect(analyserNode);
+    analyserNode.connect(audioContext.destination);
+
+    recorderState.playbackOffsetMs = Math.max(0, Math.min(recorderState.durationMs, offsetMs));
+    recorderState.playbackStartedAtMs = performance.now();
+    recorderState.isPlaying = true;
+    playbackAnalysisActive = true;
+    analysisSourceMode = "playback";
+    lastFrameTime = nowMs();
+
+    const sourceAtStart = playbackSourceNode;
+    sourceAtStart.onended = () => {
+      if (playbackSourceNode !== sourceAtStart) return;
+      recorderState.isPlaying = false;
+      recorderState.playbackOffsetMs = 0;
+      playbackAnalysisActive = false;
+      analysisSourceMode = "mic";
+      disposeAnalysisGraph();
+      updateRecorderUi();
+    };
+
+    sourceAtStart.start(0, recorderState.playbackOffsetMs / 1000);
+    tick();
+    updateRecorderUi();
+  }
+
+  async function toggleRecorderPlayback() {
+    if (recorderState.isPlaying) {
+      pauseRecorderPlayback();
+      return;
+    }
+    await startRecorderPlayback();
+  }
+
+  function downloadRecorderTake() {
+    if (!recorderState.currentBlob) return;
+    const url = URL.createObjectURL(recorderState.currentBlob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = recorderState.downloadName || buildRecorderFilename();
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  function seekRecorderTo(clientX) {
+    if (!recordingTimelineCanvas || !recorderState.durationMs) return;
+    const rect = recordingTimelineCanvas.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / Math.max(1, rect.width)));
+    const nextOffset = recorderState.durationMs * ratio;
+    const shouldResume = recorderState.isPlaying;
+    if (shouldResume) {
+      pauseRecorderPlayback({ resetCursor: false });
+    }
+    recorderState.playbackOffsetMs = nextOffset;
+    updateRecorderUi();
+    if (shouldResume) {
+      void startRecorderPlayback(nextOffset);
+      return;
+    }
+    queueRecorderTimelineDraw();
   }
 
   const MAIN_MIC_PAUSE_SVG = '<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="M10,8h4v16h-4V8z M18,8v16h4V8H18z"/></svg>';
@@ -8768,19 +9735,19 @@
   let volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
 
   function tick() {
-    if (!running) return;
+    if (!running && !playbackAnalysisActive) return;
 
     if (!analyserNode || !dataBuffer || !detector) {
       handleMicLost("missing audio pipeline", { disableMic: false, message: "Mic unavailable — paused" });
       return;
     }
 
-    if (!isMicStreamLive(micStream)) {
+    if (analysisSourceMode === "mic" && !isMicStreamLive(micStream)) {
       handleMicLost("inactive stream", { disableMic: false, message: "Mic unavailable — paused" });
       return;
     }
 
-    if (audioContext && audioContext.state !== "running" && document.visibilityState === "visible") {
+    if (analysisSourceMode === "mic" && audioContext && audioContext.state !== "running" && document.visibilityState === "visible") {
       void attemptMicRecovery(`audio context ${audioContext.state || "unknown"}`);
     }
 
@@ -8814,6 +9781,7 @@
       !pitchValid &&
       clarity < 0.2;
     if (
+      analysisSourceMode === "mic" &&
       micHealthySinceStart &&
       runtimeMs >= MIC_STALL_GRACE_MS &&
       document.visibilityState === "visible" &&
@@ -8975,7 +9943,9 @@
       quietSignal
     );
 
-    handleUsageTick({ noteDetected: noteDetectedThisFrame, nowT: nowT });
+    if (analysisSourceMode === "mic") {
+      handleUsageTick({ noteDetected: noteDetectedThisFrame, nowT: nowT });
+    }
 
     renderHeatmap();
     if (noteViewActive) {
@@ -8985,10 +9955,21 @@
   }
 
   async function startMic() {
+    const startToken = ++micStartRequestToken;
     try {
       micDisabled = false;
       resetMicHealthWatchdog();
-      
+
+      const audioConstraints = {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      };
+
+      // On affected Safari builds, the shadow stream must open before any audio graph setup.
+      await applySafariEchoBugFix();
+      if (startToken !== micStartRequestToken || running) return;
+
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
@@ -8998,32 +9979,31 @@
         audioContext.onstatechange = onAudioContextStateChange;
       }
 
-      const audioConstraints = {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false
-      };
-
       micStream = await navigator.mediaDevices.getUserMedia({
         audio: audioConstraints
       });
+      if (startToken !== micStartRequestToken || running) {
+        micStream.getTracks().forEach(track => track.stop());
+        micStream = null;
+        disposeAnalysisGraph();
+        return;
+      }
       attachMicStreamWatchers(micStream);
-      
-      // Apply Safari echo bug fix (persistent shadow stream)
-      applySafariEchoBugFix();
 
-      const source = audioContext.createMediaStreamSource(micStream);
+      micSourceNode = audioContext.createMediaStreamSource(micStream);
 
       analyserNode = audioContext.createAnalyser();
       analyserNode.fftSize = 2048;
       analyserNode.smoothingTimeConstant = 0;
-      source.connect(analyserNode);
+      micSourceNode.connect(analyserNode);
 
       sampleRate = audioContext.sampleRate;
       dataBuffer = new Float32Array(analyserNode.fftSize);
 
       detector = PitchDetector.forFloat32Array(analyserNode.fftSize);
       micStartTimeMs = nowMs();
+      analysisSourceMode = "mic";
+      playbackAnalysisActive = false;
 
       running = true;
       syncUsageLock();
@@ -9058,6 +10038,7 @@
       tick();
     } catch (err) {
       console.error(err);
+      disposeAnalysisGraph();
       running = false;
       micDisabled = true;
       resetMicHealthWatchdog();
@@ -9069,7 +10050,12 @@
   }
 
   function stopMic({ markDisabled = false } = {}) {
+    micStartRequestToken += 1;
     running = false;
+    playbackAnalysisActive = false;
+    analysisSourceMode = "mic";
+    recorderState.isPlaying = false;
+    recorderState.playbackOffsetMs = 0;
     cancelSafariEchoBugFix();
     noteViewRenderState.programmaticScrollLeft = null;
     noteViewRenderState.scrollLerpX = null;
@@ -9089,31 +10075,10 @@
       micStream.getTracks().forEach(track => track.stop());
       micStream = null;
     }
-    if (analyserNode) {
-      try {
-        analyserNode.disconnect();
-      } catch (err) {
-        console.warn("Analyser disconnect failed:", err);
-      }
-      analyserNode = null;
+    if (recorderState.isRecording) {
+      stopRecording();
     }
-    detector = null;
-    dataBuffer = null;
-    sampleRate = 0;
-    if (audioContext) {
-      try {
-        if (typeof audioContext.removeEventListener === "function") {
-          audioContext.removeEventListener("statechange", onAudioContextStateChange);
-        }
-      } catch (err) {
-        console.warn("AudioContext listener removal failed:", err);
-      }
-      const ctxToClose = audioContext;
-      audioContext = null;
-      ctxToClose.close?.().catch(err => {
-        console.warn("AudioContext close failed:", err);
-      });
-    }
+    disposeAnalysisGraph();
 
     setMicUiRunningState(false);
     micStartTimeMs = 0;
@@ -9237,10 +10202,10 @@
    * EVENT LISTENERS
    **********************/
   function handleMicToggle() {
-    if (running) {
+    if (running || playbackAnalysisActive) {
       stopMic();
     } else {
-      startMic();
+      void startMic();
     }
   }
 
@@ -9281,6 +10246,46 @@
 
   micBtn.addEventListener("click", handleMicToggle);
   overlayPlayBtn.addEventListener("click", handleMicToggle);
+
+  if (recordingLauncherEl) {
+    recordingLauncherEl.addEventListener("click", () => {
+      setRecorderExpanded(true);
+    });
+  }
+
+  if (recordingCollapseBtn) {
+    recordingCollapseBtn.addEventListener("click", () => {
+      collapseRecorderUi();
+    });
+  }
+
+  if (recordingRecordBtn) {
+    recordingRecordBtn.addEventListener("click", async () => {
+      if (recorderState.isRecording) {
+        stopRecording();
+        return;
+      }
+      await startRecording();
+    });
+  }
+
+  if (recordingPlayBtn) {
+    recordingPlayBtn.addEventListener("click", () => {
+      void toggleRecorderPlayback();
+    });
+  }
+
+  if (recordingDownloadBtn) {
+    recordingDownloadBtn.addEventListener("click", () => {
+      downloadRecorderTake();
+    });
+  }
+
+  if (recordingTimelineCanvas) {
+    recordingTimelineCanvas.addEventListener("pointerdown", event => {
+      seekRecorderTo(event.clientX);
+    });
+  }
 
   resetBtn.addEventListener("click", () => {
     handleResetAction();
@@ -9792,6 +10797,22 @@
       return;
     }
 
+    if (key === "z") {
+      event.preventDefault();
+      if (recorderState.isRecording) {
+        stopRecording();
+      } else {
+        void startRecording();
+      }
+      return;
+    }
+
+    if (key === "x") {
+      event.preventDefault();
+      void toggleRecorderPlayback();
+      return;
+    }
+
     if (event.code === "BracketRight") {
       event.preventDefault();
       setEdgeKeyActive(event.code, true);
@@ -10184,6 +11205,14 @@
   syncFocusModeButton();
   applyFocusModeClass();
   rebuildAll({forceDefaultRange:true});
+  setRecorderExpanded(false, { skipTip: true });
+  updateRecorderUi();
+  queueRecorderTimelineDraw();
+  if (recordingTimelineCanvas && window.ResizeObserver) {
+    new ResizeObserver(() => {
+      queueRecorderTimelineDraw();
+    }).observe(recordingTimelineCanvas);
+  }
 
   dbgRange.textContent = RANGE_GATE_TEXT;
   dbgFft.textContent   = "2048";
