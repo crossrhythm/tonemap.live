@@ -6891,8 +6891,49 @@
     ctx.fillStyle = "rgba(2,6,23,0.18)";
     ctx.fillRect(0, 0, displayWidth, displayHeight);
 
+    if (recorderState.isRecording) {
+      if (analyserNode && recorderState.spectrumFreqBuffer && recorderState.spectrumSmoothed) {
+        analyserNode.getByteFrequencyData(recorderState.spectrumFreqBuffer);
+
+        const binHz = sampleRate / analyserNode.fftSize;
+        const logMin = Math.log(RECORDER_SPECTRUM_MIN_HZ);
+        const logMax = Math.log(RECORDER_SPECTRUM_MAX_HZ);
+
+        for (let i = 0; i < RECORDER_SPECTRUM_POINTS; i++) {
+          const freq = Math.exp(logMin + (logMax - logMin) * (i / (RECORDER_SPECTRUM_POINTS - 1)));
+          const bin = Math.min(analyserNode.frequencyBinCount - 1, Math.round(freq / binHz));
+          const raw = recorderState.spectrumFreqBuffer[bin] / 255;
+          recorderState.spectrumSmoothed[i] += (raw - recorderState.spectrumSmoothed[i]) * RECORDER_SPECTRUM_EMA_ALPHA;
+        }
+
+        const pts = [];
+        for (let i = 0; i < RECORDER_SPECTRUM_POINTS; i++) {
+          pts.push({
+            x: (i / (RECORDER_SPECTRUM_POINTS - 1)) * displayWidth,
+            y: displayHeight - 1 - recorderState.spectrumSmoothed[i] * (displayHeight - 2),
+          });
+        }
+
+        ctx.strokeStyle = "rgba(248,113,113,0.88)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length - 1; i++) {
+          const mx = (pts[i].x + pts[i + 1].x) / 2;
+          const my = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+        }
+        ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        ctx.stroke();
+      }
+
+      // Self-sustain at ~60fps while recording
+      queueRecorderTimelineDraw();
+      return;
+    }
+
     const totalMs = recorderState.durationMs;
-    const activeTotalMs = recorderState.isRecording ? Math.max(recorderState.durationMs, 1000) : totalMs;
+    const activeTotalMs = totalMs;
     const midY = Math.round(displayHeight / 2);
     ctx.strokeStyle = "rgba(148,163,184,0.18)";
     ctx.lineWidth = 1;
@@ -6914,7 +6955,7 @@
 
       const peaks = sampleRecorderWaveform(recorderState.waveformPeaks, Math.max(1, Math.floor(displayWidth / 2)));
       if (peaks.length) {
-        ctx.strokeStyle = recorderState.isRecording ? "rgba(248,113,113,0.88)" : "rgba(248,250,252,0.82)";
+        ctx.strokeStyle = "rgba(248,250,252,0.82)";
         ctx.lineWidth = 1;
         peaks.forEach((peak, index) => {
           const normalized = Math.max(0.04, Math.min(1, peak || 0));
@@ -6927,9 +6968,8 @@
         });
       }
 
-      const cursorMs = recorderState.isRecording ? recorderState.durationMs : getRecorderCursorMs();
-      const playheadX = Math.max(0, Math.min(displayWidth, (cursorMs / activeTotalMs) * displayWidth));
-      ctx.strokeStyle = recorderState.isRecording ? "#ef4444" : "rgba(34,197,94,0.95)";
+      const playheadX = Math.max(0, Math.min(displayWidth, (getRecorderCursorMs() / activeTotalMs) * displayWidth));
+      ctx.strokeStyle = "rgba(34,197,94,0.95)";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(playheadX + 0.5, 0);
