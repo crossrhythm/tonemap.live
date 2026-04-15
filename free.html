@@ -3999,6 +3999,31 @@
   let safariShadowStream = null;
   let safariEchoFixApplied = false;
 
+  function updateSafariEchoFixStatus(state) {
+    const statusRow = document.getElementById('safariFixStatusRow');
+    const statusVal = document.getElementById('dbgSafariFix');
+    if (!statusRow || !statusVal) return;
+
+    if (!isSafariEchoBug) {
+      statusRow.style.display = 'none';
+      statusVal.textContent = 'Unavailable';
+      return;
+    }
+
+    statusRow.style.display = '';
+
+    if (state === 'applied') {
+      statusVal.textContent = 'Applied (persistent)';
+      return;
+    }
+    if (state === 'failed') {
+      statusVal.textContent = 'Failed';
+      return;
+    }
+
+    statusVal.textContent = 'Standby';
+  }
+
   function detectSafariEchoBug() {
     const ua = navigator.userAgent;
     // Check for Safari (not Chrome/Chromium)
@@ -4020,24 +4045,29 @@
   // Apply shadow stream to prevent Safari echo bug
   // Keep shadow stream with echoCancellation=true open indefinitely
   async function applySafariEchoBugFix() {
-    if (!isSafariEchoBug) return;
+    if (!isSafariEchoBug) return false;
 
-    safariEchoFixApplied = true;
+    if (safariShadowStream && isMicStreamLive(safariShadowStream)) {
+      safariEchoFixApplied = true;
+      updateSafariEchoFixStatus('applied');
+      return true;
+    }
+
     console.log('[Tonemap] Safari echo bugfix: opening persistent shadow stream');
-
-    // Update status display
-    const statusRow = document.getElementById('safariFixStatusRow');
-    const statusVal = document.getElementById('dbgSafariFix');
-    if (statusRow) statusRow.style.display = '';
-    if (statusVal) statusVal.textContent = 'Applied (persistent)';
 
     try {
       safariShadowStream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
       });
+      safariEchoFixApplied = true;
+      updateSafariEchoFixStatus('applied');
       console.log('[Tonemap] Safari echo bugfix: shadow stream opened (will stay open)');
+      return true;
     } catch (err) {
+      safariEchoFixApplied = false;
+      updateSafariEchoFixStatus('failed');
       console.warn('[Tonemap] Safari echo bugfix: shadow stream failed', err);
+      return false;
     }
   }
 
@@ -4047,6 +4077,8 @@
       safariShadowStream = null;
       console.log('[Tonemap] Safari echo bugfix: shadow stream closed');
     }
+    safariEchoFixApplied = false;
+    updateSafariEchoFixStatus('standby');
   }
 
   // Detect Safari echo bug on load
@@ -4055,6 +4087,7 @@
   if (isSafariEchoBug) {
     console.log('[Tonemap] Safari echo bug detected (26.4+) - automatic fix will be applied on mic start');
   }
+  updateSafariEchoFixStatus('standby');
 
   /*************
    * SCROLL FADE
@@ -4427,6 +4460,7 @@
 
   let running   = false;
   let micStream = null;
+  let micStartRequestToken = 0;
   let wakeLockSentinel = null;
   let noSleepAudioEl = null;
   let micStartTimeMs = 0;
@@ -5516,8 +5550,8 @@
       summary: "Automatic workaround for a Safari 26.4+ issue where pitch detection reads ~5% high for the first several seconds after starting the microphone.",
       detail: [
         "<strong>The Issue:</strong> Safari 26.4+ has a bug where, with echoCancellation=false, the AudioContext applies unexpected time-stretching during mic startup, causing pitch to read approximately 5% sharp (a semitone) for 4-10 seconds.",
-        "<strong>The Fix:</strong> Tonemap automatically applies brief 'shadow' echo-cancellation pulses at startup that prevent the bug from activating, without affecting audio quality.",
-        "<strong>Status:</strong> When this fix is active, you'll see 'Safari Bugfix: Applied' in the Status panel under System.",
+        "<strong>The Fix:</strong> On affected Safari builds, Tonemap first opens a small hidden 'shadow' microphone stream with echoCancellation enabled, then starts the real analysis stream with echoCancellation disabled while keeping the shadow stream alive in the background.",
+        "<strong>Status:</strong> The Status panel shows Standby before mic start, Applied while the shadow stream is active, and Failed if Safari blocks the workaround.",
         "<strong>No action required:</strong> The fix is applied automatically on affected Safari versions. Your audio path remains clean (echoCancellation=false on the main stream)."
       ]
     }
@@ -9204,13 +9238,24 @@
   }
 
   async function startMic() {
+    const startToken = ++micStartRequestToken;
     try {
       micDisabled = false;
       resetMicHealthWatchdog();
       noteViewScrollBackCount = 0;
       noteViewScrollBackLastMs = 0;
       noteViewScrollBackOverlayLastMs = 0;
-      
+
+      const audioConstraints = {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      };
+
+      // On affected Safari builds, the shadow stream must open before any audio graph setup.
+      await applySafariEchoBugFix();
+      if (startToken !== micStartRequestToken || running) return;
+
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
@@ -9220,19 +9265,20 @@
         audioContext.onstatechange = onAudioContextStateChange;
       }
 
-      const audioConstraints = {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false
-      };
-
       micStream = await navigator.mediaDevices.getUserMedia({
         audio: audioConstraints
       });
+      if (startToken !== micStartRequestToken || running) {
+        micStream.getTracks().forEach(track => track.stop());
+        micStream = null;
+        if (audioContext) {
+          const ctxToClose = audioContext;
+          audioContext = null;
+          ctxToClose.close?.().catch(() => {});
+        }
+        return;
+      }
       attachMicStreamWatchers(micStream);
-
-      // Apply Safari echo bug fix (persistent shadow stream)
-      applySafariEchoBugFix();
 
       const source = audioContext.createMediaStreamSource(micStream);
 
@@ -9280,6 +9326,11 @@
       tick();
     } catch (err) {
       console.error(err);
+      if (audioContext) {
+        const ctxToClose = audioContext;
+        audioContext = null;
+        ctxToClose.close?.().catch(() => {});
+      }
       running = false;
       micDisabled = true;
       resetMicHealthWatchdog();
@@ -9291,6 +9342,7 @@
   }
 
   function stopMic({ markDisabled = false } = {}) {
+    micStartRequestToken += 1;
     running = false;
     cancelSafariEchoBugFix();
     noteViewRenderState.programmaticScrollLeft = null;
@@ -9462,7 +9514,7 @@
     if (running) {
       stopMic();
     } else {
-      startMic();
+      void startMic();
     }
   }
 

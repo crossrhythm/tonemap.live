@@ -498,7 +498,6 @@
     width: 100%;
     height: 22px;
     display: block;
-    border-radius: 0.45rem;
     background: rgba(2,6,23,0.26);
     cursor: pointer;
   }
@@ -511,6 +510,24 @@
     letter-spacing: 0.02em;
     color: rgba(248,250,252,0.55);
     pointer-events: none;
+  }
+
+  :root[data-ui-theme="light"] .recording-dock {
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(241,242,244,0.9));
+    border-top-color: rgba(100,116,139,0.2);
+  }
+
+  :root[data-ui-theme="light"] .recorder-btn:hover,
+  :root[data-ui-theme="light"] .recorder-btn:focus-visible {
+    background: rgba(0,0,0,0.07);
+  }
+
+  :root[data-ui-theme="light"] .recording-timeline-canvas {
+    background: rgba(15,23,42,0.07);
+  }
+
+  :root[data-ui-theme="light"] .recording-timeline-empty {
+    color: rgba(15,23,42,0.45);
   }
 
   .recording-tip-overlay {
@@ -545,6 +562,7 @@
 
   .recording-tip-body {
     margin: 0;
+    font-size: 0.82rem;
   }
 
   .recording-tip-overlay.is-visible {
@@ -3195,10 +3213,10 @@
         <button id="recordingCollapseBtn" class="recorder-btn recording-collapse-btn" type="button" aria-label="Close recorder" title="Close recorder">
           <span class="recorder-btn-icon recorder-arrow-icon" aria-hidden="true">&lt;</span>
         </button>
-        <button id="recordingRecordBtn" class="recorder-btn" type="button" aria-label="Start recording" title="Record">
+        <button id="recordingRecordBtn" class="recorder-btn" type="button" aria-label="Start recording" title="Record [Z]">
           <span class="recorder-btn-icon recorder-btn-icon-record" aria-hidden="true"></span>
         </button>
-        <button id="recordingPlayBtn" class="recorder-btn" type="button" aria-label="Play recording" title="Play" disabled>
+        <button id="recordingPlayBtn" class="recorder-btn" type="button" aria-label="Play recording" title="Play [X]" disabled>
           <span class="recorder-btn-icon recorder-btn-icon-play" aria-hidden="true"></span>
         </button>
         <button id="recordingDownloadBtn" class="recorder-btn" type="button" aria-label="Download recording" title="Download" disabled>
@@ -6888,7 +6906,9 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, displayWidth, displayHeight);
 
-    ctx.fillStyle = "rgba(2,6,23,0.18)";
+    const isLightTheme = document.documentElement.dataset.uiTheme === "light";
+
+    ctx.fillStyle = isLightTheme ? "rgba(15,23,42,0.06)" : "rgba(2,6,23,0.18)";
     ctx.fillRect(0, 0, displayWidth, displayHeight);
 
     if (recorderState.isRecording) {
@@ -6907,25 +6927,35 @@
             recorderState.spectrumSmoothed[i] += (raw - recorderState.spectrumSmoothed[i]) * RECORDER_SPECTRUM_EMA_ALPHA;
           }
 
-          const pts = [];
+          const midY = displayHeight / 2;
+          const halfRange = midY - 2;
+          const topPts = [];
+          const botPts = [];
           for (let i = 0; i < RECORDER_SPECTRUM_POINTS; i++) {
-            pts.push({
-              x: (i / (RECORDER_SPECTRUM_POINTS - 1)) * displayWidth,
-              y: displayHeight - 1 - recorderState.spectrumSmoothed[i] * (displayHeight - 2),
-            });
+            const x = (i / (RECORDER_SPECTRUM_POINTS - 1)) * displayWidth;
+            const half = Math.max(0.75, recorderState.spectrumSmoothed[i] * halfRange);
+            topPts.push({ x, y: midY - half });
+            botPts.push({ x, y: midY + half });
           }
 
-          ctx.strokeStyle = "rgba(248,113,113,0.88)";
-          ctx.lineWidth = 1.5;
+          ctx.fillStyle = isLightTheme ? "rgba(71,85,105,0.65)" : "rgba(148,163,184,0.72)";
           ctx.beginPath();
-          ctx.moveTo(pts[0].x, pts[0].y);
-          for (let i = 1; i < pts.length - 1; i++) {
-            const mx = (pts[i].x + pts[i + 1].x) / 2;
-            const my = (pts[i].y + pts[i + 1].y) / 2;
-            ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+          ctx.moveTo(topPts[0].x, topPts[0].y);
+          for (let i = 1; i < topPts.length - 1; i++) {
+            const mx = (topPts[i].x + topPts[i + 1].x) / 2;
+            const my = (topPts[i].y + topPts[i + 1].y) / 2;
+            ctx.quadraticCurveTo(topPts[i].x, topPts[i].y, mx, my);
           }
-          ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
-          ctx.stroke();
+          ctx.lineTo(topPts[topPts.length - 1].x, topPts[topPts.length - 1].y);
+          ctx.lineTo(botPts[botPts.length - 1].x, botPts[botPts.length - 1].y);
+          for (let i = botPts.length - 2; i > 0; i--) {
+            const mx = (botPts[i].x + botPts[i - 1].x) / 2;
+            const my = (botPts[i].y + botPts[i - 1].y) / 2;
+            ctx.quadraticCurveTo(botPts[i].x, botPts[i].y, mx, my);
+          }
+          ctx.lineTo(botPts[0].x, botPts[0].y);
+          ctx.closePath();
+          ctx.fill();
         }
 
         // Self-sustain at ~60fps while recording
@@ -6937,7 +6967,7 @@
     const totalMs = recorderState.durationMs;
     const activeTotalMs = totalMs;
     const midY = Math.round(displayHeight / 2);
-    ctx.strokeStyle = "rgba(148,163,184,0.18)";
+    ctx.strokeStyle = isLightTheme ? "rgba(15,23,42,0.12)" : "rgba(148,163,184,0.18)";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0, midY + 0.5);
@@ -6945,7 +6975,7 @@
     ctx.stroke();
 
     if (activeTotalMs > 0) {
-      ctx.strokeStyle = "rgba(148,163,184,0.26)";
+      ctx.strokeStyle = isLightTheme ? "rgba(15,23,42,0.16)" : "rgba(148,163,184,0.26)";
       ctx.lineWidth = 1;
       for (let tickMs = RECORDER_TIMELINE_TICK_MS; tickMs < activeTotalMs; tickMs += RECORDER_TIMELINE_TICK_MS) {
         const x = (tickMs / activeTotalMs) * displayWidth;
@@ -6955,19 +6985,38 @@
         ctx.stroke();
       }
 
-      const peaks = sampleRecorderWaveform(recorderState.waveformPeaks, Math.max(1, Math.floor(displayWidth / 2)));
-      if (peaks.length) {
-        ctx.strokeStyle = "rgba(248,250,252,0.82)";
-        ctx.lineWidth = 1;
+      const peaks = sampleRecorderWaveform(recorderState.waveformPeaks, Math.max(2, Math.floor(displayWidth / 2)));
+      if (peaks.length >= 2) {
+        const halfRange = midY - 2;
+        const peakMax = peaks.reduce((m, v) => Math.max(m, v || 0), 0);
+        const peakScale = peakMax > 0.001 ? 1 / peakMax : 1;
+        const topPts = [];
+        const botPts = [];
         peaks.forEach((peak, index) => {
-          const normalized = Math.max(0.04, Math.min(1, peak || 0));
-          const x = (index / Math.max(1, peaks.length - 1)) * displayWidth;
-          const halfHeight = Math.max(1, normalized * (displayHeight * 0.42));
-          ctx.beginPath();
-          ctx.moveTo(x + 0.5, midY - halfHeight);
-          ctx.lineTo(x + 0.5, midY + halfHeight);
-          ctx.stroke();
+          const x = (index / (peaks.length - 1)) * displayWidth;
+          const half = Math.max(0.75, Math.min(1, (peak || 0) * peakScale) * halfRange);
+          topPts.push({ x, y: midY - half });
+          botPts.push({ x, y: midY + half });
         });
+
+        ctx.fillStyle = isLightTheme ? "rgba(71,85,105,0.55)" : "rgba(148,163,184,0.6)";
+        ctx.beginPath();
+        ctx.moveTo(topPts[0].x, topPts[0].y);
+        for (let i = 1; i < topPts.length - 1; i++) {
+          const mx = (topPts[i].x + topPts[i + 1].x) / 2;
+          const my = (topPts[i].y + topPts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(topPts[i].x, topPts[i].y, mx, my);
+        }
+        ctx.lineTo(topPts[topPts.length - 1].x, topPts[topPts.length - 1].y);
+        ctx.lineTo(botPts[botPts.length - 1].x, botPts[botPts.length - 1].y);
+        for (let i = botPts.length - 2; i > 0; i--) {
+          const mx = (botPts[i].x + botPts[i - 1].x) / 2;
+          const my = (botPts[i].y + botPts[i - 1].y) / 2;
+          ctx.quadraticCurveTo(botPts[i].x, botPts[i].y, mx, my);
+        }
+        ctx.lineTo(botPts[0].x, botPts[0].y);
+        ctx.closePath();
+        ctx.fill();
       }
 
       const playheadX = Math.max(0, Math.min(displayWidth, (getRecorderCursorMs() / activeTotalMs) * displayWidth));
@@ -6977,6 +7026,10 @@
       ctx.moveTo(playheadX + 0.5, 0);
       ctx.lineTo(playheadX + 0.5, displayHeight);
       ctx.stroke();
+    }
+
+    if (recorderState.isPlaying) {
+      queueRecorderTimelineDraw();
     }
   }
 
@@ -7116,13 +7169,13 @@
     if (recordingRecordBtn) {
       recordingRecordBtn.classList.toggle("is-recording", recorderState.isRecording);
       recordingRecordBtn.setAttribute("aria-label", recorderState.isRecording ? "Stop recording" : "Start recording");
-      recordingRecordBtn.title = recorderState.isRecording ? "Stop" : "Record";
+      recordingRecordBtn.title = recorderState.isRecording ? "Stop [Z]" : "Record [Z]";
     }
     if (recordingPlayBtn) {
       recordingPlayBtn.disabled = !hasTake || recorderState.isRecording;
       recordingPlayBtn.classList.toggle("is-playing", recorderState.isPlaying);
       recordingPlayBtn.setAttribute("aria-label", recorderState.isPlaying ? "Pause playback" : "Play recording");
-      recordingPlayBtn.title = recorderState.isPlaying ? "Pause" : "Play";
+      recordingPlayBtn.title = recorderState.isPlaying ? "Pause [X]" : "Play [X]";
     }
     if (recordingDownloadBtn) {
       recordingDownloadBtn.disabled = !hasTake || recorderState.isRecording;
@@ -7305,6 +7358,7 @@
     sourceAtStart.start(0, recorderState.playbackOffsetMs / 1000);
     tick();
     updateRecorderUi();
+    queueRecorderTimelineDraw();
   }
 
   async function toggleRecorderPlayback() {
