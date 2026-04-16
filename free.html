@@ -3220,12 +3220,6 @@
         </div>
       </div>
     </div>
-    <button class="recording-launcher-shell recording-launcher" type="button"
-            aria-label="Quick Record — Pro feature"
-            data-open-pro-modal data-pro-feature="quickRecord">
-      <span class="recording-launcher-dot"></span>
-      <span class="recorder-arrow-icon" aria-hidden="true">&gt;</span>
-    </button>
   </div>
 
   <!-- RIGHT: CONTROLS / INFO -->
@@ -3826,6 +3820,7 @@
     <div class="pro-modal-body scroll-fade-y">
       <p>Start your <strong>7-day free trial</strong>, then $9.99/year (~83¢/month). Cancel anytime.</p>
       <ul class="pro-modal-features">
+        <li data-feature="quickRecord">Quick Record — Record your playing without leaving the tuner. Review every detail with Tonemap analysis, save the takes worth keeping.</li>
         <li data-feature="sensitivity">Hard Mode — tight deadzone, fast response</li>
         <li data-feature="transposition">All transpositions (Bb, Eb, F, and more)</li>
         <li data-feature="stretch">Medium and Full Railsback stretch tuning</li>
@@ -3833,7 +3828,7 @@
         <li data-feature="history">Long and Unlimited pitch history</li>
         <li data-feature="stainHold">Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
         <li data-feature="rowStart">Rows start with any note</li>
-        <li data-feature="quickRecord">Quick Record — Record your playing without leaving the tuner. Hear every intonation detail, save the takes worth keeping.</li>
+        
       </ul>
       <p class="pro-modal-support">Your subscription supports ongoing development of Tonemap.</p>
     </div>
@@ -9402,7 +9397,8 @@
   function stopMic({ markDisabled = false } = {}) {
     micStartRequestToken += 1;
     running = false;
-    cancelSafariEchoBugFix();
+    // Shadow stream intentionally kept alive — closing it on stop causes Safari to reset its
+    // audio engine, so the next startMic() re-triggers the ~12s high-pitch bug.
     noteViewRenderState.programmaticScrollLeft = null;
     noteViewRenderState.scrollLerpX = null;
     releaseScreenWakeLock();

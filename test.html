@@ -10158,7 +10158,8 @@
     analysisSourceMode = "mic";
     recorderState.isPlaying = false;
     recorderState.playbackOffsetMs = 0;
-    cancelSafariEchoBugFix();
+    // Shadow stream intentionally kept alive — closing it on stop causes Safari to reset its
+    // audio engine, so the next startMic() re-triggers the ~12s high-pitch bug.
     noteViewRenderState.programmaticScrollLeft = null;
     noteViewRenderState.scrollLerpX = null;
     releaseScreenWakeLock();
