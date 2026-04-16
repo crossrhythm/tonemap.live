@@ -3235,7 +3235,7 @@
     </div>
     <div id="recordingTipOverlay" class="recording-tip-overlay" hidden>
       <p class="recording-tip-title">Quick Recorder</p>
-      <p class="recording-tip-body">Record yourself, play it back, and repeat, up to 5 minutes per take. Save any takes you want to keep.  Use shortcut key Z to start/stop recording and X to play/pause.  Be sure your device is not set to "Silent" for playback!</p>
+      <p class="recording-tip-body">Record yourself, play it back, and repeat, up to 5 minutes per take. Save any takes you want to keep.  Be sure your device is not set to "Silent" for playback! <br><br>If you have a keyboard, use shortcut key Z to start/stop recording and X to play/pause.</p>
     </div>
     <div id="recordingLauncherShell" class="recording-launcher-shell">
       <button id="recordingLauncher" class="recording-launcher" type="button" aria-label="Open recorder" title="Recorder">
@@ -4774,10 +4774,11 @@
   const RECORDER_SPECTRUM_MAX_HZ = 8000;
   const RECORDER_SPECTRUM_EMA_ALPHA = 0.15;
   const RECORDER_TIP_STORAGE_KEY = "tonemap.live.recorderTipSeen";
-  const RECORDER_PLAYBACK_GAIN = 3.0;
+  const IS_FIREFOX = /firefox\//i.test(navigator.userAgent);
+  const RECORDER_PLAYBACK_GAIN = IS_FIREFOX ? 1.0 : 3.0;
   const IS_IPAD = /iPad/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const MIC_INPUT_GAIN = IS_IPAD ? 2.0 : 1.25;
+  const MIC_INPUT_GAIN = IS_IPAD ? 2.0 : IS_FIREFOX ? 0.1 : 1.25;
   const MASTER_MIDI_MIN = 0;
   const MASTER_MIDI_MAX = 127;
   let micSourceNode = null;
@@ -4827,6 +4828,7 @@
     downloadName: "",
     playbackOffsetMs: 0,
     playbackStartedAtMs: 0,
+    playbackStartCtxTime: 0,
     spectrumSmoothed: null,
     spectrumFreqBuffer: null,
   };
@@ -6823,7 +6825,7 @@
     recorderState.tipAutoHideTimer = window.setTimeout(() => {
       recorderState.tipAutoHideTimer = null;
       hideRecorderTip();
-    }, 10000);
+    }, 20000);
     recorderState.tipDismissHandler = event => {
       if ((performance.now() - recorderState.tipShownAtMs) < 180) return;
       if (recordingTipOverlayEl.hidden) return;
@@ -6883,8 +6885,8 @@
   }
 
   function getRecorderCursorMs() {
-    if (!recorderState.isPlaying) return recorderState.playbackOffsetMs;
-    const elapsed = performance.now() - recorderState.playbackStartedAtMs;
+    if (!recorderState.isPlaying || !audioContext) return recorderState.playbackOffsetMs;
+    const elapsed = (audioContext.currentTime - recorderState.playbackStartCtxTime) * 1000;
     return Math.min(recorderState.durationMs, recorderState.playbackOffsetMs + elapsed);
   }
 
@@ -7257,6 +7259,9 @@
       if (copyLength > 0) {
         const chunk = new Float32Array(copyLength);
         chunk.set(input.subarray(0, copyLength));
+        if (MIC_INPUT_GAIN !== 1.0) {
+          for (let i = 0; i < chunk.length; i++) chunk[i] *= MIC_INPUT_GAIN;
+        }
         recorderState.pcmChunks.push(chunk);
         recorderState.totalSamples += chunk.length;
         let peak = 0;
@@ -7306,10 +7311,10 @@
 
   function pauseRecorderPlayback({ resetCursor = false } = {}) {
     if (recorderState.isPlaying) {
-      recorderState.playbackOffsetMs = Math.min(
-        recorderState.durationMs,
-        recorderState.playbackOffsetMs + (performance.now() - recorderState.playbackStartedAtMs)
-      );
+      const elapsed = audioContext
+        ? (audioContext.currentTime - recorderState.playbackStartCtxTime) * 1000
+        : performance.now() - recorderState.playbackStartedAtMs;
+      recorderState.playbackOffsetMs = Math.min(recorderState.durationMs, recorderState.playbackOffsetMs + elapsed);
     }
     if (resetCursor) {
       recorderState.playbackOffsetMs = 0;
@@ -7365,6 +7370,7 @@
     };
 
     sourceAtStart.start(0, recorderState.playbackOffsetMs / 1000);
+    recorderState.playbackStartCtxTime = audioContext.currentTime;
     tick();
     updateRecorderUi();
     queueRecorderTimelineDraw();
