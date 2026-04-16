@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 1.7 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 2.0 (update window.APP_VERSION below when bumping release) -->
 <!-- STATUS: Beta/test version for testing on mobile devices -->
 <!-- Once thoroughly tested, copy changes to index.html for production deployment -->
 <!-- Licensed under the MIT License; see LICENSE. -->
@@ -3165,7 +3165,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "1.7";
+  window.APP_VERSION = "2.0";
   // If the user already has a Pro auth cookie, send them straight to /pro.
   // The Worker will do the real HMAC verification; this is just a UX shortcut.
   if (document.cookie.split(';').some(c => c.trim().startsWith('tm_pro='))) {
@@ -3849,7 +3849,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "1.7";
+  const APP_VERSION = window.APP_VERSION || "2.0";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +

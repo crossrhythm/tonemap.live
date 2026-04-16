@@ -123,6 +123,9 @@ async function handleActivatePage(request, env) {
              font-weight: 600; font-size: 1rem; border: none; border-radius: 8px; cursor: pointer; }
     button:hover { opacity: .88; }
     #msg { margin-top: 14px; font-size: .88rem; color: #f87171; min-height: 1.2em; }
+    .card-links { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .card-links a { color: #94a3b8; font-size: .85rem; text-decoration: none; }
+    .card-links a:hover { color: #f8fafc; }
   </style>
 </head>
 <body>
@@ -136,6 +139,10 @@ async function handleActivatePage(request, env) {
       <button type="submit">Activate</button>
       <div id="msg"></div>
     </form>
+    <div class="card-links">
+      <a href="https://polar.sh/purchases">Find your license key on Polar →</a>
+      <a href="/">← Back to Tonemap</a>
+    </div>
   </div>
   <script>
     const form = document.getElementById('form');
