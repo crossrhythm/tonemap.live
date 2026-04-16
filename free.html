@@ -1944,6 +1944,57 @@
     opacity: 0.78;
   }
 
+  .recording-launcher-shell {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 34px;
+    height: 30px;
+    z-index: 35;
+    transition: opacity 220ms ease, transform 220ms ease;
+  }
+  .recording-launcher {
+    width: 34px;
+    height: 30px;
+    border: 2px solid var(--border-dim);
+    border-left: none;
+    border-radius: 0 0.45rem 0.45rem 0;
+    background: var(--bg-panel);
+    cursor: pointer;
+    padding: 0 0 0 3px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 3px;
+    color: var(--text-lite);
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+  .recording-launcher:hover,
+  .recording-launcher:focus-visible {
+    background: color-mix(in srgb, var(--bg-panel) 82%, white);
+    border-color: var(--accent-green);
+    outline: none;
+  }
+  .recording-launcher-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239,68,68,0.4);
+    flex: 0 0 auto;
+  }
+  .recorder-arrow-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 8px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    transform: translateY(-0.5px);
+  }
+
   .pro-modal-overlay {
     position: fixed;
     inset: 0;
@@ -3169,6 +3220,12 @@
         </div>
       </div>
     </div>
+    <button class="recording-launcher-shell recording-launcher" type="button"
+            aria-label="Quick Record — Pro feature"
+            data-open-pro-modal data-pro-feature="quickRecord">
+      <span class="recording-launcher-dot"></span>
+      <span class="recorder-arrow-icon" aria-hidden="true">&gt;</span>
+    </button>
   </div>
 
   <!-- RIGHT: CONTROLS / INFO -->
@@ -3776,6 +3833,7 @@
         <li data-feature="history">Long and Unlimited pitch history</li>
         <li data-feature="stainHold">Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
         <li data-feature="rowStart">Rows start with any note</li>
+        <li data-feature="quickRecord">Quick Record — Record your playing without leaving the tuner. Hear every intonation detail, save the takes worth keeping.</li>
       </ul>
       <p class="pro-modal-support">Your subscription supports ongoing development of Tonemap.</p>
     </div>
