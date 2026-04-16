@@ -140,7 +140,7 @@ async function handleActivatePage(request, env) {
       <div id="msg"></div>
     </form>
     <div class="card-links">
-      <a href="https://polar.sh/purchases">Find your license key on Polar →</a>
+      <a href="https://polar.sh/eevs/portal/request">Find your license key on Polar →</a>
       <a href="/">← Back to Tonemap</a>
     </div>
   </div>
