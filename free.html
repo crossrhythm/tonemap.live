@@ -1856,6 +1856,11 @@
     min-width: 0;
   }
 
+  .opt-no-stream {
+    opacity: 0.38;
+    pointer-events: none;
+  }
+
   .option-field input[type="range"] {
     width: 100%;
   }
@@ -3907,6 +3912,7 @@
   const transpositionSelect = document.getElementById("transpositionSelect");
 
   const volThreshEl   = document.getElementById("volThresh");
+  const optVolumeSensitivityEl = document.getElementById("optVolumeSensitivity");
   const rmsGaugeFillEl = document.getElementById("rmsGaugeFill");
   const rmsGaugeThresholdEl = document.getElementById("rmsGaugeThreshold");
 
@@ -4141,6 +4147,10 @@
     console.log('[Tonemap] Safari echo bug detected (26.4+) - automatic fix will be applied on mic start');
   }
   updateSafariEchoFixStatus('standby');
+
+  const IS_IPAD = /iPad/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const MIC_INPUT_GAIN = IS_IPAD ? 2.0 : 1.25;
 
   /*************
    * SCROLL FADE
@@ -6750,6 +6760,8 @@
     if (overlayPlayBtn) {
       overlayPlayBtn.textContent = on ? "⏸︎" : "▶︎";
     }
+    if (optVolumeSensitivityEl) optVolumeSensitivityEl.classList.toggle("opt-no-stream", !on);
+    if (volThreshEl) volThreshEl.disabled = !on;
   }
 
   function showMicWarning(message) {
@@ -9335,10 +9347,13 @@
 
       const source = audioContext.createMediaStreamSource(micStream);
 
+      const micGainNode = audioContext.createGain();
+      micGainNode.gain.value = MIC_INPUT_GAIN;
       analyserNode = audioContext.createAnalyser();
       analyserNode.fftSize = 2048;
       analyserNode.smoothingTimeConstant = 0;
-      source.connect(analyserNode);
+      source.connect(micGainNode);
+      micGainNode.connect(analyserNode);
 
       sampleRate = audioContext.sampleRate;
       dataBuffer = new Float32Array(analyserNode.fftSize);
