@@ -7,6 +7,7 @@
  */
 
 const COOKIE_NAME      = 'tm_pro';
+const FLAG_COOKIE_NAME = 'tm_pro_flag';
 const COOKIE_MAX_AGE   = 365 * 24 * 60 * 60;
 const POLAR_VALIDATE   = 'https://api.polar.sh/v1/license-keys/validate';
 const POLAR_ACTIVATE   = 'https://api.polar.sh/v1/license-keys/activate';
@@ -68,11 +69,10 @@ async function handleActivate(request, env) {
   }
 
   const token = await createToken(licenseKey, Date.now(), check.activationId, env.HMAC_SECRET);
-  const cookie = buildAuthCookie(token);
 
   return new Response(null, {
     status: 302,
-    headers: { Location: '/pro', 'Set-Cookie': cookie },
+    headers: authSetHeaders({ Location: '/pro' }, buildAuthCookie(token)),
   });
 }
 
@@ -92,10 +92,9 @@ async function handleActivatePage(request, env) {
         const check = await activateLicenseKey(grantedKey.key, env);
         if (check.valid) {
           const token = await createToken(grantedKey.key, Date.now(), check.activationId, env.HMAC_SECRET);
-          const cookie = buildAuthCookie(token);
           return new Response(null, {
             status: 302,
-            headers: { Location: '/pro', 'Set-Cookie': cookie },
+            headers: authSetHeaders({ Location: '/pro' }, buildAuthCookie(token)),
           });
         }
       }
@@ -188,10 +187,7 @@ async function handlePro(request, env) {
     if (!recheck.networkError && !recheck.valid) {
       return new Response(null, {
         status: 302,
-        headers: {
-          Location: '/activate',
-          'Set-Cookie': clearAuthCookie(),
-        },
+        headers: authClearHeaders({ Location: '/activate' }),
       });
     }
 
@@ -203,10 +199,7 @@ async function handlePro(request, env) {
     if (recheck.networkError && ageMs > (REVALIDATE_INTERVAL_MS + REVALIDATE_GRACE_MS)) {
       return new Response(null, {
         status: 302,
-        headers: {
-          Location: '/activate',
-          'Set-Cookie': clearAuthCookie(),
-        },
+        headers: authClearHeaders({ Location: '/activate' }),
       });
     }
   }
@@ -216,10 +209,13 @@ async function handlePro(request, env) {
     return new Response('Pro content not available — contact support.', { status: 503 });
   }
 
-  const headers = { 'Content-Type': 'text/html; charset=utf-8' };
+  const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' });
   if (refreshedCookie) {
-    headers['Set-Cookie'] = refreshedCookie;
+    headers.append('Set-Cookie', refreshedCookie);
   }
+  // Always (re)assert the flag cookie so existing Pro users are backfilled
+  // on their next /pro visit. Idempotent; not a security boundary.
+  headers.append('Set-Cookie', buildFlagCookie());
 
   return new Response(proHtml, {
     headers,
@@ -286,7 +282,7 @@ async function handleDeactivate(request, env) {
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
-    headers: { 'Content-Type': 'application/json', 'Set-Cookie': clearAuthCookie() },
+    headers: authClearHeaders({ 'Content-Type': 'application/json' }),
   });
 }
 
@@ -427,6 +423,43 @@ function clearAuthCookie() {
     'Secure',
     'SameSite=Lax',
   ].join('; ');
+}
+
+// Non-HttpOnly sibling read by index.html to decide whether to redirect
+// to /pro. Not a security boundary — real auth is the HttpOnly tm_pro
+// cookie validated by HMAC in handlePro().
+function buildFlagCookie() {
+  return [
+    `${FLAG_COOKIE_NAME}=1`,
+    'Path=/',
+    `Max-Age=${COOKIE_MAX_AGE}`,
+    'Secure',
+    'SameSite=Lax',
+  ].join('; ');
+}
+
+function clearFlagCookie() {
+  return [
+    `${FLAG_COOKIE_NAME}=`,
+    'Path=/',
+    'Max-Age=0',
+    'Secure',
+    'SameSite=Lax',
+  ].join('; ');
+}
+
+function authSetHeaders(extra, authCookie) {
+  const headers = new Headers(extra || {});
+  headers.append('Set-Cookie', authCookie);
+  headers.append('Set-Cookie', buildFlagCookie());
+  return headers;
+}
+
+function authClearHeaders(extra) {
+  const headers = new Headers(extra || {});
+  headers.append('Set-Cookie', clearAuthCookie());
+  headers.append('Set-Cookie', clearFlagCookie());
+  return headers;
 }
 
 function getCookie(request, name) {

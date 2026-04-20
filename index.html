@@ -3166,9 +3166,11 @@
 
 <script>
   window.APP_VERSION = "2.0";
-  // If the user already has a Pro auth cookie, send them straight to /pro.
-  // The Worker will do the real HMAC verification; this is just a UX shortcut.
-  if (document.cookie.split(';').some(c => c.trim().startsWith('tm_pro='))) {
+  // If the user has the non-HttpOnly Pro flag cookie, send them straight to
+  // /pro. The real HttpOnly HMAC cookie (tm_pro) isn't visible to JS, so the
+  // Worker sets tm_pro_flag=1 alongside it as a client-readable hint. Worker
+  // still does full HMAC verification at /pro; this is just a UX shortcut.
+  if (document.cookie.split(';').some(c => c.trim().startsWith('tm_pro_flag='))) {
     window.location.replace('/pro');
   }
 </script>
