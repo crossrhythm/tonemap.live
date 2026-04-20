@@ -149,10 +149,16 @@
 
   const IS_IPAD = /iPad/.test(UA) ||
     (PLATFORM === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const IS_IPHONE = /iPhone|iPod/.test(UA);
   const IS_FIREFOX = /firefox\//i.test(UA);
 
   function detectSafariEchoBug() {
-    if (!/^((?!chrome|android).)*safari/i.test(UA)) return false;
+    // macOS Safari only — confirmed via mictest pitch + shadow-stream A/B on iOS/iPadOS.
+    const isMacSafari = /Macintosh/.test(UA)
+      && /^((?!chrome|android).)*safari/i.test(UA)
+      && !/iPhone|iPad|iPod/.test(UA)
+      && !(PLATFORM === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!isMacSafari) return false;
     const m = UA.match(/Version\/(\d+)\.(\d+)/);
     if (!m) return false;
     const major = parseInt(m[1], 10);
@@ -161,8 +167,9 @@
   }
   const IS_SAFARI_ECHO_BUG = detectSafariEchoBug();
 
-  // Mirrors the formula in index.html.
-  const MIC_INPUT_GAIN = (IS_IPAD || IS_SAFARI_ECHO_BUG) ? 2.0 : 1.0;
+  // Mirrors production: echo-bug compensation only.
+  // 10× recovers most of the ~13.3× shadow-stream attenuation on macOS Safari 26.4+.
+  const MIC_INPUT_GAIN = IS_SAFARI_ECHO_BUG ? 10.0 : 1.0;
 
   // Browser-family classification. iOS "Chrome" / "Firefox" are WebKit wrappers
   // so we treat anything Apple-mobile + no Firefox/CriOS match as Safari, and
@@ -188,7 +195,16 @@
     safari:   5.0,
     other:    1.0
   };
-  const PER_BROWSER_GAIN = PER_BROWSER_GAIN_MAP[BROWSER_FAMILY] ?? 1.0;
+  const IS_MACOS_DESKTOP = /Macintosh/.test(UA)
+    && !/iPhone|iPad|iPod/.test(UA)
+    && !(PLATFORM === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // macOS Chromium ships raw mic at ~Firefox-reference level already, so no per-browser boost there.
+  const PER_BROWSER_GAIN = (IS_MACOS_DESKTOP && BROWSER_FAMILY === 'chromium')
+    ? 1.0
+    : (PER_BROWSER_GAIN_MAP[BROWSER_FAMILY] ?? 1.0);
+
+  // Mirrors production: platform-aware default for the user-facing mic-gain slider.
+  const DEFAULT_MIC_GAIN = ((IS_IPAD || IS_IPHONE) ? 2.0 : 1.0) * PER_BROWSER_GAIN;
 
   // Stored user micGain (informational — forced to 1.0 for the test).
   function readStoredUserMicGain() {
@@ -239,7 +255,7 @@
   }
   function row(k, v) { return `<tr><th>${k}</th><td>${v}</td></tr>`; }
   const envTable = document.getElementById("envTable");
-  const EFFECTIVE_GAIN = MIC_INPUT_GAIN * PER_BROWSER_GAIN;
+  const EFFECTIVE_GAIN = MIC_INPUT_GAIN * DEFAULT_MIC_GAIN;
   envTable.innerHTML = [
     row("User Agent", `<code>${UA.replace(/</g, '&lt;')}</code>`),
     row("Platform", `<code>${PLATFORM || '—'}</code>`),
@@ -247,12 +263,14 @@
     row("Parsed browser", parseBrowser()),
     row("Browser family", `<code>${BROWSER_FAMILY}</code>`),
     row("IS_IPAD", flag(IS_IPAD)),
-    row("isSafariEchoBug", flag(IS_SAFARI_ECHO_BUG) + (IS_SAFARI_ECHO_BUG ? ' <span class="pill on">shadow fix toggle defaults ON</span>' : '')),
+    row("IS_IPHONE", flag(IS_IPHONE)),
+    row("isSafariEchoBug", flag(IS_SAFARI_ECHO_BUG) + (IS_SAFARI_ECHO_BUG ? ' <span class="pill on">shadow fix toggle defaults ON</span>' : ' <span class="sub">(fix is macOS-only; toggle hidden on iOS/iPadOS)</span>')),
     row("IS_FIREFOX", flag(IS_FIREFOX)),
-    row("Baseline MIC_INPUT_GAIN", `<strong>${MIC_INPUT_GAIN.toFixed(2)}×</strong> <span class="sub">(= (IS_IPAD || isSafariEchoBug) ? 2.0 : 1.0)</span>`),
+    row("Baseline MIC_INPUT_GAIN", `<strong>${MIC_INPUT_GAIN.toFixed(2)}×</strong> <span class="sub">(= isSafariEchoBug ? 2.0 : 1.0 — echo-bug compensation only)</span>`),
     row("Per-browser gain", `<strong>${PER_BROWSER_GAIN.toFixed(2)}×</strong> <span class="sub">(Firefox = 1.0× reference)</span>`),
-    row("Effective gain (post-gain)", `<strong>${EFFECTIVE_GAIN.toFixed(2)}×</strong> <span class="sub">= MIC_INPUT_GAIN × PER_BROWSER_GAIN × 1.0 (forced)</span>`),
-    row("Saved user micGain", `${USER_MIC_GAIN_STORED.toFixed(2)}× <span class="sub">(informational — test uses 1.0× for consistency)</span>`)
+    row("Slider default (DEFAULT_MIC_GAIN)", `<strong>${DEFAULT_MIC_GAIN.toFixed(2)}×</strong> <span class="sub">= ((IS_IPAD || IS_IPHONE) ? 2.0 : 1.0) × PER_BROWSER_GAIN</span>`),
+    row("Effective gain (post-gain)", `<strong>${EFFECTIVE_GAIN.toFixed(2)}×</strong> <span class="sub">= MIC_INPUT_GAIN × DEFAULT_MIC_GAIN (test uses the default slider position)</span>`),
+    row("Saved user micGain", `${USER_MIC_GAIN_STORED.toFixed(2)}× <span class="sub">(informational — test uses DEFAULT_MIC_GAIN)</span>`)
   ].join("");
 
   /**************************
@@ -371,9 +389,8 @@
       const source = audioContext.createMediaStreamSource(micStream);
 
       const gainNode = audioContext.createGain();
-      // Post-gain now folds in the per-browser normalization so we can see
-      // whether the mapping brings this browser close to Firefox reference.
-      gainNode.gain.value = MIC_INPUT_GAIN * PER_BROWSER_GAIN * 1.0;
+      // Mirrors production: test measures the default user experience (MIC_INPUT_GAIN × DEFAULT_MIC_GAIN).
+      gainNode.gain.value = MIC_INPUT_GAIN * DEFAULT_MIC_GAIN;
 
       const preAnalyser = audioContext.createAnalyser();
       preAnalyser.fftSize = 2048;
@@ -487,11 +504,13 @@
         parsedBrowser: parseBrowser(),
         browserFamily: BROWSER_FAMILY,
         IS_IPAD,
+        IS_IPHONE,
         isSafariEchoBug: IS_SAFARI_ECHO_BUG,
         IS_FIREFOX,
         MIC_INPUT_GAIN,
         PER_BROWSER_GAIN,
-        effectiveGain: MIC_INPUT_GAIN * PER_BROWSER_GAIN,
+        DEFAULT_MIC_GAIN,
+        effectiveGain: MIC_INPUT_GAIN * DEFAULT_MIC_GAIN,
         userMicGain: USER_MIC_GAIN_STORED,
         shadowFixApplied,
         audioTrackLabel: trackLabel,
@@ -542,8 +561,8 @@
   const COLUMNS = [
     "timestamp", "userAgent", "platform", "parsedDevice", "parsedBrowser",
     "browserFamily",
-    "IS_IPAD", "isSafariEchoBug", "IS_FIREFOX",
-    "MIC_INPUT_GAIN", "PER_BROWSER_GAIN", "effectiveGain",
+    "IS_IPAD", "IS_IPHONE", "isSafariEchoBug", "IS_FIREFOX",
+    "MIC_INPUT_GAIN", "PER_BROWSER_GAIN", "DEFAULT_MIC_GAIN", "effectiveGain",
     "userMicGain", "shadowFixApplied",
     "audioTrackLabel", "sampleRate",
     "rawRmsAvg", "rawRmsPeak", "rawRmsMin",
@@ -561,7 +580,7 @@
 
   const FIXED_3_FIELDS = new Set([
     "pitchAvgHz", "pitchMedianHz", "pitchMaxHz", "pitchMinHz", "pitchStdevHz",
-    "MIC_INPUT_GAIN", "PER_BROWSER_GAIN", "effectiveGain", "userMicGain"
+    "MIC_INPUT_GAIN", "PER_BROWSER_GAIN", "DEFAULT_MIC_GAIN", "effectiveGain", "userMicGain"
   ]);
 
   function formatField(key, val) {

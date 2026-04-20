@@ -3658,9 +3658,9 @@
               </div>
               <div class="mic-adj-wrap">
                 <div class="bgn-slider-col">
-                  <input id="volThresh" type="range" min="0" max="3" step="1" />
+                  <input id="volThresh" type="range" min="0" max="4" step="1" />
                   <div class="bgn-ticks" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span>
                   </div>
                 </div>
                 <span id="bgNoiseValue" class="mic-adj-readout">None</span>
@@ -4165,19 +4165,18 @@
 
   function detectSafariEchoBug() {
     const ua = navigator.userAgent;
-    // Check for Safari (not Chrome/Chromium)
-    if (!/^((?!chrome|android).)*safari/i.test(ua)) {
-      return false;
-    }
+    // Echo bug only reproduces on macOS Safari — confirmed via mictest pitch + shadow-stream A/B on iOS/iPadOS.
+    const isMacSafari = /Macintosh/.test(ua)
+      && /^((?!chrome|android).)*safari/i.test(ua)
+      && !/iPhone|iPad|iPod/.test(ua)
+      && !(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!isMacSafari) return false;
 
-    // Parse Safari version - bug present in 26.4 and later (until Apple fixes it)
     const versionMatch = ua.match(/Version\/(\d+)\.(\d+)/);
     if (!versionMatch) return false;
 
     const major = parseInt(versionMatch[1], 10);
     const minor = parseInt(versionMatch[2], 10);
-
-    // Show for Safari 26.4+ (bug introduced in 26.4, not yet fixed)
     return major > 26 || (major === 26 && minor >= 4);
   }
 
@@ -4230,7 +4229,33 @@
 
   const IS_IPAD = /iPad/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const MIC_INPUT_GAIN = (IS_IPAD || isSafariEchoBug) ? 2.0 : 1.0;
+  const IS_IPHONE = /iPhone|iPod/.test(navigator.userAgent);
+
+  function detectBrowserFamily() {
+    const ua = navigator.userAgent;
+    const isAppleMobile = /iPhone|iPad|iPod/i.test(ua)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isAppleMobile) return 'safari';
+    if (/Firefox\//i.test(ua)) return 'firefox';
+    if (/^((?!chrome|android).)*safari/i.test(ua)) return 'safari';
+    if (/Chrome\/|Chromium\/|Edg\/|OPR\/|Android/i.test(ua)) return 'chromium';
+    return 'other';
+  }
+  const BROWSER_FAMILY = detectBrowserFamily();
+  const IS_MACOS_DESKTOP = /Macintosh/.test(navigator.userAgent)
+    && !/iPhone|iPad|iPod/.test(navigator.userAgent)
+    && !(navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // macOS Chromium ships raw mic at ~Firefox-reference level already, so no per-browser boost there.
+  const PER_BROWSER_GAIN = (IS_MACOS_DESKTOP && BROWSER_FAMILY === 'chromium')
+    ? 1.0
+    : ({ firefox: 1.0, chromium: 3.5, safari: 5.0, other: 1.0 })[BROWSER_FAMILY];
+
+  // Platform-aware default for the user-facing mic-gain slider (captures per-browser + per-mobile-device calibration).
+  const DEFAULT_MIC_GAIN = ((IS_IPAD || IS_IPHONE) ? 2.0 : 1.0) * PER_BROWSER_GAIN;
+
+  // MIC_INPUT_GAIN holds only the echo-bug compensation — loudness calibration lives on the slider default.
+  // 10× recovers most of the ~13.3× attenuation the shadow-stream fix introduces on macOS Safari 26.4+.
+  const MIC_INPUT_GAIN = isSafariEchoBug ? 10.0 : 1.0;
 
   /*************
    * SCROLL FADE
@@ -5523,7 +5548,7 @@
     needleDirection: "horizontal",
     range: null, // computed default
     minVol: 0,
-    micGain: 1.0,
+    micGain: DEFAULT_MIC_GAIN,
     colorPalette: null,
     attackMs: ATTACK_SPEED_DEFAULT_MS,
     uiTheme: "system"
@@ -5685,7 +5710,7 @@
       summary: "Ignores input below a chosen level so room noise doesn't trigger the tuner.",
       detail: [
         "• None: tuner reacts to any detected pitch.",
-        "• Low / Medium / High: progressively ignore quieter sounds (5% / 10% / 25% of full scale).",
+        "• Minimal / Low / Medium / High: progressively ignore quieter sounds (2.5% / 5% / 10% / 25% of full scale).",
         "The white tick on the levels monitor shows where the current cutoff sits.",
         "Below the cutoff the bar is gray; above it, green (normal) → yellow (hot) → red (peaking)."
       ]
@@ -5785,6 +5810,14 @@
       const merged = { ...defaults, ...parsed };
       merged.attackMs = normalizeAttackSpeedSetting(parsed?.attackMs ?? merged.attackMs);
       merged.uiTheme = normalizeUiThemeSetting(parsed?.uiTheme ?? merged.uiTheme);
+      // One-time migration: overwrite stored micGain with platform-aware default.
+      // Bumped to V3 when macOS Chromium default changed from 3.5× to 1.0×.
+      if (!parsed.micGainDefaultsV3) {
+        merged.micGain = DEFAULT_MIC_GAIN;
+        merged.micGainDefaultsV2 = true;
+        merged.micGainDefaultsV3 = true;
+        persistSettings(merged);
+      }
       return merged;
     } catch (err) {
       console.warn("Failed to load settings, using defaults", err);
@@ -9189,8 +9222,8 @@
   // Background Noise Reduction: 4-step slider outputs the threshold directly.
   // Index 0..3 → [0, 0.05, 0.10, 0.25] RMS cutoff. The white tick on the
   // linear 0..1 meter sits at cutoff × 100%.
-  const BG_NOISE_VALUES = [0, 0.05, 0.10, 0.25];
-  const BG_NOISE_LABELS = ["None", "Low", "Med", "High"];
+  const BG_NOISE_VALUES = [0, 0.025, 0.05, 0.10, 0.25];
+  const BG_NOISE_LABELS = ["None", "Minimal", "Low", "Med", "High"];
 
   function bgNoiseIndexFromThreshold(val) {
     const num = Number(val);
