@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Tonemap Mic Baseline Test</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #131c2f;
+      --panel-2: #1a2440;
+      --border: rgba(148,163,184,0.25);
+      --text: #e2e8f0;
+      --dim: #94a3b8;
+      --accent: #22c55e;
+      --warn: #facc15;
+      --error: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.45;
+      padding: 1.25rem;
+      max-width: 880px;
+      margin: 0 auto;
+      font-size: 15px;
+    }
+    h1 { font-size: 1.35rem; margin: 0 0 0.25rem; }
+    h2 { font-size: 1.05rem; margin: 1.4rem 0 0.55rem; letter-spacing: 0.02em; text-transform: uppercase; color: var(--dim); border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; }
+    .sub { color: var(--dim); font-size: 0.9rem; margin: 0.15rem 0 0; }
+    section.panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 0.6rem;
+      padding: 0.85rem 1rem;
+      margin-top: 0.55rem;
+    }
+    table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+    th, td { text-align: left; padding: 0.25rem 0.6rem 0.25rem 0; vertical-align: top; }
+    th { color: var(--dim); font-weight: 500; width: 42%; }
+    td { font-variant-numeric: tabular-nums; word-break: break-word; }
+    tr + tr th, tr + tr td { border-top: 1px solid rgba(148,163,184,0.1); }
+    ol { padding-left: 1.2rem; margin: 0.3rem 0; }
+    ol li { margin: 0.15rem 0; }
+    button {
+      font: inherit;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 0.4rem;
+      padding: 0.55rem 0.95rem;
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease;
+    }
+    button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    button.primary { background: rgba(34,197,94,0.12); border-color: var(--accent); color: var(--accent); }
+    button.primary:hover:not(:disabled) { background: rgba(34,197,94,0.22); }
+    .row-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+    .status { margin-top: 0.5rem; color: var(--dim); font-size: 0.9rem; min-height: 1.2em; }
+    .meters { display: grid; grid-template-columns: 6.5rem 1fr 5.5rem; gap: 0.35rem 0.55rem; align-items: center; margin-top: 0.5rem; }
+    .meter-label { color: var(--dim); font-size: 0.85rem; }
+    .meter-bar { position: relative; height: 10px; background: rgba(148,163,184,0.12); border-radius: 999px; overflow: hidden; }
+    .meter-bar > span { position: absolute; top: 0; left: 0; bottom: 0; width: 0%; background: var(--accent); transition: width 60ms linear; }
+    .meter-val { font-variant-numeric: tabular-nums; text-align: right; font-size: 0.85rem; color: var(--text); }
+    .countdown { font-size: 2rem; font-weight: 700; color: var(--accent); text-align: center; margin: 0.4rem 0 0.2rem; font-variant-numeric: tabular-nums; }
+    code, pre { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; font-size: 0.82rem; color: var(--text); background: rgba(148,163,184,0.07); padding: 0.1rem 0.35rem; border-radius: 0.25rem; }
+    pre { padding: 0.6rem 0.8rem; overflow-x: auto; white-space: pre; }
+    .flag-yes { color: var(--accent); font-weight: 600; }
+    .flag-no { color: var(--dim); }
+    .pill { display: inline-block; padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.75rem; border: 1px solid var(--border); color: var(--dim); }
+    .pill.on { background: rgba(34,197,94,0.12); border-color: var(--accent); color: var(--accent); }
+    .fallback-ta { width: 100%; margin-top: 0.4rem; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 0.35rem; padding: 0.4rem; font-family: ui-monospace, monospace; font-size: 0.8rem; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <h1>Tonemap Mic Baseline Test</h1>
+  <p class="sub">Measures the raw and post-gain mic RMS over a 5-second window using Tonemap's exact input pipeline.</p>
+
+  <h2>Environment</h2>
+  <section class="panel">
+    <table id="envTable"></table>
+  </section>
+
+  <h2>Setup</h2>
+  <section class="panel">
+    <ol>
+      <li>Pick a reference tone source (recommended: 1 kHz sine, continuous) and note exactly what it is for the <code>notes</code> column in your sheet.</li>
+      <li>Play it on a second device at a fixed system volume (recommend 50%) and fixed distance (recommend 30 cm) from this device.</li>
+      <li>Keep the room quiet during the 5-second capture.</li>
+      <li>Re-use the <strong>same</strong> source / volume / distance for every device you test.</li>
+    </ol>
+  </section>
+
+  <h2>Test</h2>
+  <section class="panel">
+    <div class="row-buttons">
+      <button id="startBtn" class="primary">Start 5 s test</button>
+    </div>
+    <div id="testStatus" class="status">Press start — you'll be prompted for mic access on the first run.</div>
+    <div id="countdown" class="countdown hidden">5.0</div>
+    <div id="meters" class="meters hidden">
+      <div class="meter-label">Raw (pre-gain)</div>
+      <div class="meter-bar"><span id="rawBar"></span></div>
+      <div class="meter-val" id="rawVal">0.000000</div>
+      <div class="meter-label">Post-gain</div>
+      <div class="meter-bar"><span id="postBar"></span></div>
+      <div class="meter-val" id="postVal">0.000000</div>
+    </div>
+  </section>
+
+  <h2 id="resultsHeader" class="hidden">Results</h2>
+  <section id="resultsPanel" class="panel hidden">
+    <table id="resultsTable"></table>
+    <div class="row-buttons">
+      <button id="copyRowBtn" class="primary">Copy row (TSV)</button>
+      <button id="copyHeaderBtn">Copy header (TSV)</button>
+    </div>
+    <div id="copyStatus" class="status"></div>
+    <textarea id="copyFallback" class="fallback-ta hidden" rows="3" readonly></textarea>
+  </section>
+
+<script>
+(() => {
+  "use strict";
+
+  /**************************
+   * Detection (mirrors index.html)
+   **************************/
+  const UA = navigator.userAgent || "";
+  const PLATFORM = navigator.platform || "";
+
+  const IS_IPAD = /iPad/.test(UA) ||
+    (PLATFORM === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const IS_FIREFOX = /firefox\//i.test(UA);
+
+  function detectSafariEchoBug() {
+    if (!/^((?!chrome|android).)*safari/i.test(UA)) return false;
+    const m = UA.match(/Version\/(\d+)\.(\d+)/);
+    if (!m) return false;
+    const major = parseInt(m[1], 10);
+    const minor = parseInt(m[2], 10);
+    return major > 26 || (major === 26 && minor >= 4);
+  }
+  const IS_SAFARI_ECHO_BUG = detectSafariEchoBug();
+
+  // Mirrors the formula in index.html.
+  const MIC_INPUT_GAIN = (IS_IPAD || IS_SAFARI_ECHO_BUG) ? 2.0 : 1.0;
+
+  // Stored user micGain (informational — forced to 1.0 for the test).
+  function readStoredUserMicGain() {
+    try {
+      const raw = localStorage.getItem("tonemap.live.settings");
+      if (!raw) return 1.0;
+      const obj = JSON.parse(raw);
+      const n = Number(obj && obj.micGain);
+      return Number.isFinite(n) ? n : 1.0;
+    } catch (_) { return 1.0; }
+  }
+  const USER_MIC_GAIN_STORED = readStoredUserMicGain();
+
+  /**************************
+   * UA parsing (best-effort)
+   **************************/
+  function parseDevice() {
+    if (IS_IPAD) return "iPad";
+    if (/iPhone/.test(UA)) return "iPhone";
+    if (/iPod/.test(UA)) return "iPod";
+    if (/CrOS/.test(UA)) return "ChromeOS";
+    if (/Android/.test(UA)) return "Android";
+    if (/Macintosh/.test(UA)) return "Mac";
+    if (/Windows/.test(UA)) return "Windows";
+    if (/Linux/.test(UA)) return "Linux";
+    return "Other";
+  }
+  function parseBrowser() {
+    let m;
+    if ((m = UA.match(/Firefox\/([\d.]+)/))) return "Firefox " + m[1];
+    if ((m = UA.match(/EdgiOS\/([\d.]+)/))) return "Edge iOS " + m[1];
+    if ((m = UA.match(/Edg\/([\d.]+)/))) return "Edge " + m[1];
+    if ((m = UA.match(/CriOS\/([\d.]+)/))) return "Chrome iOS " + m[1];
+    if ((m = UA.match(/FxiOS\/([\d.]+)/))) return "Firefox iOS " + m[1];
+    if ((m = UA.match(/OPR\/([\d.]+)/))) return "Opera " + m[1];
+    if ((m = UA.match(/Chrome\/([\d.]+)/))) return "Chrome " + m[1];
+    if ((m = UA.match(/Version\/([\d.]+).*Safari/))) return "Safari " + m[1];
+    return "Unknown";
+  }
+
+  /**************************
+   * Environment table
+   **************************/
+  function flag(v) {
+    return v
+      ? '<span class="flag-yes">yes</span>'
+      : '<span class="flag-no">no</span>';
+  }
+  function row(k, v) { return `<tr><th>${k}</th><td>${v}</td></tr>`; }
+  const envTable = document.getElementById("envTable");
+  envTable.innerHTML = [
+    row("User Agent", `<code>${UA.replace(/</g, '&lt;')}</code>`),
+    row("Platform", `<code>${PLATFORM || '—'}</code>`),
+    row("Parsed device", parseDevice()),
+    row("Parsed browser", parseBrowser()),
+    row("IS_IPAD", flag(IS_IPAD)),
+    row("isSafariEchoBug", flag(IS_SAFARI_ECHO_BUG) + (IS_SAFARI_ECHO_BUG ? ' <span class="pill on">shadow fix will open on test start</span>' : '')),
+    row("IS_FIREFOX", flag(IS_FIREFOX)),
+    row("Baseline MIC_INPUT_GAIN", `<strong>${MIC_INPUT_GAIN.toFixed(2)}×</strong> <span class="sub">(= (IS_IPAD || isSafariEchoBug) ? 2.0 : 1.0)</span>`),
+    row("Saved user micGain", `${USER_MIC_GAIN_STORED.toFixed(2)}× <span class="sub">(informational — test uses 1.0× for consistency)</span>`)
+  ].join("");
+
+  /**************************
+   * Audio helpers
+   **************************/
+  function computeRMS(buf) {
+    let sumSq = 0;
+    for (let i = 0; i < buf.length; i++) {
+      sumSq += buf[i] * buf[i];
+    }
+    return Math.sqrt(sumSq / buf.length);
+  }
+
+  // Trimmed Safari shadow stream — held open for the life of the page session.
+  let safariShadowStream = null;
+  async function applySafariEchoBugFix() {
+    if (!IS_SAFARI_ECHO_BUG) return false;
+    if (safariShadowStream && safariShadowStream.getTracks().some(t => t.readyState === "live")) {
+      return true;
+    }
+    try {
+      safariShadowStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: false, autoGainControl: false }
+      });
+      console.log('[mictest] Safari shadow stream opened');
+      return true;
+    } catch (err) {
+      console.warn('[mictest] Safari shadow stream failed', err);
+      safariShadowStream = null;
+      return false;
+    }
+  }
+
+  /**************************
+   * Test run
+   **************************/
+  const TEST_DURATION_MS = 5000;
+
+  const startBtn = document.getElementById("startBtn");
+  const statusEl = document.getElementById("testStatus");
+  const countdownEl = document.getElementById("countdown");
+  const metersEl = document.getElementById("meters");
+  const rawBar = document.getElementById("rawBar");
+  const rawVal = document.getElementById("rawVal");
+  const postBar = document.getElementById("postBar");
+  const postVal = document.getElementById("postVal");
+
+  const resultsHeader = document.getElementById("resultsHeader");
+  const resultsPanel = document.getElementById("resultsPanel");
+  const resultsTable = document.getElementById("resultsTable");
+  const copyRowBtn = document.getElementById("copyRowBtn");
+  const copyHeaderBtn = document.getElementById("copyHeaderBtn");
+  const copyStatus = document.getElementById("copyStatus");
+  const copyFallback = document.getElementById("copyFallback");
+
+  let lastResult = null;
+
+  async function runTest() {
+    startBtn.disabled = true;
+    copyStatus.textContent = "";
+    statusEl.textContent = "Requesting mic…";
+
+    let audioContext = null;
+    let micStream = null;
+    let shadowOpen = false;
+
+    try {
+      shadowOpen = await applySafariEchoBugFix();
+
+      audioContext = new (window.AudioContext || window.webkitAudioContext)({
+        latencyHint: "interactive"
+      });
+
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+      });
+
+      const trackLabel = (micStream.getAudioTracks()[0] || {}).label || "";
+      const source = audioContext.createMediaStreamSource(micStream);
+
+      const gainNode = audioContext.createGain();
+      gainNode.gain.value = MIC_INPUT_GAIN * 1.0;   // force user multiplier = 1.0×
+
+      const preAnalyser = audioContext.createAnalyser();
+      preAnalyser.fftSize = 2048;
+      preAnalyser.smoothingTimeConstant = 0;
+
+      const postAnalyser = audioContext.createAnalyser();
+      postAnalyser.fftSize = 2048;
+      postAnalyser.smoothingTimeConstant = 0;
+
+      source.connect(preAnalyser);
+      source.connect(gainNode);
+      gainNode.connect(postAnalyser);
+
+      const preBuf = new Float32Array(preAnalyser.fftSize);
+      const postBuf = new Float32Array(postAnalyser.fftSize);
+
+      let sumPre = 0, maxPre = 0, minPre = Infinity;
+      let sumPost = 0, maxPost = 0, minPost = Infinity;
+      let sampleCount = 0;
+
+      statusEl.textContent = "Measuring…";
+      countdownEl.classList.remove("hidden");
+      metersEl.classList.remove("hidden");
+
+      const startTs = performance.now();
+
+      await new Promise((resolve) => {
+        function frame() {
+          const now = performance.now();
+          const elapsed = now - startTs;
+
+          preAnalyser.getFloatTimeDomainData(preBuf);
+          postAnalyser.getFloatTimeDomainData(postBuf);
+          const preRms = computeRMS(preBuf);
+          const postRms = computeRMS(postBuf);
+
+          sumPre += preRms;
+          if (preRms > maxPre) maxPre = preRms;
+          if (preRms < minPre) minPre = preRms;
+
+          sumPost += postRms;
+          if (postRms > maxPost) maxPost = postRms;
+          if (postRms < minPost) minPost = postRms;
+
+          sampleCount++;
+
+          rawBar.style.width = Math.min(100, preRms * 400).toFixed(1) + "%";
+          rawVal.textContent = preRms.toFixed(6);
+          postBar.style.width = Math.min(100, postRms * 400).toFixed(1) + "%";
+          postVal.textContent = postRms.toFixed(6);
+
+          const remaining = Math.max(0, (TEST_DURATION_MS - elapsed) / 1000);
+          countdownEl.textContent = remaining.toFixed(1);
+
+          if (elapsed >= TEST_DURATION_MS) {
+            resolve();
+          } else {
+            requestAnimationFrame(frame);
+          }
+        }
+        requestAnimationFrame(frame);
+      });
+
+      const endTs = performance.now();
+      const durationMs = endTs - startTs;
+      const sampleRate = audioContext.sampleRate;
+
+      if (!sampleCount || !Number.isFinite(minPre)) minPre = 0;
+      if (!sampleCount || !Number.isFinite(minPost)) minPost = 0;
+
+      lastResult = {
+        timestamp: new Date().toISOString(),
+        userAgent: UA,
+        platform: PLATFORM,
+        parsedDevice: parseDevice(),
+        parsedBrowser: parseBrowser(),
+        IS_IPAD,
+        isSafariEchoBug: IS_SAFARI_ECHO_BUG,
+        IS_FIREFOX,
+        MIC_INPUT_GAIN,
+        userMicGain: USER_MIC_GAIN_STORED,
+        audioTrackLabel: trackLabel,
+        sampleRate,
+        rawRmsAvg: sampleCount ? sumPre / sampleCount : 0,
+        rawRmsPeak: maxPre,
+        rawRmsMin: minPre,
+        postGainRmsAvg: sampleCount ? sumPost / sampleCount : 0,
+        postGainRmsPeak: maxPost,
+        postGainRmsMin: minPost,
+        sampleCount,
+        durationMs,
+        safariShadowOpen: shadowOpen,
+        notes: ""
+      };
+
+      renderResults(lastResult);
+      statusEl.textContent = `Done. ${sampleCount} samples over ${durationMs.toFixed(0)} ms.`;
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = `Error: ${err && err.message ? err.message : err}`;
+    } finally {
+      countdownEl.classList.add("hidden");
+      if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+      }
+      if (audioContext && audioContext.state !== "closed") {
+        try { await audioContext.close(); } catch (_) {}
+      }
+      startBtn.disabled = false;
+      startBtn.textContent = "Run another 5 s test";
+    }
+  }
+
+  startBtn.addEventListener("click", runTest);
+
+  /**************************
+   * Results & copy
+   **************************/
+  // Column order must match the plan schema.
+  const COLUMNS = [
+    "timestamp", "userAgent", "platform", "parsedDevice", "parsedBrowser",
+    "IS_IPAD", "isSafariEchoBug", "IS_FIREFOX", "MIC_INPUT_GAIN",
+    "userMicGain", "audioTrackLabel", "sampleRate",
+    "rawRmsAvg", "rawRmsPeak", "rawRmsMin",
+    "postGainRmsAvg", "postGainRmsPeak", "postGainRmsMin",
+    "sampleCount", "durationMs", "safariShadowOpen", "notes"
+  ];
+
+  const FIXED_6_FIELDS = new Set([
+    "rawRmsAvg", "rawRmsPeak", "rawRmsMin",
+    "postGainRmsAvg", "postGainRmsPeak", "postGainRmsMin"
+  ]);
+
+  function formatField(key, val) {
+    if (val === null || val === undefined) return "";
+    if (typeof val === "boolean") return val ? "true" : "false";
+    if (typeof val === "number") {
+      if (FIXED_6_FIELDS.has(key)) return val.toFixed(6);
+      if (Number.isInteger(val)) return String(val);
+      return String(val);
+    }
+    // Sanitize for TSV: strip tabs and newlines from free-form fields.
+    return String(val).replace(/[\t\r\n]+/g, " ");
+  }
+
+  function buildRowTSV(result) {
+    return COLUMNS.map(k => formatField(k, result[k])).join("\t");
+  }
+  function buildHeaderTSV() {
+    return COLUMNS.join("\t");
+  }
+
+  function renderResults(result) {
+    const rows = COLUMNS.map(k => {
+      const v = result[k];
+      let disp;
+      if (typeof v === "boolean") {
+        disp = flag(v);
+      } else if (typeof v === "number" && FIXED_6_FIELDS.has(k)) {
+        disp = `<code>${v.toFixed(6)}</code>`;
+      } else if (typeof v === "number") {
+        disp = `<code>${v}</code>`;
+      } else if (v === "" || v == null) {
+        disp = `<span class="sub">—</span>`;
+      } else {
+        disp = `<code>${String(v).replace(/</g, '&lt;')}</code>`;
+      }
+      return `<tr><th>${k}</th><td>${disp}</td></tr>`;
+    }).join("");
+    resultsTable.innerHTML = rows;
+    resultsHeader.classList.remove("hidden");
+    resultsPanel.classList.remove("hidden");
+  }
+
+  async function copyToClipboard(text, label) {
+    copyFallback.classList.add("hidden");
+    copyFallback.value = "";
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        copyStatus.textContent = `${label} copied to clipboard.`;
+        return;
+      }
+      throw new Error("Clipboard API unavailable");
+    } catch (err) {
+      copyFallback.value = text;
+      copyFallback.classList.remove("hidden");
+      copyFallback.focus();
+      copyFallback.select();
+      copyStatus.textContent = `${label} ready — clipboard blocked, select + copy manually.`;
+    }
+  }
+
+  copyRowBtn.addEventListener("click", () => {
+    if (!lastResult) { copyStatus.textContent = "Run a test first."; return; }
+    copyToClipboard(buildRowTSV(lastResult), "Row");
+  });
+  copyHeaderBtn.addEventListener("click", () => {
+    copyToClipboard(buildHeaderTSV(), "Header");
+  });
+})();
+</script>
+</body>
+</html>

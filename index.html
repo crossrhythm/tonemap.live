@@ -1248,6 +1248,37 @@
     background-color: var(--accent-green);
   }
 
+  .rms-gauge-fill.yellow {
+    background-color: #f5c542;
+  }
+
+  .rms-gauge-fill.red {
+    background-color: #ef4444;
+  }
+
+  .mic-adj-wrap {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .mic-adj-readout {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    min-width: 3.1em;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .options-full-row {
+    grid-column: 1 / -1;
+  }
+
+  .rms-gauge-wide {
+    flex: none;
+    width: 100%;
+  }
+
   .attack-speed-wrap {
     display: flex;
     align-items: center;
@@ -1503,7 +1534,7 @@
 
   #optNoteViewStyle { order: 8; }
   #optOnsetFilter { order: 9; }
-  #optVolumeSensitivity { order: 11; }
+  #optMicAdjustments { order: 10; }
   #optNeedleDirection { order: 12; }
   #optHistory { order: 13; }
   #optColorHold { order: 14; }
@@ -1843,18 +1874,38 @@
     flex: 0 0 50%;
   }
 
-  #optVolumeSensitivity .volume-wrap {
+  .mic-adj-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
-    max-width: 100%;
+    gap: 0.6rem;
+    margin-bottom: 0.55rem;
   }
-
-  #optVolumeSensitivity .slider-col,
-  #optVolumeSensitivity .rms-gauge {
+  .mic-adj-sub {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .mic-adj-sub .mic-adj-wrap { width: 100%; }
+  .mic-adj-sub .mic-adj-wrap > input[type="range"] {
     flex: 1 1 0;
-    width: auto;
-    max-width: none;
+    width: 100%;
     min-width: 0;
   }
+  .mic-adj-meter { width: 100%; }
+  .mic-adj-meter .rms-gauge { width: 100%; max-width: 100%; flex: 0 0 100%; }
+
+  .bgn-slider-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  .bgn-slider-col input[type="range"] { width: 100%; display: block; }
+  .bgn-ticks {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 9px;
+    margin-top: 2px;
+    pointer-events: none;
+  }
+  .bgn-ticks span { width: 1px; height: 6px; background: rgba(148,163,184,0.55); }
 
   .opt-no-stream {
     opacity: 0.38;
@@ -3588,21 +3639,39 @@
           </div>
         </div>
 
-        <div class="option-field" id="optVolumeSensitivity">
-          <div class="opt-label-row">
-            <label class="opt-label" for="volThresh">Volume Sensitivity</label>
-            <button class="info-btn" type="button" data-info-key="volume" aria-label="Learn about Volume Sensitivity">i</button>
-          </div>
-          <div class="opt-control opt-control-slider">
-            <div class="volume-wrap">
-              <div class="slider-col">
-                <input id="volThresh" type="range" min="0" max="0.9" step="0.01" />
+        <div class="option-field" id="optMicAdjustments">
+          <div class="mic-adj-pair">
+            <div class="mic-adj-sub">
+              <div class="opt-label-row">
+                <label class="opt-label" for="micGain">Mic Gain</label>
+                <button class="info-btn" type="button" data-info-key="micGain" aria-label="Learn about Mic Gain">i</button>
               </div>
-              <div class="rms-gauge" aria-hidden="true">
-                <div class="rms-gauge-track">
-                  <div id="rmsGaugeFill" class="rms-gauge-fill gray"></div>
-                  <div id="rmsGaugeThreshold" class="rms-gauge-threshold"></div>
+              <div class="mic-adj-wrap">
+                <input id="micGain" type="range" min="0" max="1" step="0.001" />
+                <span id="micGainValue" class="mic-adj-readout">1.0×</span>
+              </div>
+            </div>
+            <div class="mic-adj-sub">
+              <div class="opt-label-row">
+                <label class="opt-label" for="volThresh">Noise Reduction</label>
+                <button class="info-btn" type="button" data-info-key="bgNoiseReduction" aria-label="Learn about Background Noise Reduction">i</button>
+              </div>
+              <div class="mic-adj-wrap">
+                <div class="bgn-slider-col">
+                  <input id="volThresh" type="range" min="0" max="3" step="1" />
+                  <div class="bgn-ticks" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span>
+                  </div>
                 </div>
+                <span id="bgNoiseValue" class="mic-adj-readout">None</span>
+              </div>
+            </div>
+          </div>
+          <div id="optLevelsMonitor" class="mic-adj-meter">
+            <div class="rms-gauge" aria-hidden="true">
+              <div class="rms-gauge-track">
+                <div id="rmsGaugeFill" class="rms-gauge-fill gray"></div>
+                <div id="rmsGaugeThreshold" class="rms-gauge-threshold"></div>
               </div>
             </div>
           </div>
@@ -3920,7 +3989,10 @@
   const transpositionSelect = document.getElementById("transpositionSelect");
 
   const volThreshEl   = document.getElementById("volThresh");
-  const optVolumeSensitivityEl = document.getElementById("optVolumeSensitivity");
+  const bgNoiseValueEl = document.getElementById("bgNoiseValue");
+  const micGainEl     = document.getElementById("micGain");
+  const micGainValueEl = document.getElementById("micGainValue");
+  const optLevelsMonitorEl = document.getElementById("optLevelsMonitor");
   const rmsGaugeFillEl = document.getElementById("rmsGaugeFill");
   const rmsGaugeThresholdEl = document.getElementById("rmsGaugeThreshold");
 
@@ -4158,7 +4230,7 @@
 
   const IS_IPAD = /iPad/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const MIC_INPUT_GAIN = IS_IPAD ? 2.0 : 1.25;
+  const MIC_INPUT_GAIN = (IS_IPAD || isSafariEchoBug) ? 2.0 : 1.0;
 
   /*************
    * SCROLL FADE
@@ -4575,6 +4647,9 @@
     rmsGaugeThresholdEl.style.left = `${(clamped * 100).toFixed(1)}%`;
   }
 
+  const RMS_YELLOW_THRESHOLD = 0.5;
+  const RMS_RED_THRESHOLD    = 0.8;
+
   function updateRmsGauge(rms, threshold) {
     if (!rmsGaugeFillEl) return;
     const safeRms = Number.isFinite(rms) ? rms : 0;
@@ -4583,8 +4658,17 @@
     const gate = Number.isFinite(threshold) ? threshold : 0;
 
     rmsGaugeFillEl.style.width = `${percent.toFixed(1)}%`;
-    rmsGaugeFillEl.classList.toggle("green", normalized >= gate);
-    rmsGaugeFillEl.classList.toggle("gray", normalized < gate);
+
+    const isBelowGate = normalized < gate;
+    const isRed       = normalized >= RMS_RED_THRESHOLD;
+    const isYellow    = !isRed && normalized >= RMS_YELLOW_THRESHOLD;
+    const isGreen     = !isBelowGate && !isYellow && !isRed;
+
+    rmsGaugeFillEl.classList.toggle("gray",   isBelowGate);
+    rmsGaugeFillEl.classList.toggle("green",  isGreen);
+    rmsGaugeFillEl.classList.toggle("yellow", isYellow);
+    rmsGaugeFillEl.classList.toggle("red",    isRed);
+
     updateRmsGaugeThresholdMarker(gate);
   }
 
@@ -5094,7 +5178,7 @@
     { quoteHtml: "Spacebar starts/stops listening instantly. <a href=\"#\" data-open-info=\"keyboardShortcuts\">View complete shortcut list</a>.", tip: true },
     { quote: "If your attacks aren't being recorded cleanly, try adjusting the Onset Filter in Options.", tip: true },
     { quote: "Add Tonemap to your iOS Home Screen for full-screen mode — tap the Share icon, then 'Add to Home Screen,' in Safari on iOS and iPadOS.", tip: true },
-    { quote: "Block out background noise by adjusting the Volume Sensitivity filter in Options.", tip: true }
+    { quote: "Block out background noise with the Background Noise Reduction filter in Options.", tip: true }
   ];
 
   let accidentalMode = "sharps";
@@ -5439,6 +5523,7 @@
     needleDirection: "horizontal",
     range: null, // computed default
     minVol: 0,
+    micGain: 1.0,
     colorPalette: null,
     attackMs: ATTACK_SPEED_DEFAULT_MS,
     uiTheme: "system"
@@ -5585,15 +5670,24 @@
       summary: "Delays how soon a colored cell starts fading after a hit.",
       detail: "No fade keeps colors locked until you reset. Fade begins after the hold, then decays based on your history window."
     },
-    volume: {
-      title: "Volume Sensitivity",
-      summary: "Sets the input level required before the tuner reacts.",
+    micGain: {
+      title: "Microphone Gain",
+      summary: "Boosts the microphone input level feeding the tuner.",
       detail: [
-        "Move slider to the right to decrease sensitivity and block out room noise or extraneous sounds; move left to increase sensitivity.",
-        "At maximum setting, the threshold is about 0.50 RMS (roughly half of full-scale input amplitude).",
-        "The bar to the right shows live RMS level.",
-        "• Green: input is at or above threshold.",
-        "• Gray: input is below threshold."
+        "Use if your mic runs quiet (meter stays mostly gray/green during normal playing).",
+        "The slider is a multiplier on top of Tonemap's per-device baseline, from 1× (no boost) up to 100×. The response is exponential so fine control stays usable across the whole range.",
+        "Boost only helps a quiet signal — if the meter is peaking (red), lower the input at the OS/mic level; gain here cannot fix clipping.",
+        "Changes apply instantly; no need to restart the mic."
+      ]
+    },
+    bgNoiseReduction: {
+      title: "Background Noise Reduction",
+      summary: "Ignores input below a chosen level so room noise doesn't trigger the tuner.",
+      detail: [
+        "• None: tuner reacts to any detected pitch.",
+        "• Low / Medium / High: progressively ignore quieter sounds (5% / 10% / 25% of full scale).",
+        "The white tick on the levels monitor shows where the current cutoff sits.",
+        "Below the cutoff the bar is gray; above it, green (normal) → yellow (hot) → red (peaking)."
       ]
     },
     keyboardShortcuts: {
@@ -6614,20 +6708,23 @@
     if (originalLowNote !== chosenLowNote) needsPersist = true;
 
     const originalMinVol = settings.minVol;
-    let minVolVal = originalMinVol;
-    if (typeof minVolVal !== "number" || Number.isNaN(minVolVal)) {
-      const parsed = parseFloat(minVolVal);
-      minVolVal = Number.isFinite(parsed) ? parsed : DEFAULT_SETTINGS.minVol;
-    }
-    minVolVal = Math.min(Math.max(minVolVal, 0), 0.9);
+    const minVolVal = normalizeMinVolSetting(originalMinVol);
     if (minVolVal !== originalMinVol) needsPersist = true;
     currentSettings.minVol = minVolVal;
-    if (volThreshEl) {
-      volThreshEl.value = String(minVolVal);
-    }
+    const minVolIdx = bgNoiseIndexFromThreshold(minVolVal);
+    if (volThreshEl) volThreshEl.value = String(minVolIdx);
+    if (bgNoiseValueEl) bgNoiseValueEl.textContent = BG_NOISE_LABELS[minVolIdx];
     volumeThreshold = sliderToThreshold(minVolVal);
     updateRmsGaugeThresholdMarker(volumeThreshold);
     dbgThresh.textContent = volumeThreshold.toExponential(2);
+
+    const originalMicGain = settings.micGain;
+    const micGainVal = clampMicGain(originalMicGain);
+    if (micGainVal !== originalMicGain) needsPersist = true;
+    currentSettings.micGain = micGainVal;
+    if (micGainEl) micGainEl.value = String(micGainToSliderPos(micGainVal));
+    if (micGainValueEl) micGainValueEl.textContent = formatMicGain(micGainVal);
+    if (activeMicGainNode) activeMicGainNode.gain.value = MIC_INPUT_GAIN * micGainVal;
 
     const originalAccidental = settings.accidentalMode;
     const accidentalVal = originalAccidental === "flats" ? "flats" : "sharps";
@@ -6768,8 +6865,7 @@
     if (overlayPlayBtn) {
       overlayPlayBtn.textContent = on ? "⏸︎" : "▶︎";
     }
-    if (optVolumeSensitivityEl) optVolumeSensitivityEl.classList.toggle("opt-no-stream", !on);
-    if (volThreshEl) volThreshEl.disabled = !on;
+    if (optLevelsMonitorEl) optLevelsMonitorEl.classList.toggle("opt-no-stream", !on);
   }
 
   function showMicWarning(message) {
@@ -9090,10 +9186,56 @@
   /**********************
    * AUDIO LOOP
    **********************/
-  function sliderToThreshold(val) {
-    return Math.pow(10, (val - 1) * 3);
+  // Background Noise Reduction: 4-step slider outputs the threshold directly.
+  // Index 0..3 → [0, 0.05, 0.10, 0.25] RMS cutoff. The white tick on the
+  // linear 0..1 meter sits at cutoff × 100%.
+  const BG_NOISE_VALUES = [0, 0.05, 0.10, 0.25];
+  const BG_NOISE_LABELS = ["None", "Low", "Med", "High"];
+
+  function bgNoiseIndexFromThreshold(val) {
+    const num = Number(val);
+    if (!Number.isFinite(num)) return 0;
+    let best = 0;
+    let bestDiff = Infinity;
+    for (let i = 0; i < BG_NOISE_VALUES.length; i++) {
+      const diff = Math.abs(BG_NOISE_VALUES[i] - num);
+      if (diff < bestDiff) { best = i; bestDiff = diff; }
+    }
+    return best;
   }
-  let volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
+
+  function normalizeMinVolSetting(val) {
+    return BG_NOISE_VALUES[bgNoiseIndexFromThreshold(val)];
+  }
+
+  const MIC_GAIN_MIN = 1.0;
+  const MIC_GAIN_MAX = 100.0;
+
+  function clampMicGain(g) {
+    const n = Number(g);
+    if (!Number.isFinite(n)) return 1.0;
+    return Math.min(Math.max(n, MIC_GAIN_MIN), MIC_GAIN_MAX);
+  }
+  function micGainToSliderPos(gain) {
+    return Math.log(clampMicGain(gain)) / Math.log(MIC_GAIN_MAX);
+  }
+  function sliderPosToMicGain(pos) {
+    const p = Math.min(Math.max(Number(pos) || 0, 0), 1);
+    return clampMicGain(Math.pow(MIC_GAIN_MAX, p));
+  }
+  function formatMicGain(gain) {
+    return gain < 9.95 ? `${gain.toFixed(1)}×` : `${Math.round(gain)}×`;
+  }
+
+  // Kept for compatibility — the new slider outputs the threshold directly,
+  // so this is now an identity passthrough with clamping.
+  function sliderToThreshold(val) {
+    const num = Number(val);
+    if (!Number.isFinite(num)) return 0;
+    return Math.min(Math.max(num, 0), 1);
+  }
+  let volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0);
+  let activeMicGainNode = null;
 
   function tick() {
     if (!running) return;
@@ -9356,7 +9498,8 @@
       const source = audioContext.createMediaStreamSource(micStream);
 
       const micGainNode = audioContext.createGain();
-      micGainNode.gain.value = MIC_INPUT_GAIN;
+      micGainNode.gain.value = MIC_INPUT_GAIN * (currentSettings.micGain ?? 1.0);
+      activeMicGainNode = micGainNode;
       analyserNode = audioContext.createAnalyser();
       analyserNode.fftSize = 2048;
       analyserNode.smoothingTimeConstant = 0;
@@ -9448,6 +9591,7 @@
       }
       analyserNode = null;
     }
+    activeMicGainNode = null;
     detector = null;
     dataBuffer = null;
     sampleRate = 0;
@@ -10357,16 +10501,25 @@
   }
 
   volThreshEl.addEventListener("input", () => {
-    const val = parseFloat(volThreshEl.value);
-    if (!isNaN(val)) {
-      const clamped = Math.max(0, Math.min(0.9, val));
-      volumeThreshold = sliderToThreshold(clamped);
-      updateRmsGaugeThresholdMarker(volumeThreshold);
-      dbgThresh.textContent = volumeThreshold.toExponential(2);
-      currentSettings.minVol = clamped;
-      persistSettings(currentSettings);
-    }
+    const idx = Math.max(0, Math.min(BG_NOISE_VALUES.length - 1, parseInt(volThreshEl.value, 10) || 0));
+    const threshold = BG_NOISE_VALUES[idx];
+    volumeThreshold = sliderToThreshold(threshold);
+    updateRmsGaugeThresholdMarker(volumeThreshold);
+    dbgThresh.textContent = volumeThreshold.toExponential(2);
+    if (bgNoiseValueEl) bgNoiseValueEl.textContent = BG_NOISE_LABELS[idx];
+    currentSettings.minVol = threshold;
+    persistSettings(currentSettings);
   });
+
+  if (micGainEl) {
+    micGainEl.addEventListener("input", () => {
+      const gain = sliderPosToMicGain(micGainEl.value);
+      currentSettings.micGain = gain;
+      if (micGainValueEl) micGainValueEl.textContent = formatMicGain(gain);
+      if (activeMicGainNode) activeMicGainNode.gain.value = MIC_INPUT_GAIN * gain;
+      persistSettings(currentSettings);
+    });
+  }
 
   if (attackSpeedSliderEl) {
     attackSpeedSliderEl.addEventListener("input", () => {
@@ -10384,10 +10537,21 @@
   ensureUiThemeSystemListener();
   A4 = currentSettings.a4;
   dbgARef.textContent = `${A4}`;
-  volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0.1);
-  updateRmsGaugeThresholdMarker(volumeThreshold);
-  if (volThreshEl) volThreshEl.value = String(Math.min(0.9, currentSettings.minVol ?? 0.1));
-  dbgThresh.textContent = volumeThreshold.toExponential(2);
+  {
+    const initMinVol = normalizeMinVolSetting(currentSettings.minVol ?? 0);
+    currentSettings.minVol = initMinVol;
+    volumeThreshold = sliderToThreshold(initMinVol);
+    updateRmsGaugeThresholdMarker(volumeThreshold);
+    const initIdx = bgNoiseIndexFromThreshold(initMinVol);
+    if (volThreshEl) volThreshEl.value = String(initIdx);
+    if (bgNoiseValueEl) bgNoiseValueEl.textContent = BG_NOISE_LABELS[initIdx];
+    dbgThresh.textContent = volumeThreshold.toExponential(2);
+
+    const initMicGain = clampMicGain(currentSettings.micGain ?? 1.0);
+    currentSettings.micGain = initMicGain;
+    if (micGainEl) micGainEl.value = String(micGainToSliderPos(initMicGain));
+    if (micGainValueEl) micGainValueEl.textContent = formatMicGain(initMicGain);
+  }
   initUsageTracking();
 
   function rebuildAll({forceDefaultRange=false, preserveStain=true} = {}) {
@@ -10542,7 +10706,18 @@
       dbgARef.textContent = `${A4}`;
       volumeThreshold = sliderToThreshold(currentSettings.minVol);
       updateRmsGaugeThresholdMarker(volumeThreshold);
-      if (volThreshEl) volThreshEl.value = String(Math.min(0.9, currentSettings.minVol));
+      {
+        const idx = bgNoiseIndexFromThreshold(currentSettings.minVol);
+        if (volThreshEl) volThreshEl.value = String(idx);
+        if (bgNoiseValueEl) bgNoiseValueEl.textContent = BG_NOISE_LABELS[idx];
+      }
+      {
+        const g = clampMicGain(currentSettings.micGain ?? 1.0);
+        currentSettings.micGain = g;
+        if (micGainEl) micGainEl.value = String(micGainToSliderPos(g));
+        if (micGainValueEl) micGainValueEl.textContent = formatMicGain(g);
+        if (activeMicGainNode) activeMicGainNode.gain.value = MIC_INPUT_GAIN * g;
+      }
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       finalizeActiveSegment();
       clearActiveNote();
