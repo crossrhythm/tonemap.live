@@ -90,7 +90,7 @@
     <ol>
       <li>Pick a reference tone source (recommended: 1 kHz sine, continuous) and note exactly what it is for the <code>notes</code> column in your sheet.</li>
       <li>Play it on a second device at a fixed system volume (recommend 50%) and fixed distance (recommend 30 cm) from this device.</li>
-      <li>Keep the room quiet during the 5-second capture.</li>
+      <li>Keep the room quiet and the reference tone <strong>unchanged</strong> for the full duration of the test (one 5 s run on most devices, two back-to-back 5 s runs on Safari 26.4+).</li>
       <li>Re-use the <strong>same</strong> source / volume / distance for every device you test.</li>
     </ol>
   </section>
@@ -98,8 +98,9 @@
   <h2>Test</h2>
   <section class="panel">
     <div class="row-buttons">
-      <button id="startBtn" class="primary">Start 5 s test</button>
+      <button id="startBtn" class="primary">Start test</button>
     </div>
+    <div id="runLabel" class="sub hidden" style="margin-top:0.4rem;"></div>
     <div id="testStatus" class="status">Press start — you'll be prompted for mic access on the first run.</div>
     <div id="countdown" class="countdown hidden">5.0</div>
     <div id="meters" class="meters hidden">
@@ -222,7 +223,8 @@
     return Math.sqrt(sumSq / buf.length);
   }
 
-  // Trimmed Safari shadow stream — held open for the life of the page session.
+  // Trimmed Safari shadow stream — held open for the life of the page session,
+  // except during Run B (the without-fix leg) where we explicitly close it.
   let safariShadowStream = null;
   async function applySafariEchoBugFix() {
     if (!IS_SAFARI_ECHO_BUG) return false;
@@ -241,6 +243,14 @@
       return false;
     }
   }
+  function cancelSafariEchoBugFix() {
+    if (safariShadowStream) {
+      safariShadowStream.getTracks().forEach(t => t.stop());
+      safariShadowStream = null;
+      console.log('[mictest] Safari shadow stream closed');
+    }
+  }
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
   /**************************
    * Test run
@@ -251,6 +261,7 @@
   const statusEl = document.getElementById("testStatus");
   const countdownEl = document.getElementById("countdown");
   const metersEl = document.getElementById("meters");
+  const runLabelEl = document.getElementById("runLabel");
   const rawBar = document.getElementById("rawBar");
   const rawVal = document.getElementById("rawVal");
   const postBar = document.getElementById("postBar");
@@ -266,18 +277,17 @@
 
   let lastResult = null;
 
-  async function runTest() {
-    startBtn.disabled = true;
-    copyStatus.textContent = "";
-    statusEl.textContent = "Requesting mic…";
+  // Runs one 5 s capture. Caller is responsible for having already set up
+  // (or torn down) the Safari shadow stream for this leg.
+  // Returns { rawRmsAvg, rawRmsPeak, rawRmsMin, postGainRmsAvg, postGainRmsPeak, postGainRmsMin,
+  //           sampleCount, durationMs, sampleRate, trackLabel }.
+  async function runOneCapture(runLabelText) {
+    runLabelEl.textContent = runLabelText || "";
+    runLabelEl.classList.toggle("hidden", !runLabelText);
 
     let audioContext = null;
     let micStream = null;
-    let shadowOpen = false;
-
     try {
-      shadowOpen = await applySafariEchoBugFix();
-
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
@@ -319,8 +329,7 @@
 
       await new Promise((resolve) => {
         function frame() {
-          const now = performance.now();
-          const elapsed = now - startTs;
+          const elapsed = performance.now() - startTs;
 
           preAnalyser.getFloatTimeDomainData(preBuf);
           postAnalyser.getFloatTimeDomainData(postBuf);
@@ -354,12 +363,81 @@
         requestAnimationFrame(frame);
       });
 
-      const endTs = performance.now();
-      const durationMs = endTs - startTs;
+      const durationMs = performance.now() - startTs;
       const sampleRate = audioContext.sampleRate;
 
       if (!sampleCount || !Number.isFinite(minPre)) minPre = 0;
       if (!sampleCount || !Number.isFinite(minPost)) minPost = 0;
+
+      return {
+        rawRmsAvg: sampleCount ? sumPre / sampleCount : 0,
+        rawRmsPeak: maxPre,
+        rawRmsMin: minPre,
+        postGainRmsAvg: sampleCount ? sumPost / sampleCount : 0,
+        postGainRmsPeak: maxPost,
+        postGainRmsMin: minPost,
+        sampleCount,
+        durationMs,
+        sampleRate,
+        trackLabel
+      };
+    } finally {
+      if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+      }
+      if (audioContext && audioContext.state !== "closed") {
+        try { await audioContext.close(); } catch (_) {}
+      }
+    }
+  }
+
+  // Empty-shaped capture used for "_withoutFix" columns on non-Safari devices.
+  // Numeric fields are `null` so TSV serialization emits empty strings.
+  function emptyCapture() {
+    return {
+      rawRmsAvg: null, rawRmsPeak: null, rawRmsMin: null,
+      postGainRmsAvg: null, postGainRmsPeak: null, postGainRmsMin: null,
+      sampleCount: null, durationMs: null, sampleRate: null, trackLabel: ""
+    };
+  }
+
+  async function runTest() {
+    startBtn.disabled = true;
+    copyStatus.textContent = "";
+    statusEl.textContent = "Requesting mic…";
+
+    try {
+      let runA, runB, safariShadowOpenedForA;
+
+      if (IS_SAFARI_ECHO_BUG) {
+        // Run A: with shadow fix applied (mirrors production Tonemap).
+        safariShadowOpenedForA = await applySafariEchoBugFix();
+        runA = await runOneCapture("Run 1 of 2 — with echo-bug shadow fix");
+
+        // Brief settle between runs so the WebKit audio graph stabilizes.
+        statusEl.textContent = "Resetting for Run 2 (closing shadow stream)…";
+        cancelSafariEchoBugFix();
+        await sleep(500);
+
+        // Run B: shadow fix NOT applied.
+        runB = await runOneCapture("Run 2 of 2 — without echo-bug shadow fix");
+
+        // Re-open shadow stream so subsequent re-runs start from the same
+        // baseline as Tonemap does in production.
+        await applySafariEchoBugFix();
+      } else {
+        // Single run; applySafariEchoBugFix() is a no-op here but kept for parity.
+        safariShadowOpenedForA = await applySafariEchoBugFix();
+        runA = await runOneCapture("");
+        runB = emptyCapture();
+      }
+
+      const shadowFixDelta = (runA && runB && runB.rawRmsAvg !== null)
+        ? runA.rawRmsAvg - runB.rawRmsAvg
+        : null;
+
+      const trackLabel = runA.trackLabel || runB.trackLabel || "";
+      const sampleRate = runA.sampleRate || runB.sampleRate || 0;
 
       lastResult = {
         timestamp: new Date().toISOString(),
@@ -374,33 +452,43 @@
         userMicGain: USER_MIC_GAIN_STORED,
         audioTrackLabel: trackLabel,
         sampleRate,
-        rawRmsAvg: sampleCount ? sumPre / sampleCount : 0,
-        rawRmsPeak: maxPre,
-        rawRmsMin: minPre,
-        postGainRmsAvg: sampleCount ? sumPost / sampleCount : 0,
-        postGainRmsPeak: maxPost,
-        postGainRmsMin: minPost,
-        sampleCount,
-        durationMs,
-        safariShadowOpen: shadowOpen,
+        rawRmsAvg_withFix: runA.rawRmsAvg,
+        rawRmsPeak_withFix: runA.rawRmsPeak,
+        rawRmsMin_withFix: runA.rawRmsMin,
+        postGainRmsAvg_withFix: runA.postGainRmsAvg,
+        postGainRmsPeak_withFix: runA.postGainRmsPeak,
+        postGainRmsMin_withFix: runA.postGainRmsMin,
+        rawRmsAvg_withoutFix: runB.rawRmsAvg,
+        rawRmsPeak_withoutFix: runB.rawRmsPeak,
+        rawRmsMin_withoutFix: runB.rawRmsMin,
+        postGainRmsAvg_withoutFix: runB.postGainRmsAvg,
+        postGainRmsPeak_withoutFix: runB.postGainRmsPeak,
+        postGainRmsMin_withoutFix: runB.postGainRmsMin,
+        shadowFixDelta,
+        sampleCount_withFix: runA.sampleCount,
+        sampleCount_withoutFix: runB.sampleCount,
+        durationMs_withFix: runA.durationMs,
+        durationMs_withoutFix: runB.durationMs,
+        safariShadowOpenedForA: !!safariShadowOpenedForA,
         notes: ""
       };
 
       renderResults(lastResult);
-      statusEl.textContent = `Done. ${sampleCount} samples over ${durationMs.toFixed(0)} ms.`;
+      if (IS_SAFARI_ECHO_BUG) {
+        statusEl.textContent =
+          `Done. Run A: ${runA.sampleCount} samples / ${runA.durationMs.toFixed(0)} ms. ` +
+          `Run B: ${runB.sampleCount} samples / ${runB.durationMs.toFixed(0)} ms.`;
+      } else {
+        statusEl.textContent = `Done. ${runA.sampleCount} samples over ${runA.durationMs.toFixed(0)} ms.`;
+      }
     } catch (err) {
       console.error(err);
       statusEl.textContent = `Error: ${err && err.message ? err.message : err}`;
     } finally {
       countdownEl.classList.add("hidden");
-      if (micStream) {
-        micStream.getTracks().forEach(t => t.stop());
-      }
-      if (audioContext && audioContext.state !== "closed") {
-        try { await audioContext.close(); } catch (_) {}
-      }
+      runLabelEl.classList.add("hidden");
       startBtn.disabled = false;
-      startBtn.textContent = "Run another 5 s test";
+      startBtn.textContent = "Run test again";
     }
   }
 
@@ -409,27 +497,35 @@
   /**************************
    * Results & copy
    **************************/
-  // Column order must match the plan schema.
+  // Column order must match the plan schema (31 columns).
   const COLUMNS = [
     "timestamp", "userAgent", "platform", "parsedDevice", "parsedBrowser",
     "IS_IPAD", "isSafariEchoBug", "IS_FIREFOX", "MIC_INPUT_GAIN",
     "userMicGain", "audioTrackLabel", "sampleRate",
-    "rawRmsAvg", "rawRmsPeak", "rawRmsMin",
-    "postGainRmsAvg", "postGainRmsPeak", "postGainRmsMin",
-    "sampleCount", "durationMs", "safariShadowOpen", "notes"
+    "rawRmsAvg_withFix", "rawRmsPeak_withFix", "rawRmsMin_withFix",
+    "postGainRmsAvg_withFix", "postGainRmsPeak_withFix", "postGainRmsMin_withFix",
+    "rawRmsAvg_withoutFix", "rawRmsPeak_withoutFix", "rawRmsMin_withoutFix",
+    "postGainRmsAvg_withoutFix", "postGainRmsPeak_withoutFix", "postGainRmsMin_withoutFix",
+    "shadowFixDelta",
+    "sampleCount_withFix", "sampleCount_withoutFix",
+    "durationMs_withFix", "durationMs_withoutFix",
+    "safariShadowOpenedForA", "notes"
   ];
 
   const FIXED_6_FIELDS = new Set([
-    "rawRmsAvg", "rawRmsPeak", "rawRmsMin",
-    "postGainRmsAvg", "postGainRmsPeak", "postGainRmsMin"
+    "rawRmsAvg_withFix", "rawRmsPeak_withFix", "rawRmsMin_withFix",
+    "postGainRmsAvg_withFix", "postGainRmsPeak_withFix", "postGainRmsMin_withFix",
+    "rawRmsAvg_withoutFix", "rawRmsPeak_withoutFix", "rawRmsMin_withoutFix",
+    "postGainRmsAvg_withoutFix", "postGainRmsPeak_withoutFix", "postGainRmsMin_withoutFix",
+    "shadowFixDelta"
   ]);
 
   function formatField(key, val) {
     if (val === null || val === undefined) return "";
     if (typeof val === "boolean") return val ? "true" : "false";
     if (typeof val === "number") {
+      if (!Number.isFinite(val)) return "";
       if (FIXED_6_FIELDS.has(key)) return val.toFixed(6);
-      if (Number.isInteger(val)) return String(val);
       return String(val);
     }
     // Sanitize for TSV: strip tabs and newlines from free-form fields.
@@ -447,14 +543,14 @@
     const rows = COLUMNS.map(k => {
       const v = result[k];
       let disp;
-      if (typeof v === "boolean") {
+      if (v === null || v === undefined || v === "") {
+        disp = `<span class="sub">—</span>`;
+      } else if (typeof v === "boolean") {
         disp = flag(v);
       } else if (typeof v === "number" && FIXED_6_FIELDS.has(k)) {
         disp = `<code>${v.toFixed(6)}</code>`;
       } else if (typeof v === "number") {
         disp = `<code>${v}</code>`;
-      } else if (v === "" || v == null) {
-        disp = `<span class="sub">—</span>`;
       } else {
         disp = `<code>${String(v).replace(/</g, '&lt;')}</code>`;
       }
