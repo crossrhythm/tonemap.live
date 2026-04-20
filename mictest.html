@@ -74,6 +74,10 @@
     .pill.on { background: rgba(34,197,94,0.12); border-color: var(--accent); color: var(--accent); }
     .fallback-ta { width: 100%; margin-top: 0.4rem; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 0.35rem; padding: 0.4rem; font-family: ui-monospace, monospace; font-size: 0.8rem; }
     .hidden { display: none !important; }
+    .toggle-row { display: flex; align-items: center; gap: 0.55rem; margin-top: 0.55rem; font-size: 0.9rem; color: var(--text); }
+    .toggle-row input[type="checkbox"] { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+    .toggle-row .hint { color: var(--dim); font-size: 0.8rem; }
+    .pitch-meter { display: grid; grid-template-columns: 6.5rem 1fr 5.5rem; gap: 0.35rem 0.55rem; align-items: center; margin-top: 0.3rem; }
   </style>
 </head>
 <body>
@@ -100,7 +104,11 @@
     <div class="row-buttons">
       <button id="startBtn" class="primary">Start test</button>
     </div>
-    <div id="runLabel" class="sub hidden" style="margin-top:0.4rem;"></div>
+    <label class="toggle-row" id="fixToggleRow">
+      <input type="checkbox" id="fixToggle" />
+      <span>Apply Safari echo-bug shadow fix for this run</span>
+      <span class="hint" id="fixToggleHint"></span>
+    </label>
     <div id="testStatus" class="status">Press start — you'll be prompted for mic access on the first run.</div>
     <div id="countdown" class="countdown hidden">5.0</div>
     <div id="meters" class="meters hidden">
@@ -110,6 +118,11 @@
       <div class="meter-label">Post-gain</div>
       <div class="meter-bar"><span id="postBar"></span></div>
       <div class="meter-val" id="postVal">0.000000</div>
+    </div>
+    <div id="pitchMeter" class="pitch-meter hidden">
+      <div class="meter-label">Pitch (Hz)</div>
+      <div class="meter-val" id="pitchHz" style="text-align:left;">—</div>
+      <div class="meter-val" id="pitchClarity">clarity —</div>
     </div>
   </section>
 
@@ -124,9 +137,9 @@
     <textarea id="copyFallback" class="fallback-ta hidden" rows="3" readonly></textarea>
   </section>
 
-<script>
-(() => {
+<script type="module">
   "use strict";
+  import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
   /**************************
    * Detection (mirrors index.html)
@@ -150,6 +163,32 @@
 
   // Mirrors the formula in index.html.
   const MIC_INPUT_GAIN = (IS_IPAD || IS_SAFARI_ECHO_BUG) ? 2.0 : 1.0;
+
+  // Browser-family classification. iOS "Chrome" / "Firefox" are WebKit wrappers
+  // so we treat anything Apple-mobile + no Firefox/CriOS match as Safari, and
+  // anything on Apple-mobile regardless of UA gets grouped with safari for gain
+  // purposes (their underlying audio stack is WebKit).
+  function detectBrowserFamily() {
+    const isAppleMobile = /iPhone|iPad|iPod/i.test(UA)
+      || (PLATFORM === "MacIntel" && navigator.maxTouchPoints > 1);
+    if (isAppleMobile) return "safari"; // CriOS / FxiOS / Safari all share WebKit pipeline
+    if (/Firefox\//i.test(UA)) return "firefox";
+    if (/^((?!chrome|android).)*safari/i.test(UA)) return "safari";
+    if (/Chrome\/|Chromium\/|Edg\/|OPR\/|Android/i.test(UA)) return "chromium";
+    return "other";
+  }
+  const BROWSER_FAMILY = detectBrowserFamily();
+
+  // Firefox is the reference (1.0×). Others are boosted to approximately match
+  // Firefox's raw signal level. Values are a first pass from limited data —
+  // tune from TSV aggregates as more devices are tested.
+  const PER_BROWSER_GAIN_MAP = {
+    firefox: 1.0,
+    chromium: 3.5,
+    safari:   5.0,
+    other:    1.0
+  };
+  const PER_BROWSER_GAIN = PER_BROWSER_GAIN_MAP[BROWSER_FAMILY] ?? 1.0;
 
   // Stored user micGain (informational — forced to 1.0 for the test).
   function readStoredUserMicGain() {
@@ -200,15 +239,19 @@
   }
   function row(k, v) { return `<tr><th>${k}</th><td>${v}</td></tr>`; }
   const envTable = document.getElementById("envTable");
+  const EFFECTIVE_GAIN = MIC_INPUT_GAIN * PER_BROWSER_GAIN;
   envTable.innerHTML = [
     row("User Agent", `<code>${UA.replace(/</g, '&lt;')}</code>`),
     row("Platform", `<code>${PLATFORM || '—'}</code>`),
     row("Parsed device", parseDevice()),
     row("Parsed browser", parseBrowser()),
+    row("Browser family", `<code>${BROWSER_FAMILY}</code>`),
     row("IS_IPAD", flag(IS_IPAD)),
-    row("isSafariEchoBug", flag(IS_SAFARI_ECHO_BUG) + (IS_SAFARI_ECHO_BUG ? ' <span class="pill on">shadow fix will open on test start</span>' : '')),
+    row("isSafariEchoBug", flag(IS_SAFARI_ECHO_BUG) + (IS_SAFARI_ECHO_BUG ? ' <span class="pill on">shadow fix toggle defaults ON</span>' : '')),
     row("IS_FIREFOX", flag(IS_FIREFOX)),
     row("Baseline MIC_INPUT_GAIN", `<strong>${MIC_INPUT_GAIN.toFixed(2)}×</strong> <span class="sub">(= (IS_IPAD || isSafariEchoBug) ? 2.0 : 1.0)</span>`),
+    row("Per-browser gain", `<strong>${PER_BROWSER_GAIN.toFixed(2)}×</strong> <span class="sub">(Firefox = 1.0× reference)</span>`),
+    row("Effective gain (post-gain)", `<strong>${EFFECTIVE_GAIN.toFixed(2)}×</strong> <span class="sub">= MIC_INPUT_GAIN × PER_BROWSER_GAIN × 1.0 (forced)</span>`),
     row("Saved user micGain", `${USER_MIC_GAIN_STORED.toFixed(2)}× <span class="sub">(informational — test uses 1.0× for consistency)</span>`)
   ].join("");
 
@@ -261,11 +304,26 @@
   const statusEl = document.getElementById("testStatus");
   const countdownEl = document.getElementById("countdown");
   const metersEl = document.getElementById("meters");
-  const runLabelEl = document.getElementById("runLabel");
   const rawBar = document.getElementById("rawBar");
   const rawVal = document.getElementById("rawVal");
   const postBar = document.getElementById("postBar");
   const postVal = document.getElementById("postVal");
+  const pitchMeterEl = document.getElementById("pitchMeter");
+  const pitchHzEl = document.getElementById("pitchHz");
+  const pitchClarityEl = document.getElementById("pitchClarity");
+
+  const fixToggle = document.getElementById("fixToggle");
+  const fixToggleRow = document.getElementById("fixToggleRow");
+  const fixToggleHint = document.getElementById("fixToggleHint");
+
+  // Safari-echo-fix toggle: default ON when echo-bug platform detected, hidden
+  // entirely on other platforms so the UI doesn't confuse testers.
+  if (IS_SAFARI_ECHO_BUG) {
+    fixToggle.checked = true;
+    fixToggleHint.textContent = "(Safari 26.4+ detected — defaults ON)";
+  } else {
+    fixToggleRow.classList.add("hidden");
+  }
 
   const resultsHeader = document.getElementById("resultsHeader");
   const resultsPanel = document.getElementById("resultsPanel");
@@ -277,17 +335,30 @@
 
   let lastResult = null;
 
-  // Runs one 5 s capture. Caller is responsible for having already set up
-  // (or torn down) the Safari shadow stream for this leg.
-  // Returns { rawRmsAvg, rawRmsPeak, rawRmsMin, postGainRmsAvg, postGainRmsPeak, postGainRmsMin,
-  //           sampleCount, durationMs, sampleRate, trackLabel }.
-  async function runOneCapture(runLabelText) {
-    runLabelEl.textContent = runLabelText || "";
-    runLabelEl.classList.toggle("hidden", !runLabelText);
+  const PITCH_CLARITY_THRESHOLD = 0.85;  // Same order as Tonemap's gating.
+  const PITCH_MIN_HZ = 40;
+  const PITCH_MAX_HZ = 4000;
+
+  async function runTest() {
+    startBtn.disabled = true;
+    copyStatus.textContent = "";
+    statusEl.textContent = "Requesting mic…";
+
+    const wantShadowFix = IS_SAFARI_ECHO_BUG && fixToggle.checked;
+    let shadowFixApplied = false;
 
     let audioContext = null;
     let micStream = null;
+
     try {
+      // Honor the toggle: open the shadow stream if requested, close it otherwise.
+      if (wantShadowFix) {
+        shadowFixApplied = await applySafariEchoBugFix();
+      } else {
+        cancelSafariEchoBugFix();
+        shadowFixApplied = false;
+      }
+
       audioContext = new (window.AudioContext || window.webkitAudioContext)({
         latencyHint: "interactive"
       });
@@ -300,7 +371,9 @@
       const source = audioContext.createMediaStreamSource(micStream);
 
       const gainNode = audioContext.createGain();
-      gainNode.gain.value = MIC_INPUT_GAIN * 1.0;   // force user multiplier = 1.0×
+      // Post-gain now folds in the per-browser normalization so we can see
+      // whether the mapping brings this browser close to Firefox reference.
+      gainNode.gain.value = MIC_INPUT_GAIN * PER_BROWSER_GAIN * 1.0;
 
       const preAnalyser = audioContext.createAnalyser();
       preAnalyser.fftSize = 2048;
@@ -314,6 +387,9 @@
       source.connect(gainNode);
       gainNode.connect(postAnalyser);
 
+      const sampleRate = audioContext.sampleRate;
+      const detector = PitchDetector.forFloat32Array(preAnalyser.fftSize);
+
       const preBuf = new Float32Array(preAnalyser.fftSize);
       const postBuf = new Float32Array(postAnalyser.fftSize);
 
@@ -321,9 +397,15 @@
       let sumPost = 0, maxPost = 0, minPost = Infinity;
       let sampleCount = 0;
 
+      const pitches = [];           // Hz values that pass clarity gate.
+      let sumClarity = 0;
+      let claritySampleCount = 0;   // frames with any clarity output
+      let maxPitch = 0, minPitch = Infinity;
+
       statusEl.textContent = "Measuring…";
       countdownEl.classList.remove("hidden");
       metersEl.classList.remove("hidden");
+      pitchMeterEl.classList.remove("hidden");
 
       const startTs = performance.now();
 
@@ -339,12 +421,28 @@
           sumPre += preRms;
           if (preRms > maxPre) maxPre = preRms;
           if (preRms < minPre) minPre = preRms;
-
           sumPost += postRms;
           if (postRms > maxPost) maxPost = postRms;
           if (postRms < minPost) minPost = postRms;
-
           sampleCount++;
+
+          // Pitchy runs on the PRE-gain buffer so pitch is independent of
+          // the gain chain (only the RMS numbers move with gain).
+          const [pitch, clarity] = detector.findPitch(preBuf, sampleRate);
+          sumClarity += clarity;
+          claritySampleCount++;
+          const accept = clarity >= PITCH_CLARITY_THRESHOLD
+            && pitch >= PITCH_MIN_HZ && pitch <= PITCH_MAX_HZ
+            && Number.isFinite(pitch);
+          if (accept) {
+            pitches.push(pitch);
+            if (pitch > maxPitch) maxPitch = pitch;
+            if (pitch < minPitch) minPitch = pitch;
+            pitchHzEl.textContent = pitch.toFixed(2) + " Hz";
+          } else {
+            pitchHzEl.textContent = "—";
+          }
+          pitchClarityEl.textContent = "clarity " + clarity.toFixed(3);
 
           rawBar.style.width = Math.min(100, preRms * 400).toFixed(1) + "%";
           rawVal.textContent = preRms.toFixed(6);
@@ -364,80 +462,22 @@
       });
 
       const durationMs = performance.now() - startTs;
-      const sampleRate = audioContext.sampleRate;
 
       if (!sampleCount || !Number.isFinite(minPre)) minPre = 0;
       if (!sampleCount || !Number.isFinite(minPost)) minPost = 0;
 
-      return {
-        rawRmsAvg: sampleCount ? sumPre / sampleCount : 0,
-        rawRmsPeak: maxPre,
-        rawRmsMin: minPre,
-        postGainRmsAvg: sampleCount ? sumPost / sampleCount : 0,
-        postGainRmsPeak: maxPost,
-        postGainRmsMin: minPost,
-        sampleCount,
-        durationMs,
-        sampleRate,
-        trackLabel
-      };
-    } finally {
-      if (micStream) {
-        micStream.getTracks().forEach(t => t.stop());
-      }
-      if (audioContext && audioContext.state !== "closed") {
-        try { await audioContext.close(); } catch (_) {}
-      }
-    }
-  }
-
-  // Empty-shaped capture used for "_withoutFix" columns on non-Safari devices.
-  // Numeric fields are `null` so TSV serialization emits empty strings.
-  function emptyCapture() {
-    return {
-      rawRmsAvg: null, rawRmsPeak: null, rawRmsMin: null,
-      postGainRmsAvg: null, postGainRmsPeak: null, postGainRmsMin: null,
-      sampleCount: null, durationMs: null, sampleRate: null, trackLabel: ""
-    };
-  }
-
-  async function runTest() {
-    startBtn.disabled = true;
-    copyStatus.textContent = "";
-    statusEl.textContent = "Requesting mic…";
-
-    try {
-      let runA, runB, safariShadowOpenedForA;
-
-      if (IS_SAFARI_ECHO_BUG) {
-        // Run A: with shadow fix applied (mirrors production Tonemap).
-        safariShadowOpenedForA = await applySafariEchoBugFix();
-        runA = await runOneCapture("Run 1 of 2 — with echo-bug shadow fix");
-
-        // Brief settle between runs so the WebKit audio graph stabilizes.
-        statusEl.textContent = "Resetting for Run 2 (closing shadow stream)…";
-        cancelSafariEchoBugFix();
-        await sleep(500);
-
-        // Run B: shadow fix NOT applied.
-        runB = await runOneCapture("Run 2 of 2 — without echo-bug shadow fix");
-
-        // Re-open shadow stream so subsequent re-runs start from the same
-        // baseline as Tonemap does in production.
-        await applySafariEchoBugFix();
+      let pitchAvgHz = null, pitchMedianHz = null, pitchStdevHz = null;
+      if (pitches.length) {
+        pitchAvgHz = pitches.reduce((a, b) => a + b, 0) / pitches.length;
+        const sorted = [...pitches].sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        pitchMedianHz = sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        const sqDiff = pitches.reduce((s, p) => s + (p - pitchAvgHz) * (p - pitchAvgHz), 0);
+        pitchStdevHz = Math.sqrt(sqDiff / pitches.length);
       } else {
-        // Single run; applySafariEchoBugFix() is a no-op here but kept for parity.
-        safariShadowOpenedForA = await applySafariEchoBugFix();
-        runA = await runOneCapture("");
-        runB = emptyCapture();
+        maxPitch = null; minPitch = null;
       }
-
-      const shadowFixDelta = (runA && runB && runB.rawRmsAvg !== null)
-        ? runA.rawRmsAvg - runB.rawRmsAvg
-        : null;
-
-      const trackLabel = runA.trackLabel || runB.trackLabel || "";
-      const sampleRate = runA.sampleRate || runB.sampleRate || 0;
+      const pitchClarityAvg = claritySampleCount ? sumClarity / claritySampleCount : null;
 
       lastResult = {
         timestamp: new Date().toISOString(),
@@ -445,48 +485,49 @@
         platform: PLATFORM,
         parsedDevice: parseDevice(),
         parsedBrowser: parseBrowser(),
+        browserFamily: BROWSER_FAMILY,
         IS_IPAD,
         isSafariEchoBug: IS_SAFARI_ECHO_BUG,
         IS_FIREFOX,
         MIC_INPUT_GAIN,
+        PER_BROWSER_GAIN,
+        effectiveGain: MIC_INPUT_GAIN * PER_BROWSER_GAIN,
         userMicGain: USER_MIC_GAIN_STORED,
+        shadowFixApplied,
         audioTrackLabel: trackLabel,
         sampleRate,
-        rawRmsAvg_withFix: runA.rawRmsAvg,
-        rawRmsPeak_withFix: runA.rawRmsPeak,
-        rawRmsMin_withFix: runA.rawRmsMin,
-        postGainRmsAvg_withFix: runA.postGainRmsAvg,
-        postGainRmsPeak_withFix: runA.postGainRmsPeak,
-        postGainRmsMin_withFix: runA.postGainRmsMin,
-        rawRmsAvg_withoutFix: runB.rawRmsAvg,
-        rawRmsPeak_withoutFix: runB.rawRmsPeak,
-        rawRmsMin_withoutFix: runB.rawRmsMin,
-        postGainRmsAvg_withoutFix: runB.postGainRmsAvg,
-        postGainRmsPeak_withoutFix: runB.postGainRmsPeak,
-        postGainRmsMin_withoutFix: runB.postGainRmsMin,
-        shadowFixDelta,
-        sampleCount_withFix: runA.sampleCount,
-        sampleCount_withoutFix: runB.sampleCount,
-        durationMs_withFix: runA.durationMs,
-        durationMs_withoutFix: runB.durationMs,
-        safariShadowOpenedForA: !!safariShadowOpenedForA,
+        rawRmsAvg: sampleCount ? sumPre / sampleCount : 0,
+        rawRmsPeak: maxPre,
+        rawRmsMin: minPre,
+        postGainRmsAvg: sampleCount ? sumPost / sampleCount : 0,
+        postGainRmsPeak: maxPost,
+        postGainRmsMin: minPost,
+        pitchAvgHz,
+        pitchMedianHz,
+        pitchMaxHz: (maxPitch && Number.isFinite(maxPitch)) ? maxPitch : null,
+        pitchMinHz: (minPitch && Number.isFinite(minPitch)) ? minPitch : null,
+        pitchStdevHz,
+        pitchClarityAvg,
+        pitchedSampleCount: pitches.length,
+        sampleCount,
+        durationMs,
         notes: ""
       };
 
       renderResults(lastResult);
-      if (IS_SAFARI_ECHO_BUG) {
-        statusEl.textContent =
-          `Done. Run A: ${runA.sampleCount} samples / ${runA.durationMs.toFixed(0)} ms. ` +
-          `Run B: ${runB.sampleCount} samples / ${runB.durationMs.toFixed(0)} ms.`;
-      } else {
-        statusEl.textContent = `Done. ${runA.sampleCount} samples over ${runA.durationMs.toFixed(0)} ms.`;
-      }
+      statusEl.textContent = `Done. ${sampleCount} samples / ${durationMs.toFixed(0)} ms. `
+        + `${pitches.length} pitched frames (clarity ≥ ${PITCH_CLARITY_THRESHOLD}).`;
     } catch (err) {
       console.error(err);
       statusEl.textContent = `Error: ${err && err.message ? err.message : err}`;
     } finally {
       countdownEl.classList.add("hidden");
-      runLabelEl.classList.add("hidden");
+      if (micStream) {
+        micStream.getTracks().forEach(t => t.stop());
+      }
+      if (audioContext && audioContext.state !== "closed") {
+        try { await audioContext.close(); } catch (_) {}
+      }
       startBtn.disabled = false;
       startBtn.textContent = "Run test again";
     }
@@ -497,27 +538,30 @@
   /**************************
    * Results & copy
    **************************/
-  // Column order must match the plan schema (31 columns).
+  // Column order — single run with fix-toggle + per-browser gain + pitch.
   const COLUMNS = [
     "timestamp", "userAgent", "platform", "parsedDevice", "parsedBrowser",
-    "IS_IPAD", "isSafariEchoBug", "IS_FIREFOX", "MIC_INPUT_GAIN",
-    "userMicGain", "audioTrackLabel", "sampleRate",
-    "rawRmsAvg_withFix", "rawRmsPeak_withFix", "rawRmsMin_withFix",
-    "postGainRmsAvg_withFix", "postGainRmsPeak_withFix", "postGainRmsMin_withFix",
-    "rawRmsAvg_withoutFix", "rawRmsPeak_withoutFix", "rawRmsMin_withoutFix",
-    "postGainRmsAvg_withoutFix", "postGainRmsPeak_withoutFix", "postGainRmsMin_withoutFix",
-    "shadowFixDelta",
-    "sampleCount_withFix", "sampleCount_withoutFix",
-    "durationMs_withFix", "durationMs_withoutFix",
-    "safariShadowOpenedForA", "notes"
+    "browserFamily",
+    "IS_IPAD", "isSafariEchoBug", "IS_FIREFOX",
+    "MIC_INPUT_GAIN", "PER_BROWSER_GAIN", "effectiveGain",
+    "userMicGain", "shadowFixApplied",
+    "audioTrackLabel", "sampleRate",
+    "rawRmsAvg", "rawRmsPeak", "rawRmsMin",
+    "postGainRmsAvg", "postGainRmsPeak", "postGainRmsMin",
+    "pitchAvgHz", "pitchMedianHz", "pitchMaxHz", "pitchMinHz",
+    "pitchStdevHz", "pitchClarityAvg", "pitchedSampleCount",
+    "sampleCount", "durationMs", "notes"
   ];
 
   const FIXED_6_FIELDS = new Set([
-    "rawRmsAvg_withFix", "rawRmsPeak_withFix", "rawRmsMin_withFix",
-    "postGainRmsAvg_withFix", "postGainRmsPeak_withFix", "postGainRmsMin_withFix",
-    "rawRmsAvg_withoutFix", "rawRmsPeak_withoutFix", "rawRmsMin_withoutFix",
-    "postGainRmsAvg_withoutFix", "postGainRmsPeak_withoutFix", "postGainRmsMin_withoutFix",
-    "shadowFixDelta"
+    "rawRmsAvg", "rawRmsPeak", "rawRmsMin",
+    "postGainRmsAvg", "postGainRmsPeak", "postGainRmsMin",
+    "pitchClarityAvg"
+  ]);
+
+  const FIXED_3_FIELDS = new Set([
+    "pitchAvgHz", "pitchMedianHz", "pitchMaxHz", "pitchMinHz", "pitchStdevHz",
+    "MIC_INPUT_GAIN", "PER_BROWSER_GAIN", "effectiveGain", "userMicGain"
   ]);
 
   function formatField(key, val) {
@@ -526,6 +570,7 @@
     if (typeof val === "number") {
       if (!Number.isFinite(val)) return "";
       if (FIXED_6_FIELDS.has(key)) return val.toFixed(6);
+      if (FIXED_3_FIELDS.has(key)) return val.toFixed(3);
       return String(val);
     }
     // Sanitize for TSV: strip tabs and newlines from free-form fields.
@@ -549,6 +594,8 @@
         disp = flag(v);
       } else if (typeof v === "number" && FIXED_6_FIELDS.has(k)) {
         disp = `<code>${v.toFixed(6)}</code>`;
+      } else if (typeof v === "number" && FIXED_3_FIELDS.has(k)) {
+        disp = `<code>${v.toFixed(3)}</code>`;
       } else if (typeof v === "number") {
         disp = `<code>${v}</code>`;
       } else {
@@ -587,7 +634,6 @@
   copyHeaderBtn.addEventListener("click", () => {
     copyToClipboard(buildHeaderTSV(), "Header");
   });
-})();
 </script>
 </body>
 </html>
