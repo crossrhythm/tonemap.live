@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 2.0 (update window.APP_VERSION below when bumping release) -->
+<!-- Version: 2.01 (update window.APP_VERSION below when bumping release) -->
 <!-- STATUS: Beta/test version for testing on mobile devices -->
 <!-- Once thoroughly tested, copy changes to index.html for production deployment -->
 <!-- Licensed under the MIT License; see LICENSE. -->
@@ -957,8 +957,9 @@
   }
 
   .mini-btn .icon-options {
-    font-size: 1.8rem;
-    line-height: 1;
+    display: block;
+    width: 1.4rem;
+    height: 1.4rem;
   }
 
   .mini-btn .view-icon {
@@ -1194,7 +1195,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  .mic-btn.android-chrome-mic-icon-fix .icon-micstate svg {
+  .android-chrome-mic-icon-fix svg {
     display: block;
     width: 0.82em;
     height: 0.96em;
@@ -1971,6 +1972,29 @@
     opacity: 1;
   }
 
+  /* Status overlay bottom fade mirrors options pattern: gradient at body/footer boundary */
+  .status-overlay-body::after {
+    display: none;
+  }
+
+  .status-footer::before {
+    content: "";
+    position: absolute;
+    top: calc(-1.6rem - 10px);
+    left: 0;
+    right: 0;
+    height: calc(1.6rem + 10px);
+    background: linear-gradient(to top, var(--ui-overlay-scroll-fade-bottom), transparent);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .status-overlay-body.can-scroll-down + .status-footer::before {
+    opacity: 1;
+  }
+
   /* Show fades based on scroll position (toggled via JS) */
   .right-scroll.can-scroll-up::before {
     opacity: 1;
@@ -2326,15 +2350,17 @@
   }
 
   .status-footer {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--ui-overlay-card-border);
     display: flex;
     justify-content: space-between;
     gap: 1rem;
     font-size: 0.7rem;
     color: var(--text-dim);
     flex-wrap: wrap;
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--ui-overlay-card-border);
+    background: var(--ui-overlay-footer-bg);
+    position: relative;
+    z-index: 2;
   }
 
   .status-footer-brand {
@@ -3202,7 +3228,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.0";
+  window.APP_VERSION = "2.01";
 </script>
 
 <div class="page">
@@ -3305,7 +3331,7 @@
         <img class="view-icon" src="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><text x='4' y='20' font-size='20' font-family='sans-serif'>♫</text></svg>" alt="Show note view" />
       </button>
       <button class="mini-btn" id="miniOptionsBtn" type="button" title="Open options [O]">
-        <span class="icon-options">⚙</span>
+        <svg class="icon-options" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94 0 .31.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
       </button>
     </div>
 
@@ -3822,11 +3848,11 @@
         </div>
       </section>
       </div>
+    </div>
 
-      <div class="status-footer">
-        <span class="status-footer-brand">Tonemap.Live</span>
-        <span class="status-footer-state">Status OK</span>
-      </div>
+    <div class="status-footer">
+      <span class="status-footer-brand">Tonemap.Live</span>
+      <span class="status-footer-state">Status OK</span>
     </div>
   </div>
 </div>
@@ -3905,7 +3931,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "2.0";
+  const APP_VERSION = window.APP_VERSION || "2.01";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -4083,6 +4109,10 @@
   const miniResetBtn = document.getElementById("miniResetBtn");
   const miniViewToggleBtn = document.getElementById("miniViewToggleBtn");
   const miniOptionsBtn = document.getElementById("miniOptionsBtn");
+  if (useAndroidChromeMainMicSvg) {
+    if (miniMicBtn) miniMicBtn.classList.add("android-chrome-mic-icon-fix");
+    if (overlayPlayBtn) overlayPlayBtn.classList.add("android-chrome-mic-icon-fix");
+  }
 
   // status panel elems
   const dbgListening  = document.getElementById("dbgListening");
@@ -4297,9 +4327,10 @@
   function isAndroidChromeLike() {
     const ua = navigator.userAgent || "";
     const isAndroid = /android/i.test(ua);
+    const isCrOS = /\bCrOS\b/.test(ua);
     const isChrome = /\b(?:chrome|chromium)\//i.test(ua);
     const isExcludedBrowser = /\b(?:edg|opr|opera|samsungbrowser|firefox)\//i.test(ua);
-    return isAndroid && isChrome && !isExcludedBrowser;
+    return (isAndroid || isCrOS) && isChrome && !isExcludedBrowser;
   }
 
   function showHomeScreenInstallHintOnce() {
@@ -7553,15 +7584,20 @@
 
   const MAIN_MIC_PAUSE_SVG = '<svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path fill="currentColor" d="M10,8h4v16h-4V8z M18,8v16h4V8H18z"/></svg>';
 
+  function setPauseGlyph(el, on) {
+    if (!el) return;
+    if (useAndroidChromeMainMicSvg && on) {
+      el.innerHTML = MAIN_MIC_PAUSE_SVG;
+    } else {
+      el.textContent = on ? "⏸︎" : "▶︎";
+    }
+  }
+
   function setMainMicIcon(isRunning) {
     if (!micBtnIcon) return;
     micBtnIcon.classList.toggle("playing", isRunning);
     micBtnIcon.classList.toggle("paused", !isRunning);
-    if (useAndroidChromeMainMicSvg && isRunning) {
-      micBtnIcon.innerHTML = MAIN_MIC_PAUSE_SVG;
-      return;
-    }
-    micBtnIcon.textContent = isRunning ? "⏸︎" : "▶︎";
+    setPauseGlyph(micBtnIcon, isRunning);
   }
 
   function setMicUiRunningState(isRunning) {
@@ -7578,11 +7614,11 @@
       if (icon) {
         icon.classList.toggle("playing", on);
         icon.classList.toggle("paused", !on);
-        icon.textContent = on ? "⏸︎" : "▶︎";
+        setPauseGlyph(icon, on);
       }
     }
     if (overlayPlayBtn) {
-      overlayPlayBtn.textContent = on ? "⏸︎" : "▶︎";
+      setPauseGlyph(overlayPlayBtn, on);
     }
     if (optLevelsMonitorEl) optLevelsMonitorEl.classList.toggle("opt-no-stream", !on);
   }
