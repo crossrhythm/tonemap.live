@@ -179,10 +179,47 @@ async function handlePro(request, env) {
     return new Response(null, { status: 302, headers: { Location: '/activate' } });
   }
 
-  let refreshedCookie = null;
   const ageMs = Date.now() - auth.lastValidatedAt;
+  const activationCheck = await validateLicenseKey(auth.licenseKey, env);
+  if (activationCheck.networkError) {
+    if (ageMs > (REVALIDATE_INTERVAL_MS + REVALIDATE_GRACE_MS)) {
+      return new Response(null, {
+        status: 302,
+        headers: authClearHeaders({ Location: '/activate' }),
+      });
+    }
+  }
+  if (!activationCheck.networkError && !activationCheck.valid) {
+    return new Response(null, {
+      status: 302,
+      headers: authClearHeaders({ Location: '/activate' }),
+    });
+  }
+
+  let activationStillPresent = null;
+  if (!activationCheck.networkError && activationCheck.valid) {
+    activationStillPresent = await isActivationActive(
+      activationCheck.licenseKeyId,
+      auth.activationId,
+      env,
+    );
+    if (activationStillPresent === false) {
+      return new Response(null, {
+        status: 302,
+        headers: authClearHeaders({ Location: '/activate' }),
+      });
+    }
+    if (activationStillPresent === null && ageMs > (REVALIDATE_INTERVAL_MS + REVALIDATE_GRACE_MS)) {
+      return new Response(null, {
+        status: 302,
+        headers: authClearHeaders({ Location: '/activate' }),
+      });
+    }
+  }
+
+  let refreshedCookie = null;
   if (ageMs >= REVALIDATE_INTERVAL_MS) {
-    const recheck = await validateLicenseKey(auth.licenseKey, env);
+    const recheck = activationCheck;
 
     if (!recheck.networkError && !recheck.valid) {
       return new Response(null, {
@@ -191,7 +228,7 @@ async function handlePro(request, env) {
       });
     }
 
-    if (!recheck.networkError && recheck.valid) {
+    if (!recheck.networkError && recheck.valid && activationStillPresent === true) {
       const nextToken = await createToken(auth.licenseKey, Date.now(), auth.activationId, env.HMAC_SECRET);
       refreshedCookie = buildAuthCookie(nextToken);
     }
@@ -235,16 +272,9 @@ async function handleLicenseInfo(request, env) {
   // Fetch activation count from the license key's activations array
   let activationsCount = null;
   if (result.licenseKeyId) {
-    try {
-      const lkRes = await fetch(`https://api.polar.sh/v1/license-keys/${result.licenseKeyId}`, {
-        headers: { 'Authorization': `Bearer ${env.POLAR_ACCESS_TOKEN}` },
-      });
-      const lkData = await lkRes.json().catch(() => ({}));
-      if (Array.isArray(lkData?.activations)) {
-        activationsCount = lkData.activations.length;
-      }
-    } catch {
-      // non-fatal — leave null
+    const licenseKeyRecord = await fetchLicenseKeyRecord(result.licenseKeyId, env);
+    if (Array.isArray(licenseKeyRecord?.activations)) {
+      activationsCount = licenseKeyRecord.activations.length;
     }
   }
 
@@ -317,6 +347,26 @@ async function validateLicenseKey(licenseKey, env) {
       activationLimit: null,
     };
   }
+}
+
+async function fetchLicenseKeyRecord(licenseKeyId, env) {
+  if (!licenseKeyId) return null;
+  try {
+    const lkRes = await fetch(`https://api.polar.sh/v1/license-keys/${licenseKeyId}`, {
+      headers: { 'Authorization': `Bearer ${env.POLAR_ACCESS_TOKEN}` },
+    });
+    if (!lkRes.ok) return null;
+    return await lkRes.json().catch(() => null);
+  } catch {
+    return null;
+  }
+}
+
+async function isActivationActive(licenseKeyId, activationId, env) {
+  if (!licenseKeyId || !activationId) return false;
+  const licenseKeyRecord = await fetchLicenseKeyRecord(licenseKeyId, env);
+  if (!Array.isArray(licenseKeyRecord?.activations)) return null;
+  return licenseKeyRecord.activations.some((activation) => activation?.id === activationId);
 }
 
 async function activateLicenseKey(licenseKey, env) {
