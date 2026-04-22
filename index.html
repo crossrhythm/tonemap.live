@@ -1373,7 +1373,6 @@
     border-color: var(--border-dim);
   }
 
-  .options-btn:hover,
   .options-btn:focus-visible,
   .status-btn:hover,
   .status-btn:focus-visible,
@@ -1392,9 +1391,9 @@
 .status-btn:active,
 .options-close-btn:active,
 .status-close-btn:active,
-.toggle-btn:active {
-  background-color: rgba(34,197,94,0.12);
-}
+ .toggle-btn:active {
+  transform: translateY(1px);
+ }
 
 .options-btn.alert {
   border-color: var(--warn-color);
@@ -2317,6 +2316,30 @@
     font-size: 0.82rem;
     color: var(--text-lite);
     line-height: 1.5;
+  }
+
+  .option-info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.25rem;
+    font-size: 0.76rem;
+  }
+
+  .option-info-table th,
+  .option-info-table td {
+    padding: 0.35rem 0.45rem;
+    border-bottom: 1px solid var(--ui-overlay-card-border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .option-info-table th {
+    color: var(--ui-text-muted-strong);
+    font-weight: 700;
+  }
+
+  .option-info-table td {
+    color: var(--text-lite);
   }
 
   .info-close-btn {
@@ -3375,7 +3398,7 @@
         <div class="overlay-actions">
           <div class="overlay-button-stack">
             <button id="noteViewToggleBtn" class="options-btn" type="button" title="View shortcuts [G/N/B/V]">Note View</button>
-            <button id="focusModeBtn" class="options-btn" type="button" aria-pressed="false" title="Toggle Full Screen [F]">Full Screen</button>
+            <button id="focusModeBtn" class="options-btn" type="button" aria-pressed="false" title="Toggle Full Screen [F]" hidden>Full Screen</button>
             <button id="optionsToggleBtn" class="options-btn" type="button" title="Open options [O]">Options</button>
           </div>
           <div class="quick-state">
@@ -3696,9 +3719,9 @@
               </div>
               <div class="mic-adj-wrap">
                 <div class="bgn-slider-col">
-                  <input id="volThresh" type="range" min="0" max="4" step="1" />
+                  <input id="volThresh" type="range" min="0" max="5" step="1" />
                   <div class="bgn-ticks" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span><span></span>
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
                   </div>
                 </div>
                 <span id="bgNoiseValue" class="mic-adj-readout">None</span>
@@ -4169,8 +4192,6 @@
   const optionsOverlayBodyEl = document.querySelector("#optionsOverlay .options-overlay-body");
   const statusOverlayBodyEl = document.querySelector("#statusOverlay .status-overlay-body");
   const pageEl = document.querySelector(".page");
-  const FULLSCREEN_HINT_KEY = "tonemap.live.fullscreenHintShown";
-  let fallbackFocusModeEnabled = false;
 
   /*************
    * SAFARI ECHO BUG DETECTION & INIT
@@ -4388,31 +4409,28 @@
     return (isAndroid || isCrOS) && isChrome && !isExcludedBrowser;
   }
 
-  function showHomeScreenInstallHintOnce() {
-    if (!isIOSWebKitLike() || isStandaloneDisplayMode()) return;
-    if (window.sessionStorage?.getItem(FULLSCREEN_HINT_KEY) === "1") return;
-    window.sessionStorage?.setItem(FULLSCREEN_HINT_KEY, "1");
-    window.alert("For true full-screen on iOS/iPadOS Safari, tap Share and choose 'Add to Home Screen'.");
+  function shouldShowFullscreenControl() {
+    return supportsBrowserFullscreen() && !isStandaloneDisplayMode();
   }
 
   function applyFocusModeClass() {
     if (!pageEl) return;
     const fullscreenOn = !!getFullscreenElement();
-    pageEl.classList.toggle("focus-mode", fullscreenOn || fallbackFocusModeEnabled);
+    pageEl.classList.toggle("focus-mode", fullscreenOn);
   }
 
   function syncFocusModeButton() {
     if (!focusModeBtn) return;
-    const fullscreenOn = !!getFullscreenElement();
-    const active = fullscreenOn || fallbackFocusModeEnabled;
-    if (fullscreenOn) {
-      focusModeBtn.textContent = "Window";
-    } else if (fallbackFocusModeEnabled) {
-      focusModeBtn.textContent = "Window";
-    } else {
-      focusModeBtn.textContent = supportsBrowserFullscreen() ? "Full Screen" : "Focus Mode";
+    const showControl = shouldShowFullscreenControl();
+    focusModeBtn.hidden = !showControl;
+    if (!showControl) {
+      focusModeBtn.setAttribute("aria-pressed", "false");
+      focusModeBtn.textContent = "Full Screen";
+      return;
     }
-    focusModeBtn.setAttribute("aria-pressed", active ? "true" : "false");
+    const fullscreenOn = !!getFullscreenElement();
+    focusModeBtn.textContent = fullscreenOn ? "Window" : "Full Screen";
+    focusModeBtn.setAttribute("aria-pressed", fullscreenOn ? "true" : "false");
   }
 
   async function requestAppFullscreen() {
@@ -4449,32 +4467,24 @@
   }
 
   async function toggleFocusMode() {
+    if (!shouldShowFullscreenControl()) {
+      applyFocusModeClass();
+      syncFocusModeButton();
+      return;
+    }
+
     const fullscreenOn = !!getFullscreenElement();
     if (fullscreenOn) {
-      fallbackFocusModeEnabled = false;
       await exitAppFullscreen();
       applyFocusModeClass();
       syncFocusModeButton();
       return;
     }
 
-    if (fallbackFocusModeEnabled) {
-      fallbackFocusModeEnabled = false;
-      applyFocusModeClass();
-      syncFocusModeButton();
-      return;
-    }
-
-    if (supportsBrowserFullscreen()) {
-      try {
-        await requestAppFullscreen();
-      } catch (err) {
-        console.warn("Fullscreen request failed; using focus mode fallback", err);
-        fallbackFocusModeEnabled = true;
-      }
-    } else {
-      fallbackFocusModeEnabled = true;
-      showHomeScreenInstallHintOnce();
+    try {
+      await requestAppFullscreen();
+    } catch (err) {
+      console.warn("Fullscreen request failed", err);
     }
 
     applyFocusModeClass();
@@ -4482,9 +4492,6 @@
   }
 
   function onFullscreenStateChange() {
-    if (getFullscreenElement()) {
-      fallbackFocusModeEnabled = false;
-    }
     applyFocusModeClass();
     syncFocusModeButton();
   }
@@ -5747,6 +5754,7 @@
       detail: [
         "Use if your mic runs quiet (meter stays mostly gray/green during normal playing).",
         "The slider is a multiplier on top of Tonemap's per-device baseline, from 1× (no boost) up to 100×. The response is exponential so fine control stays usable across the whole range.",
+        { html: `<table class="option-info-table"><thead><tr><th>Browser / OS</th><th>Default</th></tr></thead><tbody><tr><td>Firefox</td><td>1×</td></tr><tr><td>Chromium on macOS desktop</td><td>1×</td></tr><tr><td>Chromium on Windows / Android / ChromeOS</td><td>3.5×</td></tr><tr><td>Safari on macOS desktop</td><td>5×</td></tr><tr><td>Safari on iPhone / iPad</td><td>10×</td></tr><tr><td>Other browsers</td><td>1× desktop, 2× on iPhone / iPad</td></tr></tbody></table>` },
         "Boost only helps a quiet signal — if the meter is peaking (red), lower the input at the OS/mic level; gain here cannot fix clipping.",
         "Changes apply instantly; no need to restart the mic."
       ]
@@ -5756,7 +5764,7 @@
       summary: "Ignores input below a chosen level so room noise doesn't trigger the tuner.",
       detail: [
         "• None: tuner reacts to any detected pitch.",
-        "• Minimal / Low / Medium / High: progressively ignore quieter sounds (2.5% / 5% / 10% / 25% of full scale).",
+        "• Minimal / Low / Medium / High / Very High: progressively ignore quieter sounds (2.5% / 5% / 10% / 25% / 50% of full scale).",
         "The white tick on the levels monitor shows where the current cutoff sits.",
         "Below the cutoff the bar is gray; above it, green (normal) → yellow (hot) → red (peaking)."
       ]
@@ -9299,11 +9307,10 @@
   /**********************
    * AUDIO LOOP
    **********************/
-  // Background Noise Reduction: 4-step slider outputs the threshold directly.
-  // Index 0..3 → [0, 0.05, 0.10, 0.25] RMS cutoff. The white tick on the
-  // linear 0..1 meter sits at cutoff × 100%.
-  const BG_NOISE_VALUES = [0, 0.025, 0.05, 0.10, 0.25];
-  const BG_NOISE_LABELS = ["None", "Minimal", "Low", "Med", "High"];
+  // Background Noise Reduction slider outputs a discrete RMS cutoff directly.
+  // The white tick on the linear 0..1 meter sits at cutoff × 100%.
+  const BG_NOISE_VALUES = [0, 0.025, 0.05, 0.10, 0.25, 0.50];
+  const BG_NOISE_LABELS = ["None", "Minimal", "Low", "Med", "High", "Very High"];
 
   function bgNoiseIndexFromThreshold(val) {
     const num = Number(val);
