@@ -3473,7 +3473,7 @@
         <span id="recordingSpeedSpinner" class="recording-speed-spinner" role="status" aria-label="Processing speed change" hidden></span>
       </div>
       <div class="recording-speed-presets" role="group" aria-label="Speed presets">
-        <button type="button" class="recording-speed-preset is-edge" data-speed-preset="0.5" title="Half speed (slight echo artifacts possible)">0.5&times;</button>
+        <button type="button" class="recording-speed-preset is-edge" data-speed-preset="0.6">0.6&times;</button>
         <button type="button" class="recording-speed-preset" data-speed-preset="0.75">0.75&times;</button>
         <button type="button" class="recording-speed-preset" data-speed-preset="0.9">0.9&times;</button>
         <button type="button" class="recording-speed-preset" data-speed-preset="1">1&times;</button>
@@ -7792,9 +7792,9 @@
     await startRecorderPlayback();
   }
 
-  const RECORDER_SPEED_MIN = 0.6;
+  const RECORDER_SPEED_MIN = 0.5;
   const RECORDER_SPEED_MAX = 2;
-  const RECORDER_SPEED_PRESETS = [0.6, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2];
+  const RECORDER_SPEED_PRESETS = [0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2];
   const RECORDER_SOUNDTOUCH_URL = "https://esm.sh/soundtouchjs@0.1.30";
 
   function clampPlaybackRate(rate) {
@@ -7892,9 +7892,8 @@
   }
 
   function soundTouchParamsFor(rate) {
-    if (rate < 0.7)  return { sequenceMs: 120, seekWindowMs: 45, overlapMs: 18 };
-    if (rate <= 0.8) return { sequenceMs: 80,  seekWindowMs: 30, overlapMs: 12 };
-    if (rate >= 1.4) return { sequenceMs: 25,  seekWindowMs: 12, overlapMs: 6  };
+    if (rate <= 0.8) return { sequenceMs: 70, seekWindowMs: 25, overlapMs: 10 };
+    if (rate >= 1.4) return { sequenceMs: 25, seekWindowMs: 12, overlapMs: 6 };
     return { sequenceMs: 40, seekWindowMs: 15, overlapMs: 8 };
   }
 
