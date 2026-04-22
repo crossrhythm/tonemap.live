@@ -593,6 +593,7 @@
     height: var(--edge-btn-size);
     min-width: var(--edge-btn-size);
     min-height: var(--edge-btn-size);
+    padding: 0;
     border-radius: 0.45rem;
     border: 2px solid var(--border-dim);
     background: var(--bg-panel);
@@ -5286,6 +5287,9 @@
   const NOTE_VIEW_BALLOON_PADDING = 10;       // Horizontal padding between balloons
   const NOTE_VIEW_TEXT_COLOR = "white";
   const NOTE_VIEW_MERGE_GAP_TOLERANCE_MS = 150;
+  const SEGMENT_RETENTION_SAFETY_MARGIN_MS = 5000;
+  const SEGMENT_RETENTION_UNLIMITED_CEILING_MS = 10 * 60 * 1000;
+  const SEGMENT_RETENTION_MAX_COUNT_PER_CELL = 2000;
   const NOTE_VIEW_SCROLL_SNAP_EPSILON_PX = 16;
   const NOTE_VIEW_MIN_TIMELINE_WIDTH_PX = 0;
   const NOTE_VIEW_VIRTUAL_BUFFER_PX = 260;
@@ -7866,6 +7870,34 @@
     return STAIN_HOLD_SECONDS[STAIN_HOLD_DEFAULT];
   }
 
+  function getSegmentRetentionMs() {
+    const historySec = getHistoryWindowSeconds();
+    const stainSec = getStainHoldSeconds();
+    if (!Number.isFinite(historySec) || !Number.isFinite(stainSec)) {
+      return SEGMENT_RETENTION_UNLIMITED_CEILING_MS;
+    }
+    const maxSec = Math.max(historySec, stainSec, 0);
+    const retention = maxSec * 1000 + SEGMENT_RETENTION_SAFETY_MARGIN_MS;
+    return Math.min(retention, SEGMENT_RETENTION_UNLIMITED_CEILING_MS);
+  }
+
+  function pruneCellSegments(st, retentionMs) {
+    if (!st || !st.segments || st.segments.length === 0) return;
+    const segs = st.segments;
+    const cutoffMs = nowMs() - retentionMs;
+    let dropCount = 0;
+    while (dropCount < segs.length) {
+      const seg = segs[dropCount];
+      const endMs = (seg.startMs ?? 0) + (seg.durMs ?? 0);
+      if (endMs < cutoffMs) dropCount++;
+      else break;
+    }
+    if (dropCount > 0) segs.splice(0, dropCount);
+    if (segs.length > SEGMENT_RETENTION_MAX_COUNT_PER_CELL) {
+      segs.splice(0, segs.length - SEGMENT_RETENTION_MAX_COUNT_PER_CELL);
+    }
+  }
+
   function getTransposeOffset() {
     const raw = transpositionSelect ? parseInt(transpositionSelect.value, 10) : parseInt(currentSettings.transposition ?? "0", 10);
     if (Number.isFinite(raw)) {
@@ -7927,6 +7959,7 @@
       avgErrRatio: avgErr,
       stretchCents: segStretch
     });
+    pruneCellSegments(st, getSegmentRetentionMs());
     noteViewHasPaintedNote = true;
 
     // track first/last seen timestamps for this cell (metadata/pruning)

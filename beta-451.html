@@ -530,6 +530,132 @@
     color: rgba(15,23,42,0.45);
   }
 
+  .recorder-speed-btn {
+    width: auto;
+    min-width: 32px;
+    padding: 0 0.38rem;
+  }
+
+  .recorder-speed-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: currentColor;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .recorder-speed-btn.is-off-normal .recorder-speed-label {
+    color: #fbbf24;
+  }
+
+  .recorder-speed-btn[aria-expanded="true"] {
+    background: rgba(255,255,255,0.08);
+  }
+
+  :root[data-ui-theme="light"] .recorder-speed-btn[aria-expanded="true"] {
+    background: rgba(0,0,0,0.07);
+  }
+
+  .recording-speed-popover:not([hidden]) {
+    position: absolute;
+    left: 0.9rem;
+    bottom: 48px;
+    z-index: 34;
+    width: min(18rem, calc(100% - 1.8rem));
+    padding: 0.6rem 0.7rem;
+    border-radius: 0.8rem;
+    border: 1px solid rgba(148,163,184,0.22);
+    background: rgba(15,23,42,0.94);
+    color: var(--text-lite);
+    box-shadow: 0 10px 24px rgba(2,6,23,0.32);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  :root[data-ui-theme="light"] .recording-speed-popover:not([hidden]) {
+    background: rgba(255,255,255,0.98);
+    color: #0f172a;
+    border-color: rgba(100,116,139,0.26);
+  }
+
+  .recording-speed-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+
+  .recording-speed-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .recording-speed-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(148,163,184,0.28);
+    border-top-color: #38bdf8;
+    animation: recording-speed-spin 0.7s linear infinite;
+  }
+
+  @keyframes recording-speed-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .recording-speed-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .recording-speed-preset {
+    appearance: none;
+    border: 1px solid rgba(148,163,184,0.3);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    padding: 0.22rem 0.55rem;
+    cursor: pointer;
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
+
+  .recording-speed-preset:hover,
+  .recording-speed-preset:focus-visible {
+    background: rgba(255,255,255,0.08);
+    outline: none;
+  }
+
+  :root[data-ui-theme="light"] .recording-speed-preset:hover,
+  :root[data-ui-theme="light"] .recording-speed-preset:focus-visible {
+    background: rgba(0,0,0,0.06);
+  }
+
+  .recording-speed-preset.is-active {
+    background: rgba(56,189,248,0.22);
+    border-color: rgba(56,189,248,0.55);
+  }
+
+  .recording-speed-preset.is-edge {
+    opacity: 0.78;
+  }
+
+  .recording-speed-preset.is-edge.is-active {
+    opacity: 1;
+  }
+
+  .recording-speed-preset:disabled {
+    opacity: 0.42;
+    cursor: default;
+  }
+
   .recording-tip-overlay {
     position: absolute;
     left: 0.9rem;
@@ -904,6 +1030,7 @@
     height: var(--edge-btn-size);
     min-width: var(--edge-btn-size);
     min-height: var(--edge-btn-size);
+    padding: 0;
     border-radius: 0.45rem;
     border: 2px solid var(--border-dim);
     background: var(--bg-panel);
@@ -3294,6 +3421,9 @@
         <button id="recordingPlayBtn" class="recorder-btn" type="button" aria-label="Play recording" title="Play [X]" disabled>
           <span class="recorder-btn-icon recorder-btn-icon-play" aria-hidden="true"></span>
         </button>
+        <button id="recordingSpeedBtn" class="recorder-btn recorder-speed-btn" type="button" aria-label="Playback speed" title="Playback speed" aria-haspopup="dialog" aria-expanded="false" disabled>
+          <span class="recorder-speed-label" aria-hidden="true">1&times;</span>
+        </button>
         <button id="recordingDownloadBtn" class="recorder-btn" type="button" aria-label="Download recording" title="Download" disabled>
           <span class="recorder-btn-icon recorder-btn-icon-download" aria-hidden="true"></span>
         </button>
@@ -3303,9 +3433,25 @@
         <div id="recordingTimelineEmpty" class="recording-timeline-empty">No take yet</div>
       </div>
     </div>
+    <div id="recordingSpeedPopover" class="recording-speed-popover" role="dialog" aria-label="Playback speed" hidden>
+      <div class="recording-speed-header">
+        <span id="recordingSpeedValue" class="recording-speed-value" aria-live="polite">1&times;</span>
+        <span id="recordingSpeedSpinner" class="recording-speed-spinner" role="status" aria-label="Processing speed change" hidden></span>
+      </div>
+      <div class="recording-speed-presets" role="group" aria-label="Speed presets">
+        <button type="button" class="recording-speed-preset is-edge" data-speed-preset="0.5" title="Half speed (slight echo artifacts possible)">0.5&times;</button>
+        <button type="button" class="recording-speed-preset" data-speed-preset="0.75">0.75&times;</button>
+        <button type="button" class="recording-speed-preset" data-speed-preset="0.9">0.9&times;</button>
+        <button type="button" class="recording-speed-preset" data-speed-preset="1">1&times;</button>
+        <button type="button" class="recording-speed-preset" data-speed-preset="1.1">1.1&times;</button>
+        <button type="button" class="recording-speed-preset" data-speed-preset="1.25">1.25&times;</button>
+        <button type="button" class="recording-speed-preset" data-speed-preset="1.5">1.5&times;</button>
+        <button type="button" class="recording-speed-preset is-edge" data-speed-preset="2" title="Double speed (slight transient smearing possible)">2&times;</button>
+      </div>
+    </div>
     <div id="recordingTipOverlay" class="recording-tip-overlay" hidden>
       <p class="recording-tip-title">Quick Recorder</p>
-      <p class="recording-tip-body">Record yourself, play it back, and repeat, up to 5 minutes per take. Save any takes you want to keep.  Be sure your device is not set to "Silent" for playback! <br><br>If you have a keyboard, use shortcut key Z to start/stop recording and X to play/pause.</p>
+      <p class="recording-tip-body">Record yourself, play it back, and repeat, up to 20 minutes per take. Save any takes you want to keep.  Be sure your device is not set to "Silent" for playback! <br><br>If you have a keyboard, use shortcut key Z to start/stop recording and X to play/pause.</p>
     </div>
     <div id="recordingLauncherShell" class="recording-launcher-shell">
       <button id="recordingLauncher" class="recording-launcher" type="button" aria-label="Open recorder" title="Recorder">
@@ -4026,6 +4172,11 @@
   const recordingCollapseBtn = document.getElementById("recordingCollapseBtn");
   const recordingRecordBtn = document.getElementById("recordingRecordBtn");
   const recordingPlayBtn = document.getElementById("recordingPlayBtn");
+  const recordingSpeedBtn = document.getElementById("recordingSpeedBtn");
+  const recordingSpeedLabelEl = recordingSpeedBtn ? recordingSpeedBtn.querySelector(".recorder-speed-label") : null;
+  const recordingSpeedPopoverEl = document.getElementById("recordingSpeedPopover");
+  const recordingSpeedValueEl = document.getElementById("recordingSpeedValue");
+  const recordingSpeedSpinnerEl = document.getElementById("recordingSpeedSpinner");
   const recordingDownloadBtn = document.getElementById("recordingDownloadBtn");
   const recordingTimelineCanvas = document.getElementById("recordingTimelineCanvas");
   const recordingTimelineEmptyEl = document.getElementById("recordingTimelineEmpty");
@@ -4875,7 +5026,7 @@
   let midiToCellEl = {};
   let cellState = {};
   let masterCellState = {};
-  const RECORDER_MAX_DURATION_MS = 5 * 60 * 1000;
+  const RECORDER_MAX_DURATION_MS = 20 * 60 * 1000;
   const RECORDER_TIMELINE_TICK_MS = 10 * 1000;
   const RECORDER_SPECTRUM_POINTS = 48;
   const RECORDER_SPECTRUM_MIN_HZ = 80;
@@ -4918,7 +5069,11 @@
   let micSourceNode = null;
   let recorderProcessorNode = null;
   let recorderMonitorGainNode = null;
-  let playbackSourceNode = null;
+  let playbackAudioEl = null;
+  let playbackMediaSourceNode = null;
+  let playbackGainNode = null;
+  let playbackBlobUrl = null;
+  let playbackEndedHandler = null;
   let playbackAnalysisActive = false;
   let analysisSourceMode = "mic";
   let micStartRequestToken = 0;
@@ -4963,8 +5118,13 @@
     playbackOffsetMs: 0,
     playbackStartedAtMs: 0,
     playbackStartCtxTime: 0,
+    playbackRate: 1,
+    speedPopoverOpen: false,
     spectrumSmoothed: null,
     spectrumFreqBuffer: null,
+    stretchCache: { rate: null, blob: null, durationMs: 0 },
+    stretchJob: null,
+    stretchWorkerFailed: false,
   };
 
   const EDGE_SHORTCUT_LABELS = Object.freeze({
@@ -5367,6 +5527,9 @@
   const NOTE_VIEW_BALLOON_PADDING = 10;       // Horizontal padding between balloons
   const NOTE_VIEW_TEXT_COLOR = "white";
   const NOTE_VIEW_MERGE_GAP_TOLERANCE_MS = 150;
+  const SEGMENT_RETENTION_SAFETY_MARGIN_MS = 5000;
+  const SEGMENT_RETENTION_UNLIMITED_CEILING_MS = 10 * 60 * 1000;
+  const SEGMENT_RETENTION_MAX_COUNT_PER_CELL = 2000;
   const NOTE_VIEW_SCROLL_SNAP_EPSILON_PX = 16;
   const NOTE_VIEW_MIN_TIMELINE_WIDTH_PX = 0;
   const NOTE_VIEW_VIRTUAL_BUFFER_PX = 260;
@@ -7051,9 +7214,11 @@
   }
 
   function getRecorderCursorMs() {
-    if (!recorderState.isPlaying || !audioContext) return recorderState.playbackOffsetMs;
-    const elapsed = (audioContext.currentTime - recorderState.playbackStartCtxTime) * 1000;
-    return Math.min(recorderState.durationMs, recorderState.playbackOffsetMs + elapsed);
+    if (recorderState.isPlaying && playbackAudioEl) {
+      const rate = isStretchedPlayback() ? recorderState.playbackRate : 1;
+      return Math.min(recorderState.durationMs, playbackAudioEl.currentTime * 1000 * rate);
+    }
+    return recorderState.playbackOffsetMs;
   }
 
   function queueRecorderTimelineDraw() {
@@ -7260,6 +7425,8 @@
     recorderState.durationMs = 0;
     recorderState.playbackOffsetMs = 0;
     recorderState.sampleRate = 0;
+    if (typeof disposeStretchCache === "function") disposeStretchCache();
+    recorderState.stretchJob = null;
   }
 
   function stopRecorderCaptureGraph() {
@@ -7295,19 +7462,26 @@
 
   function disposeAnalysisGraph() {
     stopRecorderCaptureGraph();
-    if (playbackSourceNode) {
-      playbackSourceNode.onended = null;
-      try {
-        playbackSourceNode.stop();
-      } catch (err) {
-        console.warn("Playback stop failed:", err);
+    if (playbackAudioEl) {
+      if (playbackEndedHandler) {
+        try { playbackAudioEl.removeEventListener("ended", playbackEndedHandler); } catch (err) { /* ignore */ }
+        playbackEndedHandler = null;
       }
-      try {
-        playbackSourceNode.disconnect();
-      } catch (err) {
-        console.warn("Playback disconnect failed:", err);
-      }
-      playbackSourceNode = null;
+      try { playbackAudioEl.pause(); } catch (err) { /* ignore */ }
+      try { playbackAudioEl.removeAttribute("src"); playbackAudioEl.load(); } catch (err) { /* ignore */ }
+      playbackAudioEl = null;
+    }
+    if (playbackMediaSourceNode) {
+      try { playbackMediaSourceNode.disconnect(); } catch (err) { /* ignore */ }
+      playbackMediaSourceNode = null;
+    }
+    if (playbackGainNode) {
+      try { playbackGainNode.disconnect(); } catch (err) { /* ignore */ }
+      playbackGainNode = null;
+    }
+    if (playbackBlobUrl) {
+      try { URL.revokeObjectURL(playbackBlobUrl); } catch (err) { /* ignore */ }
+      playbackBlobUrl = null;
     }
     if (micSourceNode) {
       try {
@@ -7346,14 +7520,21 @@
       recordingRecordBtn.setAttribute("aria-label", recorderState.isRecording ? "Stop recording" : "Start recording");
       recordingRecordBtn.title = recorderState.isRecording ? "Stop [Z]" : "Record [Z]";
     }
+    const processing = !!recorderState.stretchJob;
     if (recordingPlayBtn) {
-      recordingPlayBtn.disabled = !hasTake || recorderState.isRecording;
+      recordingPlayBtn.disabled = !hasTake || recorderState.isRecording || processing;
       recordingPlayBtn.classList.toggle("is-playing", recorderState.isPlaying);
       recordingPlayBtn.setAttribute("aria-label", recorderState.isPlaying ? "Pause playback" : "Play recording");
       recordingPlayBtn.title = recorderState.isPlaying ? "Pause [X]" : "Play [X]";
     }
+    if (recordingSpeedBtn) {
+      recordingSpeedBtn.disabled = !hasTake || recorderState.isRecording;
+      if (recordingSpeedBtn.disabled && recorderState.speedPopoverOpen) {
+        closeSpeedPopover();
+      }
+    }
     if (recordingDownloadBtn) {
-      recordingDownloadBtn.disabled = !hasTake || recorderState.isRecording;
+      recordingDownloadBtn.disabled = !hasTake || recorderState.isRecording || processing;
     }
     if (recordingTimelineEmptyEl) {
       recordingTimelineEmptyEl.hidden = hasTake || recorderState.isRecording;
@@ -7478,11 +7659,12 @@
   }
 
   function pauseRecorderPlayback({ resetCursor = false } = {}) {
-    if (recorderState.isPlaying) {
-      const elapsed = audioContext
-        ? (audioContext.currentTime - recorderState.playbackStartCtxTime) * 1000
-        : performance.now() - recorderState.playbackStartedAtMs;
-      recorderState.playbackOffsetMs = Math.min(recorderState.durationMs, recorderState.playbackOffsetMs + elapsed);
+    if (recorderState.isPlaying && playbackAudioEl) {
+      const rate = isStretchedPlayback() ? recorderState.playbackRate : 1;
+      recorderState.playbackOffsetMs = Math.min(
+        recorderState.durationMs,
+        Math.max(0, playbackAudioEl.currentTime * 1000 * rate)
+      );
     }
     if (resetCursor) {
       recorderState.playbackOffsetMs = 0;
@@ -7495,7 +7677,7 @@
   }
 
   async function startRecorderPlayback(offsetMs = recorderState.playbackOffsetMs) {
-    if (!recorderState.pcmData || recorderState.durationMs <= 0) return;
+    if (!recorderState.currentBlob || recorderState.durationMs <= 0) return;
     if (recorderState.isRecording) {
       stopRecording();
     }
@@ -7508,27 +7690,49 @@
     const ready = await ensurePlaybackAnalysisPipeline();
     if (!ready || !audioContext || !analyserNode) return;
 
-    const playbackBuffer = audioContext.createBuffer(1, recorderState.pcmData.length, recorderState.sampleRate);
-    playbackBuffer.copyToChannel(recorderState.pcmData, 0);
+    const useStretched = isStretchedPlayback();
+    const blobToPlay = useStretched ? recorderState.stretchCache.blob : recorderState.currentBlob;
+    playbackBlobUrl = URL.createObjectURL(blobToPlay);
+    const audioEl = new Audio();
+    audioEl.preload = "auto";
+    audioEl.src = playbackBlobUrl;
+    if (recorderState.stretchWorkerFailed && !useStretched) {
+      // Degraded fallback when worker is unavailable: lean on browser preservesPitch
+      try { audioEl.preservesPitch = true; } catch (err) { /* ignore */ }
+      try { audioEl.mozPreservesPitch = true; } catch (err) { /* ignore */ }
+      try { audioEl.webkitPreservesPitch = true; } catch (err) { /* ignore */ }
+      audioEl.playbackRate = recorderState.playbackRate || 1;
+    } else {
+      audioEl.playbackRate = 1.0;
+    }
+    playbackAudioEl = audioEl;
 
-    playbackSourceNode = audioContext.createBufferSource();
-    playbackSourceNode.buffer = playbackBuffer;
-    const playbackGainNode = audioContext.createGain();
+    await new Promise((resolve) => {
+      if (audioEl.readyState >= 1) { resolve(); return; }
+      const onReady = () => {
+        audioEl.removeEventListener("loadedmetadata", onReady);
+        audioEl.removeEventListener("error", onReady);
+        resolve();
+      };
+      audioEl.addEventListener("loadedmetadata", onReady);
+      audioEl.addEventListener("error", onReady);
+    });
+    if (playbackAudioEl !== audioEl) return;
+
+    playbackMediaSourceNode = audioContext.createMediaElementSource(audioEl);
+    playbackGainNode = audioContext.createGain();
     playbackGainNode.gain.value = RECORDER_PLAYBACK_GAIN;
-    playbackSourceNode.connect(playbackGainNode);
+    playbackMediaSourceNode.connect(playbackGainNode);
     playbackGainNode.connect(analyserNode);
     analyserNode.connect(audioContext.destination);
 
-    recorderState.playbackOffsetMs = Math.max(0, Math.min(recorderState.durationMs, offsetMs));
-    recorderState.playbackStartedAtMs = performance.now();
-    recorderState.isPlaying = true;
-    playbackAnalysisActive = true;
-    analysisSourceMode = "playback";
-    lastFrameTime = nowMs();
+    const clampedOffsetMs = Math.max(0, Math.min(recorderState.durationMs, offsetMs));
+    recorderState.playbackOffsetMs = clampedOffsetMs;
+    const seekRate = useStretched ? recorderState.playbackRate : 1;
+    try { audioEl.currentTime = (clampedOffsetMs / 1000) / seekRate; } catch (err) { /* ignore */ }
 
-    const sourceAtStart = playbackSourceNode;
-    sourceAtStart.onended = () => {
-      if (playbackSourceNode !== sourceAtStart) return;
+    playbackEndedHandler = () => {
+      if (playbackAudioEl !== audioEl) return;
       recorderState.isPlaying = false;
       recorderState.playbackOffsetMs = 0;
       playbackAnalysisActive = false;
@@ -7536,9 +7740,26 @@
       disposeAnalysisGraph();
       updateRecorderUi();
     };
+    audioEl.addEventListener("ended", playbackEndedHandler);
 
-    sourceAtStart.start(0, recorderState.playbackOffsetMs / 1000);
-    recorderState.playbackStartCtxTime = audioContext.currentTime;
+    recorderState.playbackStartedAtMs = performance.now();
+    recorderState.isPlaying = true;
+    playbackAnalysisActive = true;
+    analysisSourceMode = "playback";
+    lastFrameTime = nowMs();
+
+    try {
+      await audioEl.play();
+    } catch (err) {
+      console.warn("Playback start failed:", err);
+      recorderState.isPlaying = false;
+      playbackAnalysisActive = false;
+      analysisSourceMode = "mic";
+      disposeAnalysisGraph();
+      updateRecorderUi();
+      return;
+    }
+
     tick();
     updateRecorderUi();
     queueRecorderTimelineDraw();
@@ -7550,6 +7771,289 @@
       return;
     }
     await startRecorderPlayback();
+  }
+
+  const RECORDER_SPEED_MIN = 0.5;
+  const RECORDER_SPEED_MAX = 2;
+  const RECORDER_SPEED_PRESETS = [0.5, 0.75, 0.9, 1, 1.1, 1.25, 1.5, 2];
+  const RECORDER_SOUNDTOUCH_URL = "https://esm.sh/soundtouchjs@0.1.30";
+
+  function clampPlaybackRate(rate) {
+    const n = Number(rate);
+    if (!Number.isFinite(n)) return 1;
+    return Math.max(RECORDER_SPEED_MIN, Math.min(RECORDER_SPEED_MAX, n));
+  }
+
+  function formatPlaybackRate(rate) {
+    const r = clampPlaybackRate(rate);
+    const text = Number.isInteger(r) ? String(r) : r.toFixed(2).replace(/0+$/, "").replace(/\.$/, "");
+    return text + "\u00D7";
+  }
+
+  let recorderStretchWorker = null;
+  let recorderStretchJobCounter = 0;
+  const recorderStretchJobMap = new Map();
+
+  function ensureStretchWorker() {
+    if (recorderStretchWorker) return recorderStretchWorker;
+    if (recorderState.stretchWorkerFailed) return null;
+    try {
+      const workerSource = `
+        import { SoundTouch, SimpleFilter } from '${RECORDER_SOUNDTOUCH_URL}';
+        self.onmessage = (e) => {
+          const { id, pcmBuffer, rate, sequenceMs, seekWindowMs, overlapMs } = e.data;
+          try {
+            const input = new Float32Array(pcmBuffer);
+            const st = new SoundTouch();
+            st.tempo = rate;
+            if (sequenceMs != null) st.sequenceMs = sequenceMs;
+            if (seekWindowMs != null) st.seekWindowMs = seekWindowMs;
+            if (overlapMs != null) st.overlapMs = overlapMs;
+            const source = {
+              extract(target, numFrames, position) {
+                const start = position | 0;
+                const avail = Math.max(0, input.length - start);
+                const frames = Math.max(0, Math.min(numFrames, avail));
+                for (let i = 0; i < frames; i++) {
+                  const s = input[start + i];
+                  target[i * 2] = s;
+                  target[i * 2 + 1] = s;
+                }
+                return frames;
+              }
+            };
+            const filter = new SimpleFilter(source, st);
+            const CHUNK = 4096;
+            const scratch = new Float32Array(CHUNK * 2);
+            const parts = [];
+            let total = 0;
+            while (true) {
+              const n = filter.extract(scratch, CHUNK);
+              if (!n) break;
+              const mono = new Float32Array(n);
+              for (let i = 0; i < n; i++) mono[i] = scratch[i * 2];
+              parts.push(mono);
+              total += n;
+            }
+            const out = new Float32Array(total);
+            let off = 0;
+            for (const p of parts) { out.set(p, off); off += p.length; }
+            self.postMessage({ id, stretched: out.buffer }, [out.buffer]);
+          } catch (err) {
+            self.postMessage({ id, error: String((err && err.message) || err) });
+          }
+        };
+      `;
+      const blob = new Blob([workerSource], { type: "application/javascript" });
+      const url = URL.createObjectURL(blob);
+      recorderStretchWorker = new Worker(url, { type: "module" });
+      recorderStretchWorker.onmessage = (e) => {
+        const data = e.data || {};
+        const job = recorderStretchJobMap.get(data.id);
+        if (!job) return;
+        recorderStretchJobMap.delete(data.id);
+        if (data.error) job.reject(new Error(data.error));
+        else job.resolve(data.stretched);
+      };
+      recorderStretchWorker.onerror = (evt) => {
+        console.warn("Stretch worker error:", evt.message || evt);
+        recorderState.stretchWorkerFailed = true;
+        for (const job of recorderStretchJobMap.values()) job.reject(new Error("stretch worker error"));
+        recorderStretchJobMap.clear();
+        try { recorderStretchWorker.terminate(); } catch (err) { /* ignore */ }
+        recorderStretchWorker = null;
+      };
+      URL.revokeObjectURL(url);
+      return recorderStretchWorker;
+    } catch (err) {
+      console.warn("Stretch worker init failed:", err);
+      recorderState.stretchWorkerFailed = true;
+      return null;
+    }
+  }
+
+  function soundTouchParamsFor(rate) {
+    if (rate <= 0.8) return { sequenceMs: 70, seekWindowMs: 25, overlapMs: 10 };
+    if (rate >= 1.4) return { sequenceMs: 25, seekWindowMs: 12, overlapMs: 6 };
+    return { sequenceMs: 40, seekWindowMs: 15, overlapMs: 8 };
+  }
+
+  function stretchPcmAsync(pcm, rate) {
+    const worker = ensureStretchWorker();
+    if (!worker) return Promise.reject(new Error("stretch worker unavailable"));
+    const id = ++recorderStretchJobCounter;
+    const params = soundTouchParamsFor(rate);
+    const copy = new Float32Array(pcm.length);
+    copy.set(pcm);
+    return new Promise((resolve, reject) => {
+      recorderStretchJobMap.set(id, { resolve, reject, rate });
+      worker.postMessage({
+        id,
+        pcmBuffer: copy.buffer,
+        rate,
+        sequenceMs: params.sequenceMs,
+        seekWindowMs: params.seekWindowMs,
+        overlapMs: params.overlapMs
+      }, [copy.buffer]);
+    });
+  }
+
+  function disposeStretchCache() {
+    recorderState.stretchCache = { rate: null, blob: null, durationMs: 0 };
+  }
+
+  function isStretchedPlayback() {
+    return recorderState.playbackRate !== 1 &&
+      recorderState.stretchCache.blob &&
+      recorderState.stretchCache.rate === recorderState.playbackRate;
+  }
+
+  function getCurrentOriginalMs() {
+    if (recorderState.isPlaying && playbackAudioEl) {
+      const rate = isStretchedPlayback() ? recorderState.playbackRate : 1;
+      return Math.min(recorderState.durationMs, Math.max(0, playbackAudioEl.currentTime * 1000 * rate));
+    }
+    return recorderState.playbackOffsetMs;
+  }
+
+  async function setRecorderPlaybackRate(rate) {
+    const finalRate = clampPlaybackRate(rate);
+    if (!recorderState.currentBlob || !recorderState.pcmData) {
+      recorderState.playbackRate = finalRate;
+      updateRecorderSpeedUi();
+      return;
+    }
+    if (recorderState.stretchJob && recorderState.stretchJob.rate === finalRate) {
+      return;
+    }
+
+    const wasPlaying = recorderState.isPlaying;
+    const originalOffsetMs = getCurrentOriginalMs();
+
+    recorderState.playbackRate = finalRate;
+
+    if (finalRate === 1) {
+      disposeStretchCache();
+      recorderState.stretchJob = null;
+      if (recorderState.isPlaying || wasPlaying) {
+        pauseRecorderPlayback({ resetCursor: false });
+        recorderState.playbackOffsetMs = originalOffsetMs;
+        if (wasPlaying) await startRecorderPlayback(originalOffsetMs);
+      }
+      updateRecorderSpeedUi();
+      return;
+    }
+
+    if (recorderState.stretchCache.rate === finalRate && recorderState.stretchCache.blob) {
+      if (recorderState.isPlaying || wasPlaying) {
+        pauseRecorderPlayback({ resetCursor: false });
+        recorderState.playbackOffsetMs = originalOffsetMs;
+        if (wasPlaying) await startRecorderPlayback(originalOffsetMs);
+      }
+      updateRecorderSpeedUi();
+      return;
+    }
+
+    if (recorderState.stretchWorkerFailed) {
+      // Degraded path: no worker available — rely on browser preservesPitch.
+      disposeStretchCache();
+      recorderState.stretchJob = null;
+      if (recorderState.isPlaying || wasPlaying) {
+        pauseRecorderPlayback({ resetCursor: false });
+        recorderState.playbackOffsetMs = originalOffsetMs;
+        if (wasPlaying) await startRecorderPlayback(originalOffsetMs);
+      }
+      updateRecorderSpeedUi();
+      return;
+    }
+
+    // Cache miss — need to stretch.
+    if (recorderState.isPlaying) {
+      pauseRecorderPlayback({ resetCursor: false });
+    }
+    recorderState.playbackOffsetMs = originalOffsetMs;
+
+    const jobToken = { rate: finalRate };
+    recorderState.stretchJob = jobToken;
+    disposeStretchCache();
+    updateRecorderSpeedUi();
+    updateRecorderUi();
+
+    try {
+      const stretchedBuffer = await stretchPcmAsync(recorderState.pcmData, finalRate);
+      if (recorderState.stretchJob !== jobToken) return; // superseded
+      const stretched = new Float32Array(stretchedBuffer);
+      const blob = encodeRecorderWav(stretched, recorderState.sampleRate);
+      const stretchedDurationMs = Math.round((stretched.length / recorderState.sampleRate) * 1000);
+      recorderState.stretchCache = { rate: finalRate, blob, durationMs: stretchedDurationMs };
+      recorderState.stretchJob = null;
+      updateRecorderSpeedUi();
+      updateRecorderUi();
+      if (wasPlaying) {
+        await startRecorderPlayback(originalOffsetMs);
+      }
+    } catch (err) {
+      console.warn("Time-stretch failed, falling back to preservesPitch:", err);
+      if (recorderState.stretchJob === jobToken) {
+        recorderState.stretchJob = null;
+      }
+      updateRecorderSpeedUi();
+      updateRecorderUi();
+      if (wasPlaying) {
+        await startRecorderPlayback(originalOffsetMs);
+      }
+    }
+  }
+
+  function updateRecorderSpeedUi() {
+    const rate = recorderState.playbackRate || 1;
+    const label = formatPlaybackRate(rate);
+    const processing = !!recorderState.stretchJob;
+    if (recordingSpeedLabelEl) recordingSpeedLabelEl.textContent = label;
+    if (recordingSpeedBtn) {
+      recordingSpeedBtn.classList.toggle("is-off-normal", Math.abs(rate - 1) > 0.001);
+      recordingSpeedBtn.classList.toggle("is-processing", processing);
+      recordingSpeedBtn.title = "Playback speed (" + label + ")";
+    }
+    if (recordingSpeedValueEl) recordingSpeedValueEl.textContent = label;
+    if (recordingSpeedSpinnerEl) recordingSpeedSpinnerEl.hidden = !processing;
+    if (recordingSpeedPopoverEl) {
+      const presets = recordingSpeedPopoverEl.querySelectorAll(".recording-speed-preset");
+      presets.forEach(btn => {
+        const preset = parseFloat(btn.dataset.speedPreset || "0");
+        btn.classList.toggle("is-active", Math.abs(preset - rate) < 0.001);
+        btn.disabled = processing;
+      });
+    }
+  }
+
+  function openSpeedPopover() {
+    if (!recordingSpeedPopoverEl || !recordingSpeedBtn) return;
+    if (recordingSpeedBtn.disabled) return;
+    recorderState.speedPopoverOpen = true;
+    recordingSpeedPopoverEl.hidden = false;
+    recordingSpeedBtn.setAttribute("aria-expanded", "true");
+    updateRecorderSpeedUi();
+  }
+
+  function closeSpeedPopover() {
+    if (!recordingSpeedPopoverEl || !recordingSpeedBtn) return;
+    recorderState.speedPopoverOpen = false;
+    recordingSpeedPopoverEl.hidden = true;
+    recordingSpeedBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleSpeedPopover() {
+    if (recorderState.speedPopoverOpen) closeSpeedPopover();
+    else openSpeedPopover();
+  }
+
+  function handleSpeedPopoverOutsidePointer(event) {
+    if (!recorderState.speedPopoverOpen) return;
+    const target = event.target;
+    if (recordingSpeedPopoverEl && recordingSpeedPopoverEl.contains(target)) return;
+    if (recordingSpeedBtn && recordingSpeedBtn.contains(target)) return;
+    closeSpeedPopover();
   }
 
   function downloadRecorderTake() {
@@ -8649,6 +9153,34 @@
     return STAIN_HOLD_SECONDS[STAIN_HOLD_DEFAULT];
   }
 
+  function getSegmentRetentionMs() {
+    const historySec = getHistoryWindowSeconds();
+    const stainSec = getStainHoldSeconds();
+    if (!Number.isFinite(historySec) || !Number.isFinite(stainSec)) {
+      return SEGMENT_RETENTION_UNLIMITED_CEILING_MS;
+    }
+    const maxSec = Math.max(historySec, stainSec, 0);
+    const retention = maxSec * 1000 + SEGMENT_RETENTION_SAFETY_MARGIN_MS;
+    return Math.min(retention, SEGMENT_RETENTION_UNLIMITED_CEILING_MS);
+  }
+
+  function pruneCellSegments(st, retentionMs) {
+    if (!st || !st.segments || st.segments.length === 0) return;
+    const segs = st.segments;
+    const cutoffMs = nowMs() - retentionMs;
+    let dropCount = 0;
+    while (dropCount < segs.length) {
+      const seg = segs[dropCount];
+      const endMs = (seg.startMs ?? 0) + (seg.durMs ?? 0);
+      if (endMs < cutoffMs) dropCount++;
+      else break;
+    }
+    if (dropCount > 0) segs.splice(0, dropCount);
+    if (segs.length > SEGMENT_RETENTION_MAX_COUNT_PER_CELL) {
+      segs.splice(0, segs.length - SEGMENT_RETENTION_MAX_COUNT_PER_CELL);
+    }
+  }
+
   function getTransposeOffset() {
     const raw = transpositionSelect ? parseInt(transpositionSelect.value, 10) : parseInt(currentSettings.transposition ?? "0", 10);
     if (Number.isFinite(raw)) {
@@ -8710,6 +9242,7 @@
       avgErrRatio: avgErr,
       stretchCents: segStretch
     });
+    pruneCellSegments(st, getSegmentRetentionMs());
     noteViewHasPaintedNote = true;
 
     // track first/last seen timestamps for this cell (metadata/pruning)
@@ -10616,6 +11149,31 @@
       downloadRecorderTake();
     });
   }
+
+  if (recordingSpeedBtn) {
+    recordingSpeedBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleSpeedPopover();
+    });
+  }
+
+  if (recordingSpeedPopoverEl) {
+    recordingSpeedPopoverEl.addEventListener("click", (event) => {
+      const presetBtn = event.target.closest("[data-speed-preset]");
+      if (presetBtn && !presetBtn.disabled) {
+        setRecorderPlaybackRate(parseFloat(presetBtn.dataset.speedPreset || "1"));
+      }
+    });
+  }
+
+  document.addEventListener("pointerdown", handleSpeedPopoverOutsidePointer, true);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && recorderState.speedPopoverOpen) {
+      closeSpeedPopover();
+    }
+  });
+
+  updateRecorderSpeedUi();
 
   if (recordingTimelineCanvas) {
     recordingTimelineCanvas.addEventListener("pointerdown", event => {
