@@ -1244,29 +1244,21 @@
     border-radius: 999px;
     overflow: hidden;
     border: 1px solid var(--border-dim);
-    background: var(--bg-panel);
+    background: linear-gradient(to right,
+      rgba(107,114,128,0.95) 0% var(--rms-gate, 0%),
+      rgb(34,197,94) var(--rms-gate, 0%) 75%,
+      #f5c542 75% 95%,
+      #ef4444 95% 100%
+    );
   }
 
   .rms-gauge-fill {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
     height: 100%;
-    width: 0%;
-    transition: width 70ms linear, background-color 70ms linear;
-  }
-
-  .rms-gauge-fill.gray {
-    background-color: rgba(107,114,128,0.95);
-  }
-
-  .rms-gauge-fill.green {
-    background-color: var(--accent-green);
-  }
-
-  .rms-gauge-fill.yellow {
-    background-color: #f5c542;
-  }
-
-  .rms-gauge-fill.red {
-    background-color: #ef4444;
+    width: 100%;
+    background: var(--bg-panel);
+    transition: width 70ms linear;
   }
 
   .mic-adj-wrap {
@@ -4720,29 +4712,19 @@
     const gate = Number.isFinite(threshold) ? threshold : 0;
     const clamped = Math.max(0, Math.min(1, gate));
     rmsGaugeThresholdEl.style.left = `${(clamped * 100).toFixed(1)}%`;
+    if (rmsGaugeFillEl) {
+      rmsGaugeFillEl.parentElement.style.setProperty('--rms-gate', `${(clamped * 100).toFixed(1)}%`);
+    }
   }
-
-  const RMS_YELLOW_THRESHOLD = 0.5;
-  const RMS_RED_THRESHOLD    = 0.8;
 
   function updateRmsGauge(rms, threshold) {
     if (!rmsGaugeFillEl) return;
     const safeRms = Number.isFinite(rms) ? rms : 0;
     const normalized = Math.max(0, Math.min(1, safeRms));
-    const percent = normalized * 100;
     const gate = Number.isFinite(threshold) ? threshold : 0;
 
-    rmsGaugeFillEl.style.width = `${percent.toFixed(1)}%`;
-
-    const isBelowGate = normalized < gate;
-    const isRed       = normalized >= RMS_RED_THRESHOLD;
-    const isYellow    = !isRed && normalized >= RMS_YELLOW_THRESHOLD;
-    const isGreen     = !isBelowGate && !isYellow && !isRed;
-
-    rmsGaugeFillEl.classList.toggle("gray",   isBelowGate);
-    rmsGaugeFillEl.classList.toggle("green",  isGreen);
-    rmsGaugeFillEl.classList.toggle("yellow", isYellow);
-    rmsGaugeFillEl.classList.toggle("red",    isRed);
+    // Curtain covers the right portion; gradient on track reveals the zones
+    rmsGaugeFillEl.style.width = `${((1 - normalized) * 100).toFixed(1)}%`;
 
     updateRmsGaugeThresholdMarker(gate);
   }
