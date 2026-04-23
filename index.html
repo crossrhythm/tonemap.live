@@ -1527,19 +1527,21 @@
   }
 
   #optSectionCore { order: 0; }
-  #optSectionAdvanced { order: 7; }
+  #optSectionVisual { order: 5; }
+  #optSectionAdvanced { order: 10; }
 
   #optMode { order: 1; }
-  #optRowsStart { order: 3; }
   #optPerformancePitch { order: 2; }
-  #optTransposition { order: 4; }
-  #optStretchTuning { order: 5; }
-  #optAccidentals { order: 6; }
+  #optTransposition { order: 3; }
+  #optStretchTuning { order: 4; }
 
+  #optRowsStart { order: 6; }
+  #optAccidentals { order: 7; }
   #optNoteViewStyle { order: 8; }
-  #optOnsetFilter { order: 9; }
-  #optMicAdjustments { order: 10; }
-  #optNeedleDirection { order: 12; }
+  #optNeedleDirection { order: 9; }
+
+  #optOnsetFilter { order: 11; }
+  #optMicAdjustments { order: 12; }
   #optHistory { order: 13; }
   #optColorHold { order: 14; }
 
@@ -1925,6 +1927,13 @@
 
   .bgn-slider-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
   .bgn-slider-col input[type="range"] { width: 100%; display: block; }
+  .bg-noise-readout {
+    flex: 0 0 4.5ch;
+    width: 4.5ch;
+    min-width: 4.5ch;
+    max-width: 4.5ch;
+    white-space: nowrap;
+  }
   .bgn-ticks {
     display: flex;
     justify-content: space-between;
@@ -3515,6 +3524,7 @@
           </div>
         </div>
 
+        <p id="optSectionVisual" class="options-section-label">Visual</p>
         <p id="optSectionAdvanced" class="options-section-label">Advanced</p>
         <div class="option-field" id="optNoteViewStyle">
           <div class="opt-label-row">
@@ -3716,7 +3726,7 @@
                     <span></span><span></span><span></span><span></span><span></span><span></span>
                   </div>
                 </div>
-                <span id="bgNoiseValue" class="mic-adj-readout">None</span>
+                <span id="bgNoiseValue" class="mic-adj-readout bg-noise-readout">None</span>
               </div>
             </div>
           </div>
@@ -4982,6 +4992,8 @@
   let relaxedNeedleCents = NaN;
   let relaxedNeedleLastMs = performance.now();
   let relaxedSmoothingActive = false;
+  const RMS_GAUGE_RELEASE_MS = 320;
+  let rmsGaugeDisplay = 0;
   let heldMidiForDisplay = null;
   let heldCentsForDisplay = 0;
   let stainedThisTick = new Set();
@@ -4991,6 +5003,27 @@
     const minMidi = noteNameToMidiC("C0");
     const maxMidi = noteNameToMidiC("C8") + 11;
     return { minMidi, maxMidi };
+  }
+
+  function resetRmsGaugeDisplay(value = 0) {
+    const safeValue = Number.isFinite(value) ? value : 0;
+    rmsGaugeDisplay = Math.max(0, Math.min(1, safeValue));
+  }
+
+  function getRmsGaugeDisplayValue(rms, dtMs) {
+    const safeRms = Math.max(0, Math.min(1, Number.isFinite(rms) ? rms : 0));
+    if (safeRms >= rmsGaugeDisplay) {
+      rmsGaugeDisplay = safeRms;
+      return rmsGaugeDisplay;
+    }
+
+    const safeDtMs = Math.max(0, Number.isFinite(dtMs) ? dtMs : 0);
+    if (safeDtMs <= 0) return rmsGaugeDisplay;
+
+    const releaseAlpha = 1 - Math.exp(-safeDtMs / RMS_GAUGE_RELEASE_MS);
+    rmsGaugeDisplay += (safeRms - rmsGaugeDisplay) * releaseAlpha;
+    if (Math.abs(rmsGaugeDisplay - safeRms) < 0.0005) rmsGaugeDisplay = safeRms;
+    return rmsGaugeDisplay;
   }
 
   function normalizeNoteViewRange(lowMidi, highMidi) {
@@ -9292,7 +9325,7 @@
   // Background Noise Reduction slider outputs a discrete RMS cutoff directly.
   // The white tick on the linear 0..1 meter sits at cutoff × 100%.
   const BG_NOISE_VALUES = [0, 0.025, 0.05, 0.10, 0.25, 0.50];
-  const BG_NOISE_LABELS = ["None", "Minimal", "Low", "Med", "High", "Very High"];
+  const BG_NOISE_LABELS = ["None", "Min", "Low", "Med", "High", "Max"];
 
   function bgNoiseIndexFromThreshold(val) {
     const num = Number(val);
@@ -9400,7 +9433,7 @@
       micStallAccumMs = 0;
     }
 
-    updateRmsGauge(rms, volumeThreshold);
+    updateRmsGauge(getRmsGaugeDisplayValue(rms, dtMs), volumeThreshold);
 
     const mode = sensitivitySelect.value;
     const minHold = getCurrentMinHoldMs();
@@ -9718,6 +9751,7 @@
     micDisabled = markDisabled ? true : micDisabled;
     resetMicHealthWatchdog();
     updateNoteReadoutText();
+    resetRmsGaugeDisplay(0);
     updateRmsGauge(0, volumeThreshold);
 
     updateRangeAlertsAndStatusPanel(null, running, false, false, false, getOutOfRangeHoldMs());
@@ -9759,6 +9793,7 @@
     lastDisplayedCentsText = "-- cents";
     updateNoteReadoutText();
 
+    resetRmsGaugeDisplay(0);
     updateRmsGauge(0, volumeThreshold);
   }
 
