@@ -7854,6 +7854,16 @@
               parts.push(mono);
               total += n;
             }
+            // Flush SoundTouch's internal lookahead buffer to capture the tail
+            st.flush();
+            while (true) {
+              const n = filter.extract(scratch, CHUNK);
+              if (!n) break;
+              const mono = new Float32Array(n);
+              for (let i = 0; i < n; i++) mono[i] = scratch[i * 2];
+              parts.push(mono);
+              total += n;
+            }
             const out = new Float32Array(total);
             let off = 0;
             for (const p of parts) { out.set(p, off); off += p.length; }
