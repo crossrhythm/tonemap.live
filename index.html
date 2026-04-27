@@ -1453,6 +1453,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    overscroll-behavior: none;
     position: relative;
   }
 
@@ -1560,7 +1561,8 @@
   flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
-  overscroll-behavior-x: none;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   padding: 0 1.5rem 1.5rem;
   min-height: 0;
   position: relative;
@@ -3730,11 +3732,11 @@
             <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Accidentals">
               <div class="theme-mode-item">
                 <input id="accidentalModeSharps" class="theme-mode-radio" type="radio" name="accidentalMode" value="sharps" />
-                <label class="theme-mode-label" for="accidentalModeSharps">Sharps</label>
+                <label class="theme-mode-label" for="accidentalModeSharps"><span style="font-size:1.125em;font-weight:700;">#</span> (sharps)</label>
               </div>
               <div class="theme-mode-item">
                 <input id="accidentalModeFlats" class="theme-mode-radio" type="radio" name="accidentalMode" value="flats" />
-                <label class="theme-mode-label" for="accidentalModeFlats">Flats</label>
+                <label class="theme-mode-label" for="accidentalModeFlats"><span style="font-size:1.125em;font-weight:700;">♭</span> (flats)</label>
               </div>
             </div>
           </div>
