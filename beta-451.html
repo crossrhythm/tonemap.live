@@ -766,6 +766,7 @@
     min-height: 1px;
     opacity: 0;
     pointer-events: none;
+    transition: width 0ms linear;
   }
 
   .edge-controls {
@@ -2820,7 +2821,6 @@
   @media (max-aspect-ratio: 1/1) {
     body {
       padding: 0.75rem;
-      min-height: 625px;
       height: 100dvh;
       gap: 0;
       overflow-x: hidden;
@@ -2829,7 +2829,7 @@
     .page {
       flex: 1 1 auto;
       flex-direction: column;
-      min-height: calc(625px - 1.5rem);
+      min-height: 0;
       height: auto;
       gap: 0.75rem;
       overflow: visible;
@@ -2850,8 +2850,8 @@
     }
     .left-col {
       flex: 1 1 auto;
-      min-height: min(640px, max(320px, 70vh));
-      height: min(640px, max(320px, 70vh));
+      min-height: 350px;
+      height: auto;
     }
     .grid-shell {
       min-height: 0;
@@ -2897,6 +2897,7 @@
       opacity: 0;
       transform: translateY(8px);
       max-height: 0;
+      min-height: 0;
       overflow: hidden;
       pointer-events: none;
       transition: opacity 220ms ease, transform 220ms ease, max-height 220ms ease;
@@ -2906,6 +2907,7 @@
       opacity: 1;
       transform: translateY(0);
       max-height: 1000px;
+      min-height: 0;
       overflow: hidden;
       pointer-events: auto;
       transition: opacity 220ms ease, transform 220ms ease, max-height 220ms ease;
@@ -3378,6 +3380,132 @@
     color: rgba(148,163,184,0.85);
   }
 
+  /* ── Note Stats Overlay ──────────────────────────── */
+  .ns-pc-chart {
+    display: none;
+  }
+
+  .ns-pc-bar-wrap {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-end;
+    height: 2.75rem;
+  }
+
+  .ns-pc-bar {
+    width: 100%;
+    background: var(--text-dim);
+    opacity: 0.5;
+    border-radius: 2px 2px 0 0;
+    min-height: 2px;
+  }
+
+  .ns-pc-bar.ns-pc-best {
+    background: var(--accent-green);
+    opacity: 0.9;
+  }
+
+  .ns-pc-label {
+    display: none;
+  }
+
+  .ns-pc-row th {
+    vertical-align: bottom;
+    padding-top: 0.14rem;
+    padding-bottom: 0.12rem;
+  }
+
+  .ns-pc-row .ns-row-label {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .ns-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ns-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.73rem;
+  }
+
+  .ns-table th,
+  .ns-table td {
+    border: 1px solid var(--ui-overlay-card-border);
+    text-align: center;
+    padding: 0.22rem 0.18rem;
+    min-width: 2rem;
+  }
+
+  .ns-table thead th {
+    font-weight: 600;
+    color: var(--text-dim);
+    background: var(--ui-overlay-header-bg);
+  }
+
+  .ns-table thead th.ns-col-best {
+    color: var(--accent-green);
+    background: rgba(34,197,94,0.09);
+  }
+
+  .ns-row-label {
+    font-weight: 600;
+    color: var(--text-dim);
+    text-align: left !important;
+    padding-left: 0.35rem !important;
+    white-space: nowrap;
+    background: var(--ui-overlay-header-bg);
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  .ns-table td.ns-zero {
+    color: transparent;
+    user-select: none;
+  }
+
+  .ns-totals-row th.ns-row-label {
+    color: var(--text-lite);
+  }
+
+  .ns-totals-row td {
+    font-weight: 700;
+    color: var(--text-lite);
+  }
+
+  .ns-table td.ns-gold   { background: rgba(255,215,0,0.20);   color: #ffd700; font-weight: 700; }
+  .ns-table td.ns-silver { background: rgba(192,192,192,0.16); color: #c8c8c8; font-weight: 700; }
+  .ns-table td.ns-bronze { background: rgba(205,127,50,0.16);  color: #cd7f32; font-weight: 700; }
+
+  .ns-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.85rem 1.5rem 1.25rem;
+    border-top: 1px solid var(--ui-overlay-card-border);
+    background: var(--ui-overlay-footer-bg);
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .ns-footer-note {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ns-empty-msg {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    text-align: center;
+    padding: 2rem 0;
+  }
+
 </style>
 
 <!-- Privacy-friendly analytics by Plausible -->
@@ -3422,8 +3550,8 @@
       </div>
       <div class="edge-controls" aria-label="Range controls">
         <div class="edge-group edge-group-top">
-          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range [Right Bracket]">+</button>
-          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range [Left Bracket]">-</button>
+          <button id="rangeGrowBtn" class="edge-btn" type="button" title="Add an octave to the top of the range [Equal]">+</button>
+          <button id="rangeShrinkBtn" class="edge-btn" type="button" title="Remove an octave from the top of the range [Minus]">-</button>
           <div class="edge-label">High</div>
         </div>
         <div class="edge-separator edge-separator-top"></div>
@@ -3440,8 +3568,8 @@
         <div class="edge-separator edge-separator-bottom"></div>
         <div class="edge-group edge-group-bottom">
           <div class="edge-label">Low</div>
-          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave [Quote]">-</button>
-          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave [Semicolon]">+</button>
+          <button id="lowNoteUpBtn" class="edge-btn" type="button" title="Raise the low note by one octave [Left Bracket]">-</button>
+          <button id="lowNoteDownBtn" class="edge-btn" type="button" title="Lower the low note by one octave [Right Bracket]">+</button>
         </div>
       </div>
     </div>
@@ -3882,6 +4010,7 @@
         <div class="overlay-button-stack">
           <button id="keyboardShortcutsBtn" class="status-btn" type="button" data-info-key="keyboardShortcuts">Keyboard</button>
           <button id="statusToggleBtn" class="status-btn" type="button">Status</button>
+          <button id="noteStatsToggleBtn" class="status-btn" type="button">Note Stats</button>
         </div>
       </div>
     </div>
@@ -4035,6 +4164,31 @@
     <div class="status-footer">
       <span class="status-footer-brand">Tonemap.Live</span>
       <span class="status-footer-state">Status OK</span>
+    </div>
+  </div>
+</div>
+
+<div id="noteStatsOverlay" class="status-overlay" aria-hidden="true">
+  <div class="status-overlay-card" role="dialog" aria-modal="true" aria-labelledby="noteStatsOverlayTitle">
+    <div class="status-overlay-header">
+      <div class="status-overlay-title">
+        <span id="noteStatsOverlayTitle">Note Stats</span>
+      </div>
+      <button id="noteStatsCloseBtn" class="status-close-btn" type="button" aria-label="Close note stats overlay">Close ✕</button>
+    </div>
+    <div class="status-overlay-body scroll-fade-y" id="noteStatsOverlayBody">
+      <div id="noteStatsSummary" class="ns-pc-chart"></div>
+      <div class="ns-table-wrap">
+        <table id="noteStatsTable" class="ns-table">
+          <thead id="noteStatsHead"></thead>
+          <tbody id="noteStatsBody"></tbody>
+          <tfoot id="noteStatsFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="ns-footer">
+      <span class="ns-footer-note">Tracks notes played in this browser. Does not reset when the grid is cleared.</span>
+      <button id="noteStatsResetBtn" class="status-btn" type="button">Reset Stats</button>
     </div>
   </div>
 </div>
@@ -4324,11 +4478,16 @@
   const dbgStreak     = document.getElementById("dbgStreak");
   const dbgCumulativeTime = document.getElementById("dbgCumulativeTime");
   const resetUsageBtn = document.getElementById("resetUsageBtn");
+  const noteStatsToggleBtn = document.getElementById("noteStatsToggleBtn");
+  const noteStatsOverlay   = document.getElementById("noteStatsOverlay");
+  const noteStatsCloseBtn  = document.getElementById("noteStatsCloseBtn");
+  const noteStatsResetBtn  = document.getElementById("noteStatsResetBtn");
 
   // Scrollable containers for fade gradients
   const rightScrollEl = document.querySelector(".right-scroll");
   const optionsOverlayBodyEl = document.querySelector("#optionsOverlay .options-overlay-body");
   const statusOverlayBodyEl = document.querySelector("#statusOverlay .status-overlay-body");
+  const noteStatsOverlayBodyEl = document.getElementById("noteStatsOverlayBody");
   const pageEl = document.querySelector(".page");
 
   /*************
@@ -4470,6 +4629,7 @@
       pageEl.classList.toggle("can-scroll-down", hasPageScroll && bottom > epsilon);
     }
     pageEl.addEventListener("scroll", update, { passive: true });
+    document.documentElement.addEventListener("transitionend", update, { passive: true });
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update, { passive: true });
     if (window.visualViewport) {
@@ -4755,6 +4915,173 @@
     if (event.key === "Escape") {
       closeStatusOverlay();
     }
+  }
+
+  function openNoteStatsOverlay() {
+    if (!noteStatsOverlay) return;
+    if (noteStatsOverlay.classList.contains("open")) return;
+    renderNoteStatsOverlay();
+    noteStatsOverlay.classList.add("open");
+    noteStatsOverlay.setAttribute("aria-hidden", "false");
+    document.addEventListener("keydown", onNoteStatsOverlayKeyDown);
+    attachScrollFade(noteStatsOverlayBodyEl);
+    if (noteStatsCloseBtn) noteStatsCloseBtn.focus();
+  }
+
+  function closeNoteStatsOverlay() {
+    if (!noteStatsOverlay) return;
+    if (!noteStatsOverlay.classList.contains("open")) return;
+    noteStatsOverlay.classList.remove("open");
+    noteStatsOverlay.setAttribute("aria-hidden", "true");
+    document.removeEventListener("keydown", onNoteStatsOverlayKeyDown);
+    if (noteStatsToggleBtn) noteStatsToggleBtn.focus();
+  }
+
+  function onNoteStatsOverlayKeyDown(event) {
+    if (event.key === "Escape") closeNoteStatsOverlay();
+  }
+
+  function renderNoteStatsOverlay() {
+    const summaryEl = document.getElementById("noteStatsSummary");
+    const headEl    = document.getElementById("noteStatsHead");
+    const bodyEl    = document.getElementById("noteStatsBody");
+    const footEl    = document.getElementById("noteStatsFoot");
+    if (!summaryEl || !headEl || !bodyEl || !footEl) return;
+
+    const lowMidi  = gridLowestMidiC;
+    const highMidi = gridHighestMidiLastNote;
+
+    if (!Number.isFinite(lowMidi) || !Number.isFinite(highMidi)) {
+      summaryEl.innerHTML = "";
+      headEl.innerHTML = bodyEl.innerHTML = footEl.innerHTML =
+        "<tr><td class=\"ns-empty-msg\">No grid data yet.</td></tr>";
+      return;
+    }
+
+    const numOct  = Math.max(1, Math.round((highMidi - lowMidi + 1) / 12));
+    const numCols = 12;
+
+    // Column note names follow the same pitch-class order as the grid columns
+    const colNames = [];
+    for (let i = 0; i < numCols; i++) colNames.push(getNoteNameForMidi(lowMidi + i));
+
+    // rowMidis[r] = MIDI start of row r (0 = lowest/bottom octave)
+    const rowMidis = [];
+    for (let r = 0; r < numOct; r++) rowMidis.push(lowMidi + r * 12);
+
+    // Column totals and all-cell list for top-3
+    const colTotals = new Array(numCols).fill(0);
+    const allCells  = []; // { r, i, count }
+    for (let r = 0; r < numOct; r++) {
+      for (let i = 0; i < numCols; i++) {
+        const count = noteStats[rowMidis[r] + i] || 0;
+        colTotals[i] += count;
+        if (count > 0) allCells.push({ r, i, count });
+      }
+    }
+
+    // Top-3 individual cells
+    allCells.sort((a, b) => b.count - a.count);
+    const top3 = new Map(); // "r,i" -> rank 0/1/2
+    for (let idx = 0; idx < Math.min(3, allCells.length); idx++) {
+      const c = allCells[idx];
+      const key = `${c.r},${c.i}`;
+      if (!top3.has(key)) top3.set(key, idx);
+    }
+
+    const bestColTotal = Math.max(...colTotals, 0);
+    const bestColIdx   = bestColTotal > 0 ? colTotals.indexOf(bestColTotal) : -1;
+
+    function fmtCount(n) {
+      if (n === 0) return "";
+      if (n >= 10000) return `${(n / 1000).toFixed(0)}k`;
+      if (n >= 1000)  return `${(n / 1000).toFixed(1)}k`;
+      return String(n);
+    }
+
+    summaryEl.innerHTML = "";
+
+    // ── Header rows (bars row + note-name row) ──────────────────────────
+    headEl.innerHTML = "";
+
+    const BAR_MAX_PX = 44;
+    const maxPc = Math.max(...colTotals, 1);
+
+    const hRow = document.createElement("tr");
+    const octTh = document.createElement("th");
+    octTh.className = "ns-row-label";
+    hRow.appendChild(octTh);
+    for (let i = 0; i < numCols; i++) {
+      const th = document.createElement("th");
+      th.textContent = colNames[i];
+      if (i === bestColIdx) th.classList.add("ns-col-best");
+      hRow.appendChild(th);
+    }
+    headEl.appendChild(hRow);
+
+    // ── Body rows (highest octave first, matching grid display) ──
+    bodyEl.innerHTML = "";
+    for (let r = numOct - 1; r >= 0; r--) {
+      const rowStart = rowMidis[r];
+      const octave   = Math.floor(rowStart / 12) - 1;
+      const tr = document.createElement("tr");
+      const rowTh = document.createElement("th");
+      rowTh.className = "ns-row-label";
+      rowTh.textContent = `Oct ${octave}`;
+      tr.appendChild(rowTh);
+      for (let i = 0; i < numCols; i++) {
+        const count = noteStats[rowStart + i] || 0;
+        const td    = document.createElement("td");
+        td.textContent = fmtCount(count);
+        if (count === 0) {
+          td.classList.add("ns-zero");
+        } else {
+          if (count >= 1000)      td.style.fontSize = "0.6rem";
+          else if (count >= 100)  td.style.fontSize = "0.65rem";
+          const rank = top3.get(`${r},${i}`);
+          if      (rank === 0) td.classList.add("ns-gold");
+          else if (rank === 1) td.classList.add("ns-silver");
+          else if (rank === 2) td.classList.add("ns-bronze");
+        }
+        tr.appendChild(td);
+      }
+      bodyEl.appendChild(tr);
+    }
+
+    // ── Totals row ──────────────────────────────────
+    footEl.innerHTML = "";
+    const totRow = document.createElement("tr");
+    totRow.className = "ns-totals-row";
+    const totTh = document.createElement("th");
+    totTh.className = "ns-row-label";
+    totTh.textContent = "Total";
+    totRow.appendChild(totTh);
+    for (let i = 0; i < numCols; i++) {
+      const td = document.createElement("td");
+      td.textContent = fmtCount(colTotals[i]);
+      if (colTotals[i] === 0) td.classList.add("ns-zero");
+      if (i === bestColIdx && bestColTotal > 0) td.classList.add("ns-gold");
+      totRow.appendChild(td);
+    }
+    footEl.appendChild(totRow);
+
+    const barsRow = document.createElement("tr");
+    barsRow.className = "ns-pc-row";
+    const barsSpacer = document.createElement("th");
+    barsSpacer.className = "ns-row-label";
+    barsRow.appendChild(barsSpacer);
+    for (let i = 0; i < numCols; i++) {
+      const th = document.createElement("th");
+      const wrap = document.createElement("div");
+      wrap.className = "ns-pc-bar-wrap";
+      const bar = document.createElement("div");
+      bar.className = "ns-pc-bar" + (i === bestColIdx && bestColTotal > 0 ? " ns-pc-best" : "");
+      bar.style.height = `${Math.max(2, Math.round((colTotals[i] / maxPc) * BAR_MAX_PX))}px`;
+      wrap.appendChild(bar);
+      th.appendChild(wrap);
+      barsRow.appendChild(th);
+    }
+    footEl.appendChild(barsRow);
   }
 
   function openPaletteOverlay() {
@@ -5138,10 +5465,10 @@
   };
 
   const EDGE_SHORTCUT_LABELS = Object.freeze({
-    topGrow: "[Right Bracket]",
-    topShrink: "[Left Bracket]",
-    bottomUp: "[Quote]",
-    bottomDown: "[Semicolon]"
+    topGrow: "[Equal]",
+    topShrink: "[Minus]",
+    bottomUp: "[Left Bracket]",
+    bottomDown: "[Right Bracket]"
   });
 
   function refreshShortcutTooltips() {
@@ -5232,7 +5559,7 @@
   let relaxedNeedleCents = NaN;
   let relaxedNeedleLastMs = performance.now();
   let relaxedSmoothingActive = false;
-  const RMS_GAUGE_RELEASE_MS = 320;
+  const RMS_GAUGE_RELEASE_MS = 450;
   let rmsGaugeDisplay = 0;
   let heldMidiForDisplay = null;
   let heldCentsForDisplay = 0;
@@ -5774,7 +6101,7 @@
         current.weightedErrSum += entry.avgErrRatio * segDur;
         current.weightedStretchSum += entry.stretchCents * segDur;
       } else {
-        if (current.totalDurMs >= NOTE_VIEW_MIN_DURATION_MS) {
+        if (isNoteViewDrawableDuration(current.totalDurMs)) {
           mergedSegments.push({
             midi: current.midi,
             startMs: current.startMs,
@@ -5794,7 +6121,7 @@
       }
     }
 
-    if (current && current.totalDurMs >= NOTE_VIEW_MIN_DURATION_MS) {
+    if (current && isNoteViewDrawableDuration(current.totalDurMs)) {
       mergedSegments.push({
         midi: current.midi,
         startMs: current.startMs,
@@ -5818,7 +6145,7 @@
     }
 
     // Filter preview notes by minimum duration (Note View only)
-    if (previewDurMs < NOTE_VIEW_MIN_DURATION_MS) {
+    if (!isNoteViewDrawableDuration(previewDurMs)) {
       return null;
     }
 
@@ -5855,7 +6182,7 @@
     stainHold: STAIN_HOLD_DEFAULT,
     needleDirection: "horizontal",
     range: null, // computed default
-    minVol: 0,
+    minVol: 0.025,
     micGain: DEFAULT_MIC_GAIN,
     colorPalette: null,
     attackMs: ATTACK_SPEED_DEFAULT_MS,
@@ -5990,9 +6317,8 @@
         "• N: Show Note View (Ribbons).",
         "• B: Show Note View (Balloons).",
         "• V: Cycle view mode (Grid → Ribbons → Balloons).",
-        "• In Grid View: Left/Right Bracket and Semicolon/Quote adjust the grid in octaves.",
-        "• In Note View: Right/Left Bracket move the top edge by semitone.",
-        "• In Note View: Quote/Semicolon move the bottom edge by semitone.",
+        "• Minus / Equals: Contract/expand the top of the range (Grid View: by octave, Note View: by semitone).",
+        "• Left/Right Bracket: Contract/expand the bottom of the range (Grid View: by octave, Note View: by semitone).",
         "• Grid auto-expands (by octave) when needed to include Note View range.",
         "• ← / →: Scroll Note View timeline (hold Shift for faster scrolling).",
         "• Z: Start/stop recording (opens recorder if needed).",
@@ -6012,6 +6338,8 @@
   };
 
   const USAGE_STORAGE_KEY = "tonemap.live.usage";
+  const NOTE_STATS_STORAGE_KEY = "tonemap.live.noteStats";
+  const NOTE_STATS_MIGRATION_V1_KEY = "tonemap.live.noteStats.migration.drawableV1";
   const USAGE_LOCK_KEY = "tonemap.live.usage.lock";
   const NOTE_IDLE_TIMEOUT_MS = 30000;
   const USAGE_LOCK_HEARTBEAT_MS = 5000;
@@ -6026,6 +6354,7 @@
     lastUsedDay: null,
     cumulativeMs: 0
   };
+  let noteStats = {}; // { [midi]: count }
   let usageAccumulatedMs = 0;
   let usageTimerStartMs = null;
   let lastNoteHeardMs = null;
@@ -6072,6 +6401,7 @@
         parsed.range = String(parsed.range);
       }
       const merged = { ...defaults, ...parsed };
+      let needsPersist = false;
       merged.attackMs = normalizeAttackSpeedSetting(parsed?.attackMs ?? merged.attackMs);
       merged.uiTheme = normalizeUiThemeSetting(parsed?.uiTheme ?? merged.uiTheme);
       // One-time migration: overwrite stored micGain with platform-aware default.
@@ -6080,6 +6410,19 @@
         merged.micGain = DEFAULT_MIC_GAIN;
         merged.micGainDefaultsV2 = true;
         merged.micGainDefaultsV3 = true;
+        needsPersist = true;
+      }
+      // One-time migration: in boosted-browser builds, move Noise Reduction None -> Min.
+      // This is intentionally one-shot; users can switch back to None afterward.
+      if (PER_BROWSER_GAIN > 1 && !parsed.noiseReductionDefaultsV1) {
+        const currentMinVol = Number(merged.minVol);
+        if (Number.isFinite(currentMinVol) && currentMinVol <= 0) {
+          merged.minVol = 0.025;
+        }
+        merged.noiseReductionDefaultsV1 = true;
+        needsPersist = true;
+      }
+      if (needsPersist) {
         persistSettings(merged);
       }
       return merged;
@@ -6204,6 +6547,53 @@
     pendingMilestone = false;
     persistUsageStats(usageStats);
     updateUsageDisplay(nowMs(), { force: true });
+  }
+
+  function loadNoteStats() {
+    try {
+      // One-time migration: reset legacy segment-count stats so note totals
+      // start fresh with drawable-note counting logic.
+      if (window.localStorage.getItem(NOTE_STATS_MIGRATION_V1_KEY) !== "1") {
+        window.localStorage.setItem(NOTE_STATS_STORAGE_KEY, JSON.stringify({}));
+        window.localStorage.setItem(NOTE_STATS_MIGRATION_V1_KEY, "1");
+        return {};
+      }
+      const raw = window.localStorage.getItem(NOTE_STATS_STORAGE_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+      const out = {};
+      for (const [k, v] of Object.entries(parsed)) {
+        const midi = parseInt(k, 10);
+        const count = parseInt(v, 10);
+        if (Number.isFinite(midi) && Number.isFinite(count) && count > 0) {
+          out[midi] = count;
+        }
+      }
+      return out;
+    } catch (err) {
+      console.warn("Failed to load note stats", err);
+      return {};
+    }
+  }
+
+  function persistNoteStats() {
+    try {
+      window.localStorage.setItem(NOTE_STATS_STORAGE_KEY, JSON.stringify(noteStats));
+    } catch (err) {
+      console.warn("Failed to persist note stats", err);
+    }
+  }
+
+  function resetNoteStats() {
+    noteStats = {};
+    persistNoteStats();
+  }
+
+  function confirmAndResetAllStats() {
+    if (!confirm("Reset note totals and app usage stats?\nThis clears your play history and usage data and cannot be undone.")) return;
+    resetNoteStats();
+    resetUsageStats();
   }
 
   function persistUsageProgress(nowT = nowMs()) {
@@ -9238,6 +9628,46 @@
     return diffFactor * (1 + (errRatio || 0)) - 1;
   }
 
+  function isNoteViewDrawableDuration(durationMs) {
+    return Number.isFinite(durationMs) && durationMs >= NOTE_VIEW_MIN_DURATION_MS;
+  }
+
+  function getNoteViewSegmentStartMs(seg) {
+    return Number(seg?.startActiveMs ?? seg?.startMs ?? 0) || 0;
+  }
+
+  function getNoteViewSegmentDurationMs(seg) {
+    return Math.max(0, Number(seg?.durActiveMs ?? seg?.durMs ?? 0) || 0);
+  }
+
+  function shouldCountFinalizedSegmentAsDrawableNote(st) {
+    if (!st || !Array.isArray(st.segments) || st.segments.length === 0) return false;
+
+    const segs = st.segments;
+    const last = segs[segs.length - 1];
+    const lastDurMs = getNoteViewSegmentDurationMs(last);
+    if (lastDurMs <= 0) return false;
+
+    let mergedDurMs = lastDurMs;
+    let priorMergedDurMs = 0;
+    let clusterStartMs = getNoteViewSegmentStartMs(last);
+
+    for (let i = segs.length - 2; i >= 0; i--) {
+      const prev = segs[i];
+      const prevStartMs = getNoteViewSegmentStartMs(prev);
+      const prevDurMs = getNoteViewSegmentDurationMs(prev);
+      const prevEndMs = prevStartMs + prevDurMs;
+      const contiguous = clusterStartMs <= (prevEndMs + NOTE_VIEW_MERGE_GAP_TOLERANCE_MS);
+      if (!contiguous) break;
+
+      mergedDurMs += prevDurMs;
+      priorMergedDurMs += prevDurMs;
+      clusterStartMs = prevStartMs;
+    }
+
+    return isNoteViewDrawableDuration(mergedDurMs) && !isNoteViewDrawableDuration(priorMergedDurMs);
+  }
+
   function getRecentWeightedErr(segments, windowSec, midi) {
     const windowMs = windowSec * 1000;
     let remaining = windowMs;
@@ -9294,6 +9724,10 @@
     st.lastSeenMs = startMs + accumTimeMs;
 
     st.totalVoiceMs += accumTimeMs;
+    if (shouldCountFinalizedSegmentAsDrawableNote(st)) {
+      noteStats[midi] = (noteStats[midi] || 0) + 1;
+      persistNoteStats();
+    }
 
     const intensity = Math.min(1, st.totalVoiceMs / FULL_CONF_MS);
 
@@ -11232,7 +11666,10 @@
 
   if (resetUsageBtn) {
     resetUsageBtn.addEventListener("click", () => {
-      resetUsageStats();
+      confirmAndResetAllStats();
+      if (noteStatsOverlay && noteStatsOverlay.classList.contains("open")) {
+        renderNoteStatsOverlay();
+      }
     });
   }
 
@@ -11543,6 +11980,22 @@
     noteViewToggleBtn.click();
   }
 
+  function positionNoteViewEntryNotice() {
+    if (!noteViewEntryNotice || !noteViewContainer || noteViewEntryNotice.hidden) return;
+    const viewportWidth = noteViewContainer.clientWidth || window.innerWidth || 0;
+    if (viewportWidth <= 0) return;
+    const scrollLeft = noteViewContainer.scrollLeft || 0;
+    const noticeWidth = noteViewEntryNotice.offsetWidth || 0;
+    if (noticeWidth <= 0) return;
+
+    const edgePadding = 14;
+    const minCenterX = scrollLeft + edgePadding + (noticeWidth / 2);
+    const maxCenterX = scrollLeft + viewportWidth - edgePadding - (noticeWidth / 2);
+    const targetCenterX = scrollLeft + (viewportWidth / 2);
+    const clampedCenterX = Math.max(minCenterX, Math.min(maxCenterX, targetCenterX));
+    noteViewEntryNotice.style.left = `${clampedCenterX}px`;
+  }
+
   function hideNoteViewEntryNotice({ immediate = false } = {}) {
     if (!noteViewEntryNotice) return;
     if (noteViewEntryNoticeFadeTimer) {
@@ -11556,6 +12009,7 @@
     if (immediate) {
       noteViewEntryNotice.classList.remove("is-visible", "is-fading");
       noteViewEntryNotice.hidden = true;
+      noteViewEntryNotice.style.left = "";
       return;
     }
     noteViewEntryNotice.classList.remove("is-visible");
@@ -11563,6 +12017,7 @@
     noteViewEntryNoticeHideTimer = setTimeout(() => {
       noteViewEntryNotice.classList.remove("is-fading");
       noteViewEntryNotice.hidden = true;
+      noteViewEntryNotice.style.left = "";
       noteViewEntryNoticeHideTimer = null;
     }, 320);
   }
@@ -11572,13 +12027,19 @@
     hideNoteViewEntryNotice({ immediate: true });
     noteViewEntryNotice.textContent = message;
     noteViewEntryNotice.hidden = false;
+    positionNoteViewEntryNotice();
     void noteViewEntryNotice.offsetWidth;
+    positionNoteViewEntryNotice();
     noteViewEntryNotice.classList.add("is-visible");
     noteViewEntryNoticeFadeTimer = setTimeout(() => {
       noteViewEntryNoticeFadeTimer = null;
       hideNoteViewEntryNotice();
     }, 3000);
   }
+
+  window.addEventListener("resize", () => {
+    positionNoteViewEntryNotice();
+  }, { passive: true });
 
   function showNoteViewWithStyle(style) {
     setNoteViewStyle(style);
@@ -11610,10 +12071,10 @@
   }
 
   const EDGE_KEY_TO_BUTTON = Object.freeze({
-    BracketRight: () => rangeGrowBtn,
-    BracketLeft: () => rangeShrinkBtn,
-    Quote: () => lowNoteUpBtn,
-    Semicolon: () => lowNoteDownBtn
+    Equal: () => rangeGrowBtn,
+    Minus: () => rangeShrinkBtn,
+    BracketRight: () => lowNoteDownBtn,
+    BracketLeft: () => lowNoteUpBtn
   });
 
   function setEdgeKeyActive(code, active) {
@@ -11752,28 +12213,28 @@
       return;
     }
 
-    if (event.code === "BracketRight") {
+    if (event.code === "Equal") {
       event.preventDefault();
       setEdgeKeyActive(event.code, true);
       if (rangeGrowBtn && !rangeGrowBtn.disabled) rangeGrowBtn.click();
       return;
     }
 
-    if (event.code === "BracketLeft") {
+    if (event.code === "Minus") {
       event.preventDefault();
       setEdgeKeyActive(event.code, true);
       if (rangeShrinkBtn && !rangeShrinkBtn.disabled) rangeShrinkBtn.click();
       return;
     }
 
-    if (event.code === "Quote") {
+    if (event.code === "BracketLeft") {
       event.preventDefault();
       setEdgeKeyActive(event.code, true);
       if (lowNoteUpBtn && !lowNoteUpBtn.disabled) lowNoteUpBtn.click();
       return;
     }
 
-    if (event.code === "Semicolon") {
+    if (event.code === "BracketRight") {
       event.preventDefault();
       setEdgeKeyActive(event.code, true);
       if (lowNoteDownBtn && !lowNoteDownBtn.disabled) lowNoteDownBtn.click();
@@ -11892,6 +12353,34 @@
     });
   }
 
+  if (noteStatsToggleBtn && noteStatsOverlay) {
+    noteStatsToggleBtn.addEventListener("click", () => {
+      if (noteStatsOverlay.classList.contains("open")) {
+        closeNoteStatsOverlay();
+      } else {
+        openNoteStatsOverlay();
+      }
+    });
+  }
+
+  if (noteStatsCloseBtn) {
+    noteStatsCloseBtn.addEventListener("click", () => closeNoteStatsOverlay());
+  }
+
+  if (noteStatsOverlay) {
+    noteStatsOverlay.addEventListener("click", event => {
+      if (event.target === noteStatsOverlay) closeNoteStatsOverlay();
+    });
+  }
+
+  if (noteStatsResetBtn) {
+    noteStatsResetBtn.addEventListener("click", () => {
+      confirmAndResetAllStats();
+      renderNoteStatsOverlay();
+      updateUsageDisplay(nowMs(), { force: true });
+    });
+  }
+
   if (aRefSelect) {
     aRefSelect.addEventListener("change", () => {
       const value = aRefSelect.value;
@@ -11967,6 +12456,7 @@
     if (micGainValueEl) micGainValueEl.textContent = formatMicGain(initMicGain);
   }
   initUsageTracking();
+  noteStats = loadNoteStats();
 
   function rebuildAll({forceDefaultRange=false, preserveStain=true} = {}) {
     rebuildRangeOptions({forceDefault: forceDefaultRange, desiredRange: currentSettings.range});
