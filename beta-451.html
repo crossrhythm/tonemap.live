@@ -12,6 +12,10 @@
 <meta name="description" content="Tonemap Pro is a professional real-time intonation visualizer for musicians. See your pitch tendencies mapped live in your browser — no app download required." />
 <link rel="canonical" href="https://tonemap.live/" />
 <link rel="icon" href="tonemapicon.png" type="image/png" />
+<link rel="apple-touch-icon" href="tonemapicon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Tonemap" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta property="og:url" content="https://tonemap.live/" />
 <meta property="og:title" content="Tonemap.Live" />
 <meta property="og:description" content="Real-time pitch and intonation visualization for musicians. Free, browser-based, no download required." />
@@ -1594,6 +1598,12 @@
     background-position: right 0 top 0, right 0.55rem center;
   }
 
+  :root[data-ui-theme="light"] .a-ref-preset #aRefSelect {
+    background-image:
+      linear-gradient(to left, rgba(100,116,139,0.12), rgba(100,116,139,0.12)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%230f172a' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
   .preset-label {
     font-size: 0.75rem;
     color: var(--text-lite);
@@ -1980,6 +1990,8 @@
 .scroll-fade-y {
   flex: 1 1 auto;
   overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
   padding: 0 1.5rem 1.5rem;
   min-height: 0;
   position: relative;
@@ -3034,6 +3046,24 @@
     }
     .overlay-button-stack .options-btn {
       font-size: 0.7rem;
+    }
+  }
+
+  /* Portrait standalone (PWA / add-to-homescreen): fixed viewport, page scrolls */
+  @media (max-aspect-ratio: 1/1) and (display-mode: standalone) {
+    body {
+      padding-top: max(0.75rem, calc(var(--safe-area-top) + 0.5rem));
+      padding-right: max(0.75rem, calc(var(--safe-area-right) + 0.75rem));
+      padding-bottom: max(0.75rem, calc(var(--safe-area-bottom) + 0.75rem));
+      padding-left: max(0.75rem, calc(var(--safe-area-left) + 0.75rem));
+      overflow: hidden;
+    }
+    .page {
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
     }
   }
 
