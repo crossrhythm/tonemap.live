@@ -2954,9 +2954,6 @@
       overscroll-behavior-y: contain;
       -webkit-overflow-scrolling: touch;
     }
-    .page::after {
-      display: none;
-    }
   }
 
   /* Landscape: shrink logo once viewport gets narrow */
@@ -4535,9 +4532,12 @@
   function attachPortraitPageFade() {
     if (!pageEl) return;
     const isPortrait = () => window.matchMedia("(max-aspect-ratio: 1/1)").matches;
-    const getPortraitScrollEl = () => document.body.classList.contains("ios-portrait-scroll-shell")
-      ? pageEl
-      : (document.scrollingElement || document.documentElement);
+    const getPortraitScrollEl = () => {
+      if (document.body.classList.contains("ios-portrait-scroll-shell")) return pageEl;
+      // In standalone (PWA) portrait the page itself is the scroller (body is overflow:hidden).
+      if (isStandaloneDisplayMode()) return pageEl;
+      return document.scrollingElement || document.documentElement;
+    };
     function update() {
       const useIOSScrollShell = isIOSWebKitLike() && !isStandaloneDisplayMode() && isPortrait();
       document.body.classList.toggle("ios-portrait-scroll-shell", useIOSScrollShell);
