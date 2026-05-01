@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Tonemap.Live: interactive tuner UI. -->
-<!-- Version: 2.01 (update window.APP_VERSION below when bumping release) -->
+<!-- Update window.APP_VERSION below when bumping release -->
 <!-- STATUS: Beta/test version for testing on mobile devices -->
 <!-- Once thoroughly tested, copy changes to index.html for production deployment -->
 <!-- Licensed under the MIT License; see LICENSE. -->
@@ -3437,7 +3437,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.01";
+  window.APP_VERSION = "2.03";
   // If the user has the non-HttpOnly Pro flag cookie, send them straight to
   // /pro. The real HttpOnly HMAC cookie (tm_pro) isn't visible to JS, so the
   // Worker sets tm_pro_flag=1 alongside it as a client-readable hint. Worker
@@ -3687,23 +3687,23 @@
         <p id="optSectionAdvanced" class="options-section-label">Advanced</p>
         <div class="option-field" id="optNoteViewStyle">
           <div class="opt-label-row">
-            <label class="opt-label" for="noteViewStyleRibbons">Note View Style</label>
+            <label class="opt-label" for="noteViewStyleBalloons">Note View Style</label>
             <button class="info-btn" type="button" data-info-key="noteViewStyle" aria-label="Learn about Note View Style">i</button>
           </div>
           <div class="opt-control">
             <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Note View Style">
               <div class="theme-mode-item">
-                <input id="noteViewStyleRibbons" class="theme-mode-radio" type="radio" name="noteViewStyleMode" value="ribbons" />
-                <label class="theme-mode-label" for="noteViewStyleRibbons" title="Shows intonation changes over time with colored bands">Ribbons</label>
-              </div>
-              <div class="theme-mode-item">
                 <input id="noteViewStyleBalloons" class="theme-mode-radio" type="radio" name="noteViewStyleMode" value="balloons" />
                 <label class="theme-mode-label" for="noteViewStyleBalloons" title="Shows average intonation with one color per note">Balloons</label>
               </div>
+              <div class="theme-mode-item">
+                <input id="noteViewStyleRibbons" class="theme-mode-radio" type="radio" name="noteViewStyleMode" value="ribbons" />
+                <label class="theme-mode-label" for="noteViewStyleRibbons" title="Shows intonation changes over time with colored bands">Ribbons</label>
+              </div>
             </div>
             <select id="noteViewStyleSelect" class="select-replaced-hidden" aria-hidden="true">
-              <option value="ribbons" title="Shows intonation changes over time with colored bands">Ribbons (intonation over time)</option>
               <option value="balloons" title="Shows average intonation with single color">Balloons (average color)</option>
+              <option value="ribbons" title="Shows intonation changes over time with colored bands">Ribbons (intonation over time)</option>
             </select>
           </div>
         </div>
@@ -3746,10 +3746,9 @@
           <div class="opt-label-row">
             <label class="opt-label" for="rowStartSelect">Rows start with note</label>
             <button class="info-btn" type="button" data-info-key="rowStart" aria-label="Learn about row start">i</button>
-            <span class="pro-badge" data-open-pro-modal data-pro-feature="rowStart">★ Pro</span>
           </div>
           <div class="opt-control">
-            <select id="rowStartSelect" class="pro-locked-control"></select>
+            <select id="rowStartSelect"></select>
           </div>
         </div>
 
@@ -3757,14 +3756,13 @@
           <div class="opt-label-row">
             <label class="opt-label" for="stretchSelect">Stretch Tuning</label>
             <button class="info-btn" type="button" data-info-key="stretch" aria-label="Learn about Stretch Tuning">i</button>
-            <span class="pro-badge" data-open-pro-modal data-pro-feature="stretch">★ Pro</span>
           </div>
           <div class="opt-control">
-            <select id="stretchSelect" class="pro-locked-control">
+            <select id="stretchSelect">
               <option value="none">None (Equal Temperament)</option>
               <option value="minimal" selected>Minimal (¼ Railsback above A4)</option>
-              <option value="medium">Medium (½ Railsback above A4) ★ Pro</option>
-              <option value="full">Full (Railsback) ★ Pro</option>
+              <option value="medium">Medium (½ Railsback above A4)</option>
+              <option value="full">Full (Railsback)</option>
             </select>
           </div>
         </div>
@@ -3796,10 +3794,9 @@
           <div class="opt-label-row">
             <label class="opt-label" for="transpositionSelect">Transposition</label>
             <button class="info-btn" type="button" data-info-key="transposition" aria-label="Learn about Transposition">i</button>
-            <span class="pro-badge" data-open-pro-modal data-pro-feature="transposition">★ Pro</span>
           </div>
           <div class="opt-control">
-            <select id="transpositionSelect" class="pro-locked-control">
+            <select id="transpositionSelect">
               <option value="11">B (+11)</option>
               <option value="10">B♭ (+10)</option>
               <option value="9">A (+9)</option>
@@ -3976,7 +3973,7 @@
         </div>
         <div class="status-row">
           <span class="status-key">Dead Zone</span>
-          <span class="status-val" id="dbgDeadZone">~0.23%</span>
+          <span class="status-val" id="dbgDeadZone">~0.21%</span>
         </div>
         <div class="status-row">
           <span class="status-key">Onset Filter (Pitch Stabilization)</span>
@@ -4041,6 +4038,7 @@
     <div class="status-footer">
       <span class="status-footer-brand">Tonemap.Live</span>
       <span class="status-footer-state">Status OK</span>
+      <button id="whatsNewReopenBtn" class="status-btn" type="button" style="font-size:0.7rem;padding:0.2rem 0.6rem;">What's New</button>
     </div>
   </div>
 </div>
@@ -4067,6 +4065,19 @@
       <span class="ns-footer-note">Tracks notes played in this browser. Does not reset when the grid is cleared.</span>
       <button id="noteStatsResetBtn" class="status-btn" type="button">Reset Stats</button>
     </div>
+  </div>
+</div>
+
+<div id="whatsNewOverlay" class="status-overlay" aria-hidden="true">
+  <div class="status-overlay-card" role="dialog" aria-modal="true" aria-labelledby="whatsNewOverlayTitle">
+    <div class="status-overlay-header">
+      <div class="status-overlay-title">
+        <span id="whatsNewOverlayTitle">What's New</span>
+        <span class="status-overlay-version" id="whatsNewVersion"></span>
+      </div>
+      <button id="whatsNewCloseBtn" class="status-close-btn" type="button" aria-label="Close what's new overlay">Close ✕</button>
+    </div>
+    <div class="status-overlay-body" id="whatsNewBody"></div>
   </div>
 </div>
 
@@ -4152,12 +4163,9 @@
       <ul class="pro-modal-features">
         <li data-feature="quickRecord">Quick Record — Record your playing without leaving the tuner. Review every detail with Tonemap analysis, save the takes worth keeping.</li>
         <li data-feature="sensitivity">Hard Mode — tight deadzone, fast response</li>
-        <li data-feature="transposition">All transpositions (Bb, Eb, F, and more)</li>
-        <li data-feature="stretch">Medium and Full Railsback stretch tuning</li>
         <li data-feature="a4">All A4 reference frequencies (392–470 Hz + custom)</li>
         <li data-feature="history">Long and Unlimited pitch history</li>
         <li data-feature="stainHold">Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
-        <li data-feature="rowStart">Rows start with any note</li>
         
       </ul>
       <p class="pro-modal-support">Your subscription supports ongoing development of Tonemap.</p>
@@ -4174,7 +4182,7 @@
 <script type="module">
   import { PitchDetector } from "https://esm.sh/pitchy@4.0.1";
 
-  const APP_VERSION = window.APP_VERSION || "2.01";
+  const APP_VERSION = window.APP_VERSION || "unknown";
   const NO_SLEEP_AUDIO_SRC =
     'data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAoA8AAKAPAAABAAgAZGF0YaAPAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
     'CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI' +
@@ -4377,6 +4385,11 @@
   const noteStatsOverlay   = document.getElementById("noteStatsOverlay");
   const noteStatsCloseBtn  = document.getElementById("noteStatsCloseBtn");
   const noteStatsResetBtn  = document.getElementById("noteStatsResetBtn");
+  const whatsNewOverlay    = document.getElementById("whatsNewOverlay");
+  const whatsNewCloseBtn   = document.getElementById("whatsNewCloseBtn");
+  const whatsNewReopenBtn  = document.getElementById("whatsNewReopenBtn");
+  const whatsNewBodyEl     = document.getElementById("whatsNewBody");
+  const whatsNewVersionEl  = document.getElementById("whatsNewVersion");
 
   // Scrollable containers for fade gradients
   const rightScrollEl = document.querySelector(".right-scroll");
@@ -4781,6 +4794,106 @@
     }
   }
 
+  /*************
+   * WHAT'S NEW OVERLAY
+   *************/
+  const WHATS_NEW_SEEN_KEY = "tonemap_whatsNewSeen";
+
+  // Add one object per release. Keep only the latest 1-2 releases here;
+  // full history lives in GitHub Releases.
+  const WHATS_NEW_RELEASES = [
+      {
+      version: APP_VERSION,
+      sections: [
+        {
+          title: "Recently added features",
+          items: [
+            "Quick Record at the bottom left of the grid, with slow-motion playback and WAV downloads.",
+            "Note View in the sidebar shows your playing sequentially. Balloons are the default, similar to the cells in grid view. Ribbons are available in Options and make vibrato, attacks, and releases within each note easier to see.",
+            "A full-screen button has been added, and clicking the logo toggles Mini UI mode for a more compact layout."
+          ]
+        },
+        {
+          title: "Other updates",
+          items: [
+            "I am continuing to smooth out differences between browsers and operating systems. If things feel too sensitive or jumpy, try increasing Noise Reduction, lowering Mic Gain, or tapping Reset.",
+            "Relaxed and Medium are slightly tighter, while Hard is slightly more forgiving.",
+            "The Free/Pro feature balance has been simplified.",
+            "Dozens of bug fixes and layout improvements."
+          ]
+        }
+      ],
+      note: "Thank you for trying and supporting Tonemap so far. I'd love to hear what you think and how you are using it! If you have feature suggestions, bug reports, or any other comments, please reach out at support@tonemap.live. I'm planning a wider release soon, so any feedback is appreciated."
+    }
+  ];
+
+  function renderWhatsNewBody() {
+    if (!whatsNewBodyEl) return;
+    const latestRelease = WHATS_NEW_RELEASES[0];
+    if (!latestRelease) return;
+    whatsNewBodyEl.innerHTML = "";
+    const sections = Array.isArray(latestRelease.sections)
+      ? latestRelease.sections
+      : [{ title: "What's New", items: latestRelease.items || [] }];
+    sections.forEach((section, index) => {
+      if (section.title) {
+        const heading = document.createElement("div");
+        heading.style.cssText = `margin:${index === 0 ? "1rem" : "0.35rem"} 1.5rem 0.45rem;font-size:0.8rem;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);`;
+        heading.textContent = section.title;
+        whatsNewBodyEl.appendChild(heading);
+      }
+
+      const ul = document.createElement("ul");
+      ul.style.cssText = "margin:0 1.5rem 1rem;padding:0;list-style:disc inside;display:flex;flex-direction:column;gap:0.5rem;";
+      (section.items || []).forEach(item => {
+        const li = document.createElement("li");
+        li.style.cssText = "font-size:0.9rem;color:var(--text-lite);line-height:1.5;";
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+      whatsNewBodyEl.appendChild(ul);
+    });
+    if (latestRelease.note) {
+      const note = document.createElement("p");
+      note.style.cssText = "margin:0 1.5rem 1.5rem;font-size:0.9rem;color:var(--text-lite);line-height:1.6;";
+      note.textContent = latestRelease.note;
+      whatsNewBodyEl.appendChild(note);
+    }
+    if (whatsNewVersionEl) whatsNewVersionEl.textContent = `V${latestRelease.version}`;
+  }
+
+  function openWhatsNewOverlay() {
+    if (!whatsNewOverlay) return;
+    if (whatsNewOverlay.classList.contains("open")) return;
+    renderWhatsNewBody();
+    whatsNewOverlay.classList.add("open");
+    whatsNewOverlay.setAttribute("aria-hidden", "false");
+    document.addEventListener("keydown", onWhatsNewKeyDown);
+    if (whatsNewCloseBtn) whatsNewCloseBtn.focus();
+  }
+
+  function closeWhatsNewOverlay() {
+    if (!whatsNewOverlay) return;
+    if (!whatsNewOverlay.classList.contains("open")) return;
+    whatsNewOverlay.classList.remove("open");
+    whatsNewOverlay.setAttribute("aria-hidden", "true");
+    document.removeEventListener("keydown", onWhatsNewKeyDown);
+  }
+
+  function onWhatsNewKeyDown(event) {
+    if (event.key === "Escape") closeWhatsNewOverlay();
+  }
+
+  function showWhatsNewIfNeeded() {
+    const latestRelease = WHATS_NEW_RELEASES[0];
+    if (!latestRelease) return;
+    const seen = localStorage.getItem(WHATS_NEW_SEEN_KEY);
+    if (seen === latestRelease.version) return;
+    localStorage.setItem(WHATS_NEW_SEEN_KEY, latestRelease.version);
+    // Small delay so the mic overlay has fully cleared
+    setTimeout(openWhatsNewOverlay, 400);
+  }
+
   function openStatusOverlay() {
     if (!statusOverlay) return;
     if (statusOverlay.classList.contains("open")) return;
@@ -5044,16 +5157,26 @@
   const RANGE_GATE_TEXT = `${MIN_FREQ}–${MAX_FREQ} Hz`;
 
   // Modes
-  const RELAXED_DEADZONE_RATIO = 0.003;  // 0.3%
+  const RELAXED_DEADZONE_RATIO = 0.0025; // 0.25%
   const RELAXED_ERR_SCALE = 0.7; // 50% less sensitive stain/color
   const RELAXED_NEEDLE_TAU_MS = 350; // EMA time constant for needle damping (vocal-friendly)
 
-  const MEDIUM_DEADZONE_RATIO = 0.0023; // ~0.23%
+  const MEDIUM_DEADZONE_RATIO = 0.0021; // ~0.21%
   const MEDIUM_ERR_SCALE = 0.7;
   const MEDIUM_NEEDLE_TAU_MS = 80;
 
-  const MINIMAL_STRETCH_MAX_CENTS = 9;
-  const MINIMAL_STRETCH_MAX_MIDI = 108;
+  // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
+  const RAILSBACK_ANCHORS = [
+    { midi: 21, cents: -40 },  // A0
+    { midi: 33, cents: -25 },  // A1
+    { midi: 45, cents: -10 },  // A2
+    { midi: 57, cents: -4 },   // A3
+    { midi: 69, cents: 0 },    // A4
+    { midi: 81, cents: 6 },    // A5
+    { midi: 93, cents: 15 },   // A6
+    { midi: 105, cents: 28 },  // A7
+    { midi: 108, cents: 35 }   // C8
+  ];
 
   // time to reach full brightness in the cell heatmap
   const FULL_CONF_MS = 500;  // 2x faster fade-in (was 1000ms)
@@ -5634,7 +5757,7 @@
   const HISTORY_DEFAULT = "short";
   const NOTE_VIEW_STYLE_BALLOONS = "balloons";
   const NOTE_VIEW_STYLE_RIBBONS = "ribbons";
-  const NOTE_VIEW_STYLE_DEFAULT = NOTE_VIEW_STYLE_RIBBONS;
+  const NOTE_VIEW_STYLE_DEFAULT = NOTE_VIEW_STYLE_BALLOONS;
   const HISTORY_WINDOWS = Object.freeze({
     short: 1,
     medium: 3,
@@ -5991,11 +6114,8 @@
 
   const FREE_ALLOWED = Object.freeze({
     sensitivity: new Set(["relaxed", "medium"]),
-    stretch: new Set(["none", "minimal"]),
     history: new Set(["short", "medium"]),
     stainHold: new Set(["30"]),
-    transposition: new Set(["0"]),
-    rowStart: new Set(["0"]),
     a4: new Set([440, 441, 442]),
   });
 
@@ -6057,9 +6177,9 @@
       title: "Mode",
       summary: "Chooses how forgiving the tuner is before it paints the grid.  Dead zones are a margin of error that paints the cell as 'in-tune.'",
       detail: [
-        "• Relaxed: ~10 cents dead zone, 350ms needle smoothing.",
-        "• Medium: ~8 cents dead zone, 120ms smoothing.",
-        "• Hard: ~4 cents dead zone, 30ms smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily."
+          "• Relaxed: ±4 cents dead zone, 350ms needle smoothing.",
+          "• Medium: ±3.5 cents dead zone, 80ms needle smoothing.",
+          "• Hard: ±1.8 cents dead zone, 30ms needle smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily. (★ Pro)"
       ]
     },
     noteViewStyle: {
@@ -7085,10 +7205,13 @@
     const a4Val = currentSettings.a4 ?? A4 ?? 440;
     let stretchText = "No stretch";
     if (stretchSelect) {
-      const selected = stretchSelect.value;
-      const mode = FREE_ALLOWED.stretch.has(selected) ? selected : "minimal";
+      const mode = stretchSelect.value;
       if (mode === "minimal") {
         stretchText = "Min. Stretch";
+      } else if (mode === "medium") {
+        stretchText = "Med. Stretch";
+      } else if (mode === "full") {
+        stretchText = "Full Stretch";
       } else {
         stretchText = "No stretch";
       }
@@ -7190,7 +7313,7 @@
     updateAttackSpeedValueUI(normalizedAttackMs);
 
     const originalStretch = settings.stretch;
-    const stretchVal = FREE_ALLOWED.stretch.has(originalStretch) ? originalStretch : "minimal";
+    const stretchVal = (originalStretch === "minimal" || originalStretch === "medium" || originalStretch === "full") ? originalStretch : "none";
     if (stretchSelect) stretchSelect.value = stretchVal;
     if (originalStretch !== stretchVal) needsPersist = true;
     currentSettings.stretch = stretchVal;
@@ -7210,9 +7333,6 @@
     const originalRowStart = settings.rowStart;
     let rowStartVal = parseInt(originalRowStart, 10);
     if (!Number.isFinite(rowStartVal) || rowStartVal < 0 || rowStartVal > 11) {
-      rowStartVal = 0;
-    }
-    if (!FREE_ALLOWED.rowStart.has(String(rowStartVal))) {
       rowStartVal = 0;
     }
     rebuildRowStartSelectOptions(rowStartVal);
@@ -7281,7 +7401,7 @@
       transposeVal = DEFAULT_SETTINGS.transposition;
     }
     transposeVal = String(transposeVal);
-    if (!transpositionSelect || !transpositionSelect.querySelector(`option[value="${transposeVal}"]`) || !FREE_ALLOWED.transposition.has(transposeVal)) {
+    if (!transpositionSelect || !transpositionSelect.querySelector(`option[value="${transposeVal}"]`)) {
       transposeVal = DEFAULT_SETTINGS.transposition;
     }
     if (transpositionSelect) {
@@ -7496,18 +7616,75 @@
     return Math.sqrt(sumSq / buf.length);
   }
 
-  function getMinimalStretchCents(midi) {
-    if (!Number.isFinite(midi) || midi <= 69) return 0;
-    const clampedMidi = Math.max(69, Math.min(MINIMAL_STRETCH_MAX_MIDI, midi));
-    const t = (clampedMidi - 69) / (MINIMAL_STRETCH_MAX_MIDI - 69);
-    return MINIMAL_STRETCH_MAX_CENTS * t;
+  function interpolateRailsbackCents(midi) {
+    if (!Number.isFinite(midi)) return 0;
+    const anchors = RAILSBACK_ANCHORS;
+    if (anchors.length === 0) return 0;
+    if (midi <= anchors[0].midi) return anchors[0].cents;
+    if (midi >= anchors[anchors.length - 1].midi) {
+      return anchors[anchors.length - 1].cents;
+    }
+
+    const n = anchors.length;
+    const xs = anchors.map(a => a.midi);
+    const ys = anchors.map(a => a.cents);
+
+    const h = new Array(n - 1);
+    const delta = new Array(n - 1);
+    for (let i = 0; i < n - 1; i++) {
+      h[i] = xs[i + 1] - xs[i];
+      delta[i] = (ys[i + 1] - ys[i]) / h[i];
+    }
+
+    const m = new Array(n);
+    m[0] = delta[0];
+    m[n - 1] = delta[n - 2];
+    for (let i = 1; i < n - 1; i++) {
+      if (delta[i - 1] * delta[i] <= 0) {
+        m[i] = 0;
+      } else {
+        m[i] = (delta[i - 1] * h[i] + delta[i] * h[i - 1]) / (h[i - 1] + h[i]);
+      }
+    }
+
+    for (let i = 0; i < n - 1; i++) {
+      if (delta[i] === 0) {
+        m[i] = 0;
+        m[i + 1] = 0;
+      }
+    }
+
+    function evalHermite(i, xVal) {
+      const t = (xVal - xs[i]) / h[i];
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const h00 = (2 * t3) - (3 * t2) + 1;
+      const h10 = t3 - (2 * t2) + t;
+      const h01 = (-2 * t3) + (3 * t2);
+      const h11 = t3 - t2;
+      return h00 * ys[i] + h10 * h[i] * m[i] + h01 * ys[i + 1] + h11 * h[i] * m[i + 1];
+    }
+
+    for (let i = 0; i < n - 1; i++) {
+      if (midi >= xs[i] && midi <= xs[i + 1]) {
+        return evalHermite(i, midi);
+      }
+    }
+    return ys[ys.length - 1];
   }
 
   function getStretchCents(midi) {
-    const selected = stretchSelect?.value || currentSettings?.stretch || "none";
-    const mode = FREE_ALLOWED.stretch.has(selected) ? selected : "minimal";
+    const mode = stretchSelect?.value || currentSettings?.stretch || "none";
+    if (mode === "full") {
+      return interpolateRailsbackCents(midi);
+    }
     if (mode === "minimal") {
-      return getMinimalStretchCents(midi);
+      const cents = interpolateRailsbackCents(midi);
+      return midi >= 69 ? 0.25 * cents : 0;
+    }
+    if (mode === "medium") {
+      const cents = interpolateRailsbackCents(midi);
+      return midi >= 69 ? 0.5 * cents : 0;
     }
     return 0;
   }
@@ -7572,13 +7749,13 @@
     const mode = resolveMode(sensitivitySelect ? sensitivitySelect.value : "medium");
     if (mode === "relaxed") {
         dbgSens.textContent     = "Relaxed";
-        dbgDeadZone.textContent = "~0.30%";
+        dbgDeadZone.textContent = "~0.25%";
     } else if (mode === "medium") {
         dbgSens.textContent     = "Medium";
-        dbgDeadZone.textContent = "~0.23%";
+        dbgDeadZone.textContent = "~0.21%";
     } else {
       dbgSens.textContent     = "Medium";
-      dbgDeadZone.textContent = "~0.23%";
+      dbgDeadZone.textContent = "~0.21%";
     }
     dbgHold.textContent = formatAttackSpeedText(getCurrentMinHoldMs());
 
@@ -10112,6 +10289,7 @@
       setMicUiRunningState(true);
 
       overlayVeil.style.display = "none";
+      showWhatsNewIfNeeded();
       if (pendingMilestone) {
         pendingMilestone = false;
         triggerC4EasterEgg();
@@ -10395,11 +10573,6 @@
     rowStartSelect.addEventListener("change", () => {
       const val = parseInt(rowStartSelect.value, 10);
       const idx = Number.isFinite(val) ? ((val % 12) + 12) % 12 : 0;
-      if (isProLockedValue("rowStart", String(idx))) {
-        rowStartSelect.value = currentSettings.rowStart || "0";
-        openProModal("rowStart");
-        return;
-      }
       currentSettings.rowStart = String(idx);
       currentSettings.noteViewRangeLinked = true;
       const chosenLow = rebuildLowNoteSelectOptions(idx);
@@ -11096,6 +11269,25 @@
     });
   }
 
+  if (whatsNewCloseBtn) {
+    whatsNewCloseBtn.addEventListener("click", () => {
+      closeWhatsNewOverlay();
+    });
+  }
+
+  if (whatsNewOverlay) {
+    whatsNewOverlay.addEventListener("click", event => {
+      if (event.target === whatsNewOverlay) closeWhatsNewOverlay();
+    });
+  }
+
+  if (whatsNewReopenBtn) {
+    whatsNewReopenBtn.addEventListener("click", () => {
+      closeStatusOverlay();
+      openWhatsNewOverlay();
+    });
+  }
+
   if (noteStatsResetBtn) {
     noteStatsResetBtn.addEventListener("click", () => {
       confirmAndResetAllStats();
@@ -11299,11 +11491,6 @@
 
   if (stretchSelect) {
     stretchSelect.addEventListener("change", () => {
-      if (isProLockedValue("stretch", stretchSelect.value)) {
-        stretchSelect.value = currentSettings.stretch || "minimal";
-        openProModal("stretch");
-        return;
-      }
       currentSettings.stretch = stretchSelect.value;
       persistSettings(currentSettings);
       finalizeActiveSegment();
@@ -11417,11 +11604,6 @@
 
   if (transpositionSelect) {
     transpositionSelect.addEventListener("change", () => {
-      if (isProLockedValue("transposition", transpositionSelect.value)) {
-        transpositionSelect.value = currentSettings.transposition || "0";
-        openProModal("transposition");
-        return;
-      }
       const oldOffset = parseInt(currentSettings.transposition ?? "0", 10) || 0;
       const newVal = transpositionSelect.value;
       currentSettings.transposition = newVal;
