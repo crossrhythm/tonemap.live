@@ -4856,7 +4856,20 @@
     if (latestRelease.note) {
       const note = document.createElement("p");
       note.style.cssText = "margin:0 1.5rem 1.5rem;font-size:0.9rem;color:var(--text-lite);line-height:1.6;";
-      note.textContent = latestRelease.note;
+      const emailRe = /([\w.+-]+@[\w-]+\.[\w.]+)/g;
+      const noteText = latestRelease.note;
+      let last = 0, match;
+      emailRe.lastIndex = 0;
+      while ((match = emailRe.exec(noteText)) !== null) {
+        note.appendChild(document.createTextNode(noteText.slice(last, match.index)));
+        const a = document.createElement("a");
+        a.href = "mailto:" + match[1];
+        a.textContent = match[1];
+        a.style.cssText = "color:var(--accent-green);text-decoration:underline;";
+        note.appendChild(a);
+        last = match.index + match[0].length;
+      }
+      note.appendChild(document.createTextNode(noteText.slice(last)));
       whatsNewBodyEl.appendChild(note);
     }
     if (whatsNewVersionEl) whatsNewVersionEl.textContent = `V${latestRelease.version}`;
