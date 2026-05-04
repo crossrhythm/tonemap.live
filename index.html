@@ -2773,7 +2773,8 @@
       padding: 0.85rem 1rem;
       overflow: hidden;
     }
-    .right-col.mini-mode {
+    .right-col.mini-mode,
+    .page.focus-mode .right-col.mini-mode {
       width: 100%;
       max-width: none;
       flex: 0 0 auto;
@@ -3108,6 +3109,11 @@
     top: -0.1em;
   }
 
+  .grid-cell .note-label .flat-sym {
+    font-size: 1.25em;
+    line-height: 1;
+  }
+
   .tune-indicator {
     position: absolute;
     left: 50%;
@@ -3437,7 +3443,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.03";
+  window.APP_VERSION = "2.04";
   // If the user has the non-HttpOnly Pro flag cookie, send them straight to
   // /pro. The real HttpOnly HMAC cookie (tm_pro) isn't visible to JS, so the
   // Worker sets tm_pro_flag=1 alongside it as a client-readable hint. Worker
@@ -4516,7 +4522,7 @@
   // macOS Chromium ships raw mic at ~Firefox-reference level already, so no per-browser boost there.
   const PER_BROWSER_GAIN = (IS_MACOS_DESKTOP && BROWSER_FAMILY === 'chromium')
     ? 1.0
-    : ({ firefox: 1.0, chromium: 3.5, safari: 5.0, other: 1.0 })[BROWSER_FAMILY];
+    : ({ firefox: 1.0, chromium: 2.0, safari: 5.0, other: 1.0 })[BROWSER_FAMILY];
 
   // Platform-aware default for the user-facing mic-gain slider (captures per-browser + per-mobile-device calibration).
   const DEFAULT_MIC_GAIN = ((IS_IPAD || IS_IPHONE) ? 2.0 : 1.0) * PER_BROWSER_GAIN;
@@ -4805,6 +4811,12 @@
       {
       version: APP_VERSION,
       sections: [
+        {
+          title: "Latest update",
+          items: [
+            "Misc. bug fixes."
+          ]
+        },
         {
           title: "Recently added features",
           items: [
@@ -6254,7 +6266,7 @@
       detail: [
         "Use if your mic runs quiet (meter stays mostly gray/green during normal playing).",
         "The slider is a multiplier on top of Tonemap's per-device baseline, from 1× (no boost) up to 100×. The response is exponential so fine control stays usable across the whole range.",
-        { html: `<table class="option-info-table"><thead><tr><th>Browser / OS</th><th>Default</th></tr></thead><tbody><tr><td>Firefox</td><td>1×</td></tr><tr><td>Chromium on macOS desktop</td><td>1×</td></tr><tr><td>Chromium on Windows / Android / ChromeOS</td><td>3.5×</td></tr><tr><td>Safari on macOS desktop</td><td>5×</td></tr><tr><td>Safari on iPhone / iPad</td><td>10×</td></tr><tr><td>Other browsers</td><td>1× desktop, 2× on iPhone / iPad</td></tr></tbody></table>` },
+        { html: `<table class="option-info-table"><thead><tr><th>Browser / OS</th><th>Default</th></tr></thead><tbody><tr><td>Firefox</td><td>1×</td></tr><tr><td>Chromium on macOS desktop</td><td>1×</td></tr><tr><td>Chromium on Windows / Android / ChromeOS</td><td>2×</td></tr><tr><td>Safari on macOS desktop</td><td>5×</td></tr><tr><td>Safari on iPhone / iPad</td><td>10×</td></tr><tr><td>Other browsers</td><td>1× desktop, 2× on iPhone / iPad</td></tr></tbody></table>` },
         "Boost only helps a quiet signal — if the meter is peaking (red), lower the input at the OS/mic level; gain here cannot fix clipping.",
         "Changes apply instantly; no need to restart the mic."
       ]
@@ -7019,7 +7031,7 @@
       const midiNum = Number(midi);
       const noteName = getNoteNameForMidi(midiNum);
       const octave = Math.floor(midiNum / 12) - 1;
-      label.innerHTML = `${noteName}<sup>${octave}</sup>`;
+      label.innerHTML = `${noteName.replace('♭', '<span class="flat-sym">♭</span>')}<sup>${octave}</sup>`;
     }
   }
 
@@ -8036,7 +8048,7 @@
 
         const label = document.createElement("span");
         label.className = "note-label";
-        label.innerHTML = `${noteName}<sup>${octave}</sup>`;
+        label.innerHTML = `${noteName.replace('♭', '<span class="flat-sym">♭</span>')}<sup>${octave}</sup>`;
         cell.appendChild(label);
 
         const indicator = document.createElement("div");

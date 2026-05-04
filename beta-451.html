@@ -2886,7 +2886,8 @@
       padding: 0.85rem 1rem;
       overflow: hidden;
     }
-    .right-col.mini-mode {
+    .right-col.mini-mode,
+    .page.focus-mode .right-col.mini-mode {
       width: 100%;
       max-width: none;
       flex: 0 0 auto;
@@ -3221,6 +3222,11 @@
     top: -0.1em;
   }
 
+  .grid-cell .note-label .flat-sym {
+    font-size: 1.25em;
+    line-height: 1;
+  }
+
   .tune-indicator {
     position: absolute;
     left: 50%;
@@ -3550,7 +3556,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.03";
+  window.APP_VERSION = "2.04";
 </script>
 
 <div class="page">
@@ -4920,6 +4926,12 @@
       version: APP_VERSION,
       sections: [
         {
+          title: "Latest update",
+          items: [
+            "Misc. bug fixes."
+          ]
+        },
+        {
           title: "Recently added features",
           items: [
             "Quick Record at the bottom left of the grid, with slow-motion playback and WAV downloads.",
@@ -5560,7 +5572,7 @@
   // macOS Chromium ships raw mic at ~Firefox-reference level already, so no per-browser boost there.
   const PER_BROWSER_GAIN = (IS_MACOS_DESKTOP && BROWSER_FAMILY === 'chromium')
     ? 1.0
-    : ({ firefox: 1.0, chromium: 3.5, safari: 5.0, other: 1.0 })[BROWSER_FAMILY];
+    : ({ firefox: 1.0, chromium: 2.0, safari: 5.0, other: 1.0 })[BROWSER_FAMILY];
 
   // Platform-aware default for the user-facing mic-gain slider.
   const DEFAULT_MIC_GAIN = ((IS_IPAD || IS_IPHONE) ? 2.0 : 1.0) * PER_BROWSER_GAIN;
@@ -7223,7 +7235,7 @@
       const midiNum = Number(midi);
       const noteName = getNoteNameForMidi(midiNum);
       const octave = Math.floor(midiNum / 12) - 1;
-      label.innerHTML = `${noteName}<sup>${octave}</sup>`;
+      label.innerHTML = `${noteName.replace('♭', '<span class="flat-sym">♭</span>')}<sup>${octave}</sup>`;
     }
   }
 
@@ -9245,7 +9257,7 @@
 
         const label = document.createElement("span");
         label.className = "note-label";
-        label.innerHTML = `${noteName}<sup>${octave}</sup>`;
+        label.innerHTML = `${noteName.replace('♭', '<span class="flat-sym">♭</span>')}<sup>${octave}</sup>`;
         cell.appendChild(label);
 
         const indicator = document.createElement("div");
