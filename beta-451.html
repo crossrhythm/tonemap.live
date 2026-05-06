@@ -182,7 +182,7 @@
     color: var(--text-lite);
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 100dvh;
     padding: 1rem;
     gap: 1rem;
     min-width: 320px;
@@ -224,7 +224,7 @@
     flex-direction: row;
     gap: 1rem;
     min-height: 0;
-    height: calc(100vh - 2rem); /* viewport minus body padding */
+    height: calc(100dvh - 2rem); /* viewport minus body padding */
     position: relative;
   }
 
@@ -234,7 +234,7 @@
     min-width: 0;
     min-height: 0;
 
-    height: calc(100vh - 2rem);
+    height: calc(100dvh - 2rem);
 
     background: var(--grid-bg);
     border: 1px solid var(--grid-line);
@@ -963,7 +963,7 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-    height: calc(100vh - 2rem);
+    height: calc(100dvh - 2rem);
     position: relative;
     z-index: 2;
     background: transparent;
@@ -2837,8 +2837,7 @@
       padding: 0.75rem;
       height: 100dvh;
       gap: 0;
-      overflow-x: hidden;
-      overflow-y: auto;
+      overflow: hidden;
     }
     .page {
       flex: 1 1 auto;
@@ -2846,7 +2845,8 @@
       min-height: 0;
       height: auto;
       gap: 0.75rem;
-      overflow: visible;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
     body.ios-portrait-scroll-shell {
       padding-top: max(0.75rem, calc(var(--safe-area-top) + 0.5rem));
@@ -4672,7 +4672,7 @@
       return document.scrollingElement || document.documentElement;
     };
     function update() {
-      const useIOSScrollShell = isIOSWebKitLike() && !isStandaloneDisplayMode() && isPortrait();
+      const useIOSScrollShell = isIOSDevice() && !isStandaloneDisplayMode() && isPortrait();
       document.body.classList.toggle("ios-portrait-scroll-shell", useIOSScrollShell);
       if (!isPortrait()) {
         pageEl.classList.remove("can-scroll-down");
@@ -5590,6 +5590,7 @@
   let playbackGainNode = null;
   let playbackBlobUrl = null;
   let playbackEndedHandler = null;
+  let playbackShouldResumeMic = false;
   let playbackAnalysisActive = false;
   let analysisSourceMode = "mic";
   let micStartRequestToken = 0;
@@ -8281,6 +8282,8 @@
 
   async function startRecorderPlayback(offsetMs = recorderState.playbackOffsetMs) {
     if (!recorderState.currentBlob || recorderState.durationMs <= 0) return;
+    const wasMicRunning = running;
+    playbackShouldResumeMic = wasMicRunning;
     if (recorderState.isRecording) {
       stopRecording();
     }
@@ -8336,12 +8339,17 @@
 
     playbackEndedHandler = () => {
       if (playbackAudioEl !== audioEl) return;
+      const shouldResumeMic = playbackShouldResumeMic;
+      playbackShouldResumeMic = false;
       recorderState.isPlaying = false;
       recorderState.playbackOffsetMs = 0;
       playbackAnalysisActive = false;
       analysisSourceMode = "mic";
       disposeAnalysisGraph();
       updateRecorderUi();
+      if (shouldResumeMic && !running) {
+        void startMic();
+      }
     };
     audioEl.addEventListener("ended", playbackEndedHandler);
 
@@ -8355,11 +8363,16 @@
       await audioEl.play();
     } catch (err) {
       console.warn("Playback start failed:", err);
+      const shouldResumeMic = playbackShouldResumeMic;
+      playbackShouldResumeMic = false;
       recorderState.isPlaying = false;
       playbackAnalysisActive = false;
       analysisSourceMode = "mic";
       disposeAnalysisGraph();
       updateRecorderUi();
+      if (shouldResumeMic && !running) {
+        void startMic();
+      }
       return;
     }
 
