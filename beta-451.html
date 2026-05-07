@@ -272,14 +272,14 @@
     left: 0;
     bottom: 0;
     width: 34px;
-    height: 30px;
+    height: 40px;
     z-index: 35;
     transition: opacity 220ms ease, transform 220ms ease;
   }
 
   .recording-launcher {
     width: 34px;
-    height: 30px;
+    height: 40px;
     border: 2px solid var(--border-dim);
     border-left: none;
     border-radius: 0 0.45rem 0.45rem 0;
@@ -349,7 +349,7 @@
   }
 
   .left-col.recorder-expanded .recording-dock {
-    height: 40px;
+    height: 50px;
     opacity: 1;
     pointer-events: auto;
     padding: 2px 0.6rem 2px 0.28rem;
@@ -663,7 +663,7 @@
   .recording-tip-overlay {
     position: absolute;
     left: 0.9rem;
-    bottom: 48px;
+    bottom: 58px;
     z-index: 34;
     width: min(21rem, calc(100% - 1.8rem));
     padding: 0.55rem 0.7rem;
@@ -8318,14 +8318,16 @@
     const audioEl = new Audio();
     audioEl.preload = "auto";
     audioEl.src = playbackBlobUrl;
-    if (recorderState.stretchWorkerFailed && !useStretched) {
-      // Degraded fallback when worker is unavailable: lean on browser preservesPitch
+    if (useStretched) {
+      // Audio is already pre-stretched to the desired tempo; play it as-is.
+      audioEl.playbackRate = 1.0;
+    } else {
+      // No stretched cache (worker failed, job errored, or rate is 1) — fall back
+      // to the browser's native playbackRate, preserving pitch where supported.
       try { audioEl.preservesPitch = true; } catch (err) { /* ignore */ }
       try { audioEl.mozPreservesPitch = true; } catch (err) { /* ignore */ }
       try { audioEl.webkitPreservesPitch = true; } catch (err) { /* ignore */ }
       audioEl.playbackRate = recorderState.playbackRate || 1;
-    } else {
-      audioEl.playbackRate = 1.0;
     }
     playbackAudioEl = audioEl;
 
