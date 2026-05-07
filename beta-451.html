@@ -679,6 +679,13 @@
     transition: opacity 220ms ease, transform 220ms ease;
   }
 
+  :root[data-ui-theme="light"] .recording-tip-overlay {
+    background: rgba(255,255,255,0.98);
+    border-color: rgba(100,116,139,0.26);
+    color: #0f172a;
+    box-shadow: 0 10px 24px rgba(15,23,42,0.16);
+  }
+
   .recording-tip-title {
     margin: 0 0 0.35rem;
     padding-bottom: 0.18rem;
@@ -2152,7 +2159,7 @@
   /* Safari seam fix: independent top mask to cover sticky subpixel gap */
   @supports (-webkit-touch-callout: none) {
     .right-scroll.can-scroll-up {
-      box-shadow: inset 0 3px 0 rgba(15,23,42,1);
+      box-shadow: inset 0 3px 0 var(--bg-main);
     }
   }
 
@@ -3556,7 +3563,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.04";
+  window.APP_VERSION = "2.05";
 </script>
 
 <div class="page">
@@ -6469,7 +6476,7 @@
       detail: [
         "Use if your mic runs quiet (meter stays mostly gray/green during normal playing).",
         "The slider is a multiplier on top of Tonemap's per-device baseline, from 1× (no boost) up to 100×. The response is exponential so fine control stays usable across the whole range.",
-        { html: `<table class="option-info-table"><thead><tr><th>Browser / OS</th><th>Default</th></tr></thead><tbody><tr><td>Firefox</td><td>1×</td></tr><tr><td>Chromium on macOS desktop</td><td>1×</td></tr><tr><td>Chromium on Windows / Android / ChromeOS</td><td>3.5×</td></tr><tr><td>Safari on macOS desktop</td><td>5×</td></tr><tr><td>Safari on iPhone / iPad</td><td>10×</td></tr><tr><td>Other browsers</td><td>1× desktop, 2× on iPhone / iPad</td></tr></tbody></table>` },
+        { html: `<table class="option-info-table"><thead><tr><th>Browser / OS</th><th>Default</th></tr></thead><tbody><tr><td>Firefox</td><td>1×</td></tr><tr><td>Chromium on macOS desktop</td><td>1×</td></tr><tr><td>Chromium on Windows / Android / ChromeOS</td><td>2×</td></tr><tr><td>Safari on macOS desktop</td><td>5×</td></tr><tr><td>Safari on iPhone / iPad</td><td>10×</td></tr><tr><td>Other browsers</td><td>1× desktop, 2× on iPhone / iPad</td></tr></tbody></table>` },
         "Boost only helps a quiet signal — if the meter is peaking (red), lower the input at the OS/mic level; gain here cannot fix clipping.",
         "Changes apply instantly; no need to restart the mic."
       ]
@@ -8126,10 +8133,16 @@
     }
     const processing = !!recorderState.stretchJob;
     if (recordingPlayBtn) {
-      recordingPlayBtn.disabled = !hasTake || recorderState.isRecording || processing;
+      // Enabled during recording so X / clicking play stops the take and immediately reviews it.
+      recordingPlayBtn.disabled = (!hasTake && !recorderState.isRecording) || processing;
       recordingPlayBtn.classList.toggle("is-playing", recorderState.isPlaying);
-      recordingPlayBtn.setAttribute("aria-label", recorderState.isPlaying ? "Pause playback" : "Play recording");
-      recordingPlayBtn.title = recorderState.isPlaying ? "Pause [X]" : "Play [X]";
+      if (recorderState.isRecording) {
+        recordingPlayBtn.setAttribute("aria-label", "Stop recording and play back");
+        recordingPlayBtn.title = "Stop & Play [X]";
+      } else {
+        recordingPlayBtn.setAttribute("aria-label", recorderState.isPlaying ? "Pause playback" : "Play recording");
+        recordingPlayBtn.title = recorderState.isPlaying ? "Pause [X]" : "Play [X]";
+      }
     }
     if (recordingSpeedBtn) {
       recordingSpeedBtn.disabled = !hasTake || recorderState.isRecording;
@@ -8281,12 +8294,15 @@
   }
 
   async function startRecorderPlayback(offsetMs = recorderState.playbackOffsetMs) {
+    // If a recording is in progress, stop it first — that finalizes the take
+    // into currentBlob so we can immediately review what was just recorded.
+    if (recorderState.isRecording) {
+      stopRecording();
+      offsetMs = 0;
+    }
     if (!recorderState.currentBlob || recorderState.durationMs <= 0) return;
     const wasMicRunning = running;
     playbackShouldResumeMic = wasMicRunning;
-    if (recorderState.isRecording) {
-      stopRecording();
-    }
     if (running) {
       stopMic();
     }

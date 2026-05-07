@@ -36,16 +36,19 @@ Tonemap.live is a browser-based real-time pitch and intonation visualizer for mu
 
 Free tier is enforced client-side via `FREE_ALLOWED` and `isProLockedValue()`. Attempting to set a Pro value triggers the upgrade modal. The Pro app (served from KV at `/pro`) has no such restrictions.
 
+The split was intentionally simplified post-launch to give free users a better experience. **Only these settings are gated:**
+
 | Feature | Free | Pro |
 |---|---|---|
-| Mode | Relaxed, Medium | + Hard |
+| Mode (sensitivity) | Relaxed, Medium | + Hard |
 | History | Short (1s), Medium (3s) | + Long (30s), Unlimited |
 | Color Hold | 30s only | + 5s, 15s, 2min, 5min, No Fade |
-| Performance Pitch | 440, 441, 442 | All presets + custom |
-| Transposition | C only | All keys |
-| Stretch Tuning | None, Minimal | + Medium, Full (Railsback) |
-| Rows start with | C only | Any note |
-| Recorder | ✗ (not yet in index.html) | ✓ (in beta-451.html) |
+| Performance Pitch (A4) | 440, 441, 442 | All presets + custom |
+| Quick Recorder | ✗ (not yet in index.html) | ✓ (in beta-451.html) |
+
+**Free for everyone (not gated):** Transposition (all keys), Stretch Tuning (None / Minimal / Medium / Full Railsback), "Rows start with" (any note), accidentals, palette colors, Note View, mic gain / noise reduction, all other UI options.
+
+If you're tempted to add a Pro gate to a setting that isn't in the table above, stop — that's a deliberate product decision, not an oversight.
 
 ---
 
@@ -137,11 +140,11 @@ Cookie: `tm_pro` (HMAC-signed, 365-day max-age). Revalidation against Polar ever
 - Various mobile layout and mic fixes from recent commits
 
 **Done and live in both files:**
-- Free/Pro split with Polar.sh checkout
+- Simplified Free/Pro split with Polar.sh checkout (see matrix above)
 - Pro modal with feature highlight animations
 - Worker auth (HMAC cookie, KV delivery)
-- Railsback stretch tuning
-- All transposition options (Pro)
+- Railsback stretch tuning (free for all)
+- All transposition options (free for all)
 - Release notes / what's new UI
 
 **Docs folder:**

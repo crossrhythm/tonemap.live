@@ -1721,7 +1721,7 @@
   /* Safari seam fix: independent top mask to cover sticky subpixel gap */
   @supports (-webkit-touch-callout: none) {
     .right-scroll.can-scroll-up {
-      box-shadow: inset 0 3px 0 rgba(15,23,42,1);
+      box-shadow: inset 0 3px 0 var(--bg-main);
     }
   }
 
@@ -3443,7 +3443,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.04";
+  window.APP_VERSION = "2.05";
   // If the user has the non-HttpOnly Pro flag cookie, send them straight to
   // /pro. The real HttpOnly HMAC cookie (tm_pro) isn't visible to JS, so the
   // Worker sets tm_pro_flag=1 alongside it as a client-readable hint. Worker

@@ -80,8 +80,19 @@ async function handleActivatePage(request, env) {
   const url = new URL(request.url);
   const customerSessionToken = url.searchParams.get('customer_session_token');
 
-  // Auto-activate when Polar redirects here after purchase
-  if (customerSessionToken && env.HMAC_SECRET) {
+  // Auto-activate when Polar redirects here after purchase.
+  // Require the request to come from a Polar origin — crafted links from
+  // anywhere else fall through to the manual paste form, which is the same
+  // UX as visiting /activate directly. Pragmatic, not Fort Knox: if Polar
+  // ever changes their referrer policy and breaks legit redirects, users
+  // see the manual form and we'll learn from support email.
+  const referer = request.headers.get('Referer') || '';
+  const fromPolar =
+    referer.startsWith('https://buy.polar.sh/') ||
+    referer.startsWith('https://polar.sh/') ||
+    referer.startsWith('https://api.polar.sh/');
+
+  if (customerSessionToken && fromPolar && env.HMAC_SECRET) {
     try {
       const keysRes = await fetch('https://api.polar.sh/v1/customer-portal/license-keys/', {
         headers: { 'Authorization': `Bearer ${customerSessionToken}` },
@@ -165,7 +176,13 @@ async function handleActivatePage(request, env) {
 </body>
 </html>`;
 
-  return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+  return new Response(html, {
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'X-Frame-Options': 'DENY',
+      'X-Content-Type-Options': 'nosniff',
+    },
+  });
 }
 
 async function handlePro(request, env) {
@@ -246,7 +263,12 @@ async function handlePro(request, env) {
     return new Response('Pro content not available — contact support.', { status: 503 });
   }
 
-  const headers = new Headers({ 'Content-Type': 'text/html; charset=utf-8' });
+  const headers = new Headers({
+    'Content-Type': 'text/html; charset=utf-8',
+    'Cache-Control': 'private, no-store',
+    'X-Frame-Options': 'DENY',
+    'X-Content-Type-Options': 'nosniff',
+  });
   if (refreshedCookie) {
     headers.append('Set-Cookie', refreshedCookie);
   }
@@ -290,24 +312,43 @@ async function handleDeactivate(request, env) {
   }
   const token = getCookie(request, COOKIE_NAME);
   const auth = token ? await verifyToken(token, env.HMAC_SECRET) : null;
-  if (auth?.licenseKey && auth?.activationId) {
-    try {
-      await fetch(POLAR_DEACTIVATE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${env.POLAR_ACCESS_TOKEN}`,
-        },
-        body: JSON.stringify({
-          key: auth.licenseKey,
-          organization_id: env.POLAR_ORGANIZATION_ID,
-          activation_id: auth.activationId,
-        }),
-      });
-    } catch {
-      // best-effort — clear cookie regardless
-    }
+
+  // No valid cookie — nothing to deactivate at Polar. Clear any stale cookies and return ok.
+  if (!auth?.licenseKey || !auth?.activationId) {
+    return new Response(JSON.stringify({ ok: true }), {
+      status: 200,
+      headers: authClearHeaders({ 'Content-Type': 'application/json' }),
+    });
+  }
+
+  // Free the Polar activation slot first. If that fails, keep the cookie
+  // intact — otherwise the user is logged out locally while their slot is
+  // still consumed, and re-activating would burn a second slot.
+  let polarOk = false;
+  try {
+    const res = await fetch(POLAR_DEACTIVATE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${env.POLAR_ACCESS_TOKEN}`,
+      },
+      body: JSON.stringify({
+        key: auth.licenseKey,
+        organization_id: env.POLAR_ORGANIZATION_ID,
+        activation_id: auth.activationId,
+      }),
+    });
+    polarOk = res.ok;
+  } catch {
+    polarOk = false;
+  }
+
+  if (!polarOk) {
+    return jsonError(
+      'Could not free your activation slot — try again in a moment',
+      502,
+    );
   }
 
   return new Response(JSON.stringify({ ok: true }), {

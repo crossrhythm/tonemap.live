@@ -35,16 +35,19 @@ Tonemap.live is a browser-based real-time pitch and intonation visualizer for mu
 
 Free-tier enforcement is client-side via `FREE_ALLOWED` + `isProLockedValue()`. Selecting a locked value triggers the upgrade modal rather than applying the change. The Pro app (from KV) has no restrictions.
 
+The split was intentionally simplified post-launch to keep the free experience uncluttered. **Only these settings are gated:**
+
 | Feature | Free | Pro |
 |---|---|---|
-| Mode | Relaxed, Medium | + Hard |
+| Mode (sensitivity) | Relaxed, Medium | + Hard |
 | History | Short (1s), Medium (3s) | + Long (30s), Unlimited |
 | Color Hold | 30s only | + 5s, 15s, 2min, 5min, No Fade |
-| Performance Pitch | 440, 441, 442 | All presets + custom |
-| Transposition | C only | All keys |
-| Stretch Tuning | None, Minimal | + Medium, Full (Railsback) |
-| Rows start with | C only | Any note |
+| Performance Pitch (A4) | 440, 441, 442 | All presets + custom |
 | Quick Recorder | ✗ (not yet in index.html) | ✓ (in beta-451.html) |
+
+**Free for everyone (not gated):** Transposition (all keys), Stretch Tuning (None / Minimal / Medium / Full Railsback), "Rows start with" (any note), accidentals, palette colors, Note View, mic gain / noise reduction, all other UI options.
+
+If you're tempted to add a Pro gate to a setting that isn't in the table above, stop — that's a deliberate product decision, not an oversight.
 
 ---
 
