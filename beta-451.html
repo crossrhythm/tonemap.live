@@ -5557,7 +5557,7 @@
   const RECORDER_SPECTRUM_EMA_ALPHA = 0.15;
   const RECORDER_TIP_STORAGE_KEY = "tonemap.live.recorderTipSeen";
   const IS_FIREFOX = /firefox\//i.test(navigator.userAgent);
-  const RECORDER_PLAYBACK_GAIN = IS_FIREFOX ? 1.0 : 3.0;
+  const RECORDER_PLAYBACK_GAIN = 1.0;
   const IS_IPAD = /iPad/.test(navigator.userAgent) ||
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const IS_IPHONE = /iPhone|iPod/.test(navigator.userAgent);
