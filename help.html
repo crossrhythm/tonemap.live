@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help &amp; FAQ — Tonemap</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #475569;
+      --accent: rgb(34,197,94);
+      --accent-dim: rgba(34,197,94,0.15);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --sharp: rgb(249,115,22);
+      --flat: rgb(147,51,234);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ── */
+    .page-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: auto 1fr;
+      column-gap: 56px;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      padding: 48px 0 40px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .logo-link { display: block; margin-bottom: 28px; }
+    .logo-img { width: 100%; max-width: 260px; height: auto; display: block; border-radius: 6px; }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .subtitle { color: var(--muted); font-size: 1rem; }
+
+    /* ── TOC sidebar ── */
+    .toc {
+      position: sticky;
+      top: 32px;
+      align-self: start;
+      padding-bottom: 48px;
+    }
+
+    .toc-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .toc ol {
+      list-style: none;
+      padding: 0;
+      border-left: 1px solid var(--border);
+    }
+
+    .toc ol li a {
+      display: block;
+      padding: 5px 0 5px 14px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
+      border-left: 2px solid transparent;
+      margin-left: -1px;
+    }
+
+    .toc ol li a:hover { color: var(--text); }
+    .toc ol li a.active { color: var(--accent); border-left-color: var(--accent); }
+
+    /* ── Main content ── */
+    main { padding-bottom: 80px; min-width: 0; }
+
+    section { margin-bottom: 64px; scroll-margin-top: 32px; }
+
+    h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.65rem;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 28px 0 8px;
+    }
+
+    p { color: var(--muted); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Settings table ── */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .sg-row {
+      display: contents;
+    }
+
+    .sg-name {
+      padding: 12px 16px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .sg-desc {
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      background: transparent;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sg-row:last-child .sg-name,
+    .sg-row:last-child .sg-desc { border-bottom: none; }
+
+    /* ── Pro/Free comparison table ── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-top: 16px;
+      font-size: 0.9rem;
+    }
+
+    .compare-table th {
+      background: var(--surface);
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare-table th:last-child { color: var(--accent); }
+
+    .compare-table td {
+      padding: 10px 16px;
+      color: var(--muted);
+      border-bottom: 1px solid rgba(71,85,105,0.4);
+      vertical-align: top;
+    }
+
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td:first-child { color: var(--text); font-weight: 400; }
+
+    .check { color: var(--accent); }
+    .cross { color: var(--border); }
+    .pro-star { color: var(--accent); font-size: 0.85em; }
+
+    /* ── Callout boxes ── */
+    .callout {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .callout.warn { border-left-color: rgb(249,115,22); }
+
+    .callout strong { color: var(--text); }
+
+    /* ── Key shortcut table ── */
+    .keys-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 16px;
+    }
+
+    .key-cell {
+      padding: 9px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .key-desc {
+      padding: 9px 14px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .key-cell:last-of-type,
+    .key-desc:last-of-type { border-bottom: none; }
+
+    /* ── Inline badge ── */
+    .badge {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    /* ── Intonation color swatch demo ── */
+    .swatch-row {
+      display: flex;
+      gap: 10px;
+      margin: 14px 0;
+      flex-wrap: wrap;
+    }
+
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .swatch-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Footer ── */
+    footer {
+      grid-column: 1 / -1;
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--text); }
+
+    /* ── Responsive: collapse sidebar below 740px ── */
+    @media (max-width: 740px) {
+      .page-wrapper {
+        grid-template-columns: 1fr;
+      }
+      .toc { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <header>
+    <a href="/" class="logo-link">
+      <img src="tonemaplogo-fb.jpg" alt="Tonemap.live" class="logo-img" />
+    </a>
+    <h1>Help &amp; FAQ</h1>
+    <p class="subtitle">Everything you need to get started and get the most out of Tonemap.</p>
+  </header>
+
+  <!-- ── TOC ── -->
+  <nav class="toc" aria-label="Page sections">
+    <p class="toc-label">Contents</p>
+    <ol>
+      <li><a href="#getting-started">1. Getting Started</a></li>
+      <li><a href="#the-display">2. Reading the Display</a></li>
+      <li><a href="#settings">3. Settings Reference</a></li>
+      <li><a href="#free-vs-pro">4. Free vs. Pro</a></li>
+      <li><a href="#recorder">5. Quick Recorder</a></li>
+      <li><a href="#keyboard">6. Keyboard Shortcuts</a></li>
+      <li><a href="#troubleshooting">7. Troubleshooting</a></li>
+      <li><a href="#contact">8. Contact</a></li>
+    </ol>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main>
+
+    <!-- 1. Getting Started -->
+    <section id="getting-started">
+      <h2>1. Getting Started</h2>
+
+      <h3>What is Tonemap?</h3>
+      <p>Tonemap is a browser-based real-time pitch and intonation visualizer. It listens through your microphone and paints a color-coded grid showing which notes you play and how in-tune they are — sharp, flat, or centered. Nothing is recorded or sent anywhere; all processing happens locally in your browser.</p>
+
+      <h3>How do I start?</h3>
+      <p>Press the microphone button (or hit <strong>Space</strong>). Your browser will ask for microphone permission the first time — click Allow. Play a note and you should see the grid light up within a moment. Press the button again (or Space) to stop.</p>
+
+      <div class="callout">
+        <strong>First time?</strong> Try Relaxed mode with Medium history. Play a scale slowly and watch your intonation tendencies appear on the grid.
+      </div>
+
+      <h3>Does it work on mobile?</h3>
+      <p>Yes — Tonemap works on iPhone, iPad, and Android in any modern browser. Safari on iOS and Chrome on Android are both supported. On mobile you'll see a simplified layout; the full options panel is still accessible via the gear icon.</p>
+
+      <h3>Do I need to install anything?</h3>
+      <p>No. Tonemap runs entirely in your browser with no download, no account, and no plugins required.</p>
+
+      <h3>What microphone should I use?</h3>
+      <p>Any microphone works — your device's built-in mic is fine for practice. An external USB mic or audio interface will give cleaner results in noisy environments, but isn't necessary. If the meter stays gray (too quiet), try increasing Microphone Gain in settings or moving closer to the mic.</p>
+    </section>
+
+    <!-- 2. Reading the Display -->
+    <section id="the-display">
+      <h2>2. Reading the Display</h2>
+
+      <h3>The intonation grid</h3>
+      <p>Each cell in the grid represents a semitone. When you sustain a pitch, the cell lights up in a color that reflects your intonation tendency. Colors are blended from your three palette colors (default: orange/green/purple):</p>
+
+      <div class="swatch-row">
+        <div class="swatch">
+          <div class="swatch-dot" style="background: rgb(249,115,22);"></div>
+          Sharp
+        </div>
+        <div class="swatch">
+          <div class="swatch-dot" style="background: rgb(34,197,94);"></div>
+          In tune
+        </div>
+        <div class="swatch">
+          <div class="swatch-dot" style="background: rgb(147,51,234);"></div>
+          Flat
+        </div>
+      </div>
+
+      <p>The longer a note stays in a cell the more that cell's color is weighted toward your current tendency. Cells fade over time based on your History and Color Hold settings.</p>
+
+      <h3>The pitch needle</h3>
+      <p>The needle shows your real-time cent deviation from the nearest target pitch. It can be oriented horizontally or vertically (see Needle Direction in settings). The dead zone in the center is the range considered "in tune" — its size depends on your Mode setting.</p>
+
+      <h3>Note View</h3>
+      <p>Press <strong>N</strong> (Ribbons) or <strong>B</strong> (Balloons) — or the Note View button — to switch from the grid to a per-note view. Ribbons show how your intonation changed over time within each note; Balloons show a single averaged color per note. Press <strong>G</strong> to return to Grid View, or <strong>V</strong> to cycle through all three modes.</p>
+
+      <h3>Resetting the heatmap</h3>
+      <p>Press the reset button (or <strong>R</strong>) to clear all accumulated color from the grid and start fresh.</p>
+    </section>
+
+    <!-- 3. Settings Reference -->
+    <section id="settings">
+      <h2>3. Settings Reference</h2>
+      <p>Open settings with the gear icon or press <strong>O</strong>. All settings are saved automatically in your browser.</p>
+
+      <h3>Tuning &amp; Reference</h3>
+      <div class="settings-grid">
+        <div class="sg-row">
+          <div class="sg-name">Performance Pitch (A4)</div>
+          <div class="sg-desc">The reference frequency for all target pitches. Free tier: 440, 441, 442 Hz. Pro: all presets from 392–470 Hz plus a custom entry field. Match this to your ensemble, harpsichord, or period instrument.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Transposition</div>
+          <div class="sg-desc">Offsets concert pitch so the grid shows written pitches for transposing instruments (Bb, Eb, F, etc.). Leave at C for concert-pitch instruments. Free for all users.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Stretch Tuning</div>
+          <div class="sg-desc">Applies a Railsback-style stretch to target pitches, shifting high notes sharp and (in Full mode) low notes flat — mimicking how a well-tuned piano is actually tuned. Options: None (equal temperament), Minimal (~¼ Railsback, highs only), Medium (~½ Railsback, highs only), Full (classic piano stretch across the range). Free for all users.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Accidentals</div>
+          <div class="sg-desc">Switch note labels between sharps and flats. Free for all users.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Rows start with note</div>
+          <div class="sg-desc">Changes which note begins each row of the grid. Useful for aligning open strings, valve positions, or scale degrees with row boundaries.</div>
+        </div>
+      </div>
+
+      <h3>Detection &amp; Response</h3>
+      <div class="settings-grid">
+        <div class="sg-row">
+          <div class="sg-name">Mode</div>
+          <div class="sg-desc">Controls the dead zone and smoothing. <strong>Relaxed</strong> (±4 cents, 350 ms smoothing) is forgiving and good for voice or slow practice. <strong>Medium</strong> (±3.5 cents, 80 ms) is the balanced default. <strong>Hard</strong> (±1.8 cents, 30 ms) is the most demanding — fast response, very small dead zone. Hard Mode is Pro only.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Onset Filter</div>
+          <div class="sg-desc">Delays pitch response until a note has been stable for the set duration (0–100 ms). Helps ignore attack noise and transients at the start of a bow stroke or breath.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Needle Direction</div>
+          <div class="sg-desc">Horizontal or vertical. Horizontal may feel natural to string players; vertical suits wind players and makes glissandi visible as continuous motion.</div>
+        </div>
+      </div>
+
+      <h3>Memory &amp; Color</h3>
+      <div class="settings-grid">
+        <div class="sg-row">
+          <div class="sg-name">History</div>
+          <div class="sg-desc">How much accumulated playing time on a pitch contributes to its cell color before older data is discarded. Short (1 s) for rapid drills; Medium (3 s) for phrases; Long (30 s) and Unlimited for building a full session heatmap. Long and Unlimited are Pro only.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Color Hold</div>
+          <div class="sg-desc">How long a cell holds its color before fading begins after you leave a pitch. Longer holds let you glance away and return to see the color. No Fade locks colors until you reset. Options beyond 30 s are Pro only.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Colors (Palette)</div>
+          <div class="sg-desc">Customize the three intonation colors (sharp / center / flat) and choose from preset themes. Free for all users.</div>
+        </div>
+      </div>
+
+      <h3>Audio Input</h3>
+      <div class="settings-grid">
+        <div class="sg-row">
+          <div class="sg-name">Volume Sensitivity</div>
+          <div class="sg-desc">Sets the minimum RMS level required before the tuner reacts. Drag right to raise the threshold and block out room noise; drag left to catch quieter sounds. The bar shows live RMS level — green means above threshold, gray means below.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Microphone Gain</div>
+          <div class="sg-desc">Multiplies the input signal feeding the tuner. Useful if your meter stays mostly gray during normal playing. The slider is exponential (1×–100×). Default gain varies by browser and platform — Safari on iPhone uses a higher default than desktop Chrome. Gain cannot fix clipping; if the meter is peaking red, lower input at the OS or mic level instead.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Background Noise Reduction</div>
+          <div class="sg-desc">Ignores sounds below a chosen amplitude threshold. None reacts to any detected pitch; higher settings progressively ignore quieter sounds. The white tick on the meter shows where the cutoff sits.</div>
+        </div>
+      </div>
+
+      <h3>Display</h3>
+      <div class="settings-grid">
+        <div class="sg-row">
+          <div class="sg-name">Note View Style</div>
+          <div class="sg-desc"><strong>Ribbons</strong> show intonation over time (16 ms resolution) — useful for seeing vibrato, pitch bends, and drift. <strong>Balloons</strong> show the average intonation for each note as a single color.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Range</div>
+          <div class="sg-desc">Controls which octaves are displayed in Grid View and Note View. Use Minus/Equals and [ / ] to contract or expand the top and bottom of the range on the fly.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">UI Theme</div>
+          <div class="sg-desc">Light, Dark, or System (follows your OS preference).</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Free vs Pro -->
+    <section id="free-vs-pro">
+      <h2>4. Free vs. Pro</h2>
+      <p>Most of Tonemap is free. Pro adds a handful of features for musicians who want more precision, longer session memory, or the Quick Recorder.</p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Free</th>
+            <th>★ Pro</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Mode (sensitivity)</td>
+            <td>Relaxed, Medium</td>
+            <td>+ Hard Mode</td>
+          </tr>
+          <tr>
+            <td>History</td>
+            <td>Short (1 s), Medium (3 s)</td>
+            <td>+ Long (30 s), Unlimited</td>
+          </tr>
+          <tr>
+            <td>Color Hold</td>
+            <td>30 s</td>
+            <td>+ 5 s, 15 s, 2 min, 5 min, No Fade</td>
+          </tr>
+          <tr>
+            <td>Performance Pitch (A4)</td>
+            <td>440, 441, 442 Hz</td>
+            <td>All presets (392–470 Hz) + custom</td>
+          </tr>
+          <tr>
+            <td>Quick Recorder</td>
+            <td><span class="cross">—</span></td>
+            <td><span class="check">✓</span> Record, slow-motion, WAV export</td>
+          </tr>
+          <tr>
+            <td>Transposition (all keys)</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Stretch Tuning</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Colors &amp; Palette</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Note View, Grid View</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Mic Gain &amp; Noise Reduction</td>
+            <td><span class="check">✓</span></td>
+            <td><span class="check">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>How much does Pro cost?</h3>
+      <p>Pro is <strong>$9.99/year</strong> (~83¢/month), with a 7-day free trial. Cancel anytime from your Polar.sh account page.</p>
+
+      <h3>How do I activate Pro?</h3>
+      <p>After subscribing, go to <a href="/activate">tonemap.live/activate</a> and enter your license key. Your Pro status is stored as a signed cookie for one year; it re-validates against Polar.sh periodically in the background.</p>
+
+      <h3>I subscribed but the app still shows Free</h3>
+      <p>Make sure you activated your license at <a href="/activate">/activate</a>. If you already did, try clearing your browser's cookies for tonemap.live and activating again. If the problem persists, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
+
+      <h3>How do I cancel or deactivate?</h3>
+      <p>Cancel your subscription from your <a href="https://polar.sh" target="_blank" rel="noopener">Polar.sh</a> account. To remove Pro access from this browser before expiry, go to <a href="/deactivate">tonemap.live/deactivate</a>.</p>
+    </section>
+
+    <!-- 5. Quick Recorder (Pro) -->
+    <section id="recorder">
+      <h2>5. Quick Recorder <span class="badge">Pro</span></h2>
+      <p>The Quick Recorder lets you capture a take, review it with full Tonemap analysis, and save the audio as a WAV file — all without leaving the tuner.</p>
+
+      <h3>Recording a take</h3>
+      <p>Open the recorder panel with the record button in the toolbar (or press <strong>Z</strong> to start/stop recording). The tuner continues running during recording, so you'll see live intonation as you play. A live spectrum visualizer shows your frequency content in real time.</p>
+
+      <h3>Reviewing playback</h3>
+      <p>After recording, press Play (or <strong>X</strong>) to hear the take back. The grid replays exactly as it was recorded. Use the slow-motion control to step through difficult passages at a reduced speed.</p>
+
+      <h3>Saving a WAV</h3>
+      <p>Press the download button in the recorder to export the take as an uncompressed WAV file. Takes are not saved automatically — export anything you want to keep before closing the panel or recording again.</p>
+
+      <div class="callout warn">
+        <strong>Note:</strong> Recording requires the microphone to be running. If the mic is off when you press Z, it will start automatically.
+      </div>
+    </section>
+
+    <!-- 6. Keyboard Shortcuts -->
+    <section id="keyboard">
+      <h2>6. Keyboard Shortcuts</h2>
+
+      <div class="keys-grid">
+        <div class="key-cell">Space</div>
+        <div class="key-desc">Start / stop microphone</div>
+
+        <div class="key-cell">R</div>
+        <div class="key-desc">Reset heatmap</div>
+
+        <div class="key-cell">O</div>
+        <div class="key-desc">Toggle Options panel</div>
+
+        <div class="key-cell">F</div>
+        <div class="key-desc">Toggle full screen</div>
+
+        <div class="key-cell">C</div>
+        <div class="key-desc">Open Colors / Palette</div>
+
+        <div class="key-cell">G</div>
+        <div class="key-desc">Grid View</div>
+
+        <div class="key-cell">N</div>
+        <div class="key-desc">Note View — Ribbons</div>
+
+        <div class="key-cell">B</div>
+        <div class="key-desc">Note View — Balloons</div>
+
+        <div class="key-cell">V</div>
+        <div class="key-desc">Cycle views: Grid → Ribbons → Balloons</div>
+
+        <div class="key-cell">− / =</div>
+        <div class="key-desc">Contract / expand top of range (Grid: by octave; Note View: by semitone)</div>
+
+        <div class="key-cell">[ / ]</div>
+        <div class="key-desc">Contract / expand bottom of range</div>
+
+        <div class="key-cell">← / →</div>
+        <div class="key-desc">Scroll Note View timeline (hold Shift for faster)</div>
+
+        <div class="key-cell">Z</div>
+        <div class="key-desc">Start / stop recording <span class="badge">Pro</span></div>
+
+        <div class="key-cell">X</div>
+        <div class="key-desc">Play / pause recording <span class="badge">Pro</span></div>
+      </div>
+    </section>
+
+    <!-- 7. Troubleshooting -->
+    <section id="troubleshooting">
+      <h2>7. Troubleshooting</h2>
+
+      <h3>The grid doesn't react when I play</h3>
+      <p>Check the level meter in the Options panel. If it stays gray, the tuner isn't hearing you:</p>
+      <p>• Make sure your browser has microphone permission (check the address bar or your OS privacy settings).<br>
+         • Try increasing Microphone Gain — especially on Safari or if using a quiet condenser mic.<br>
+         • Move the Volume Sensitivity slider left (less restrictive threshold).<br>
+         • On iPhone/iPad, check that the app you're using isn't muting the microphone in Control Center.</p>
+
+      <h3>Pitch reads about a semitone sharp for the first few seconds (Safari)</h3>
+      <p>This is a known Safari 26.4+ bug. Tonemap applies an automatic workaround (a "shadow" mic stream) on affected Safari versions. You should see "Applied" in the Status panel when the fix is active. If the fix fails — usually because Safari blocks the second stream — try granting mic permission once, quitting and relaunching Safari, then starting Tonemap again.</p>
+
+      <h3>The pitch jumps around erratically</h3>
+      <p>• Raise the Background Noise Reduction setting to filter out room noise.<br>
+         • Switch to Relaxed mode for more smoothing.<br>
+         • Increase the Onset Filter to skip brief transients at the start of each note.<br>
+         • If you're in a reverberant room, use a closer or directional mic.</p>
+
+      <h3>Tonemap detects the wrong octave</h3>
+      <p>Pitch detection occasionally locks onto a harmonic rather than the fundamental — especially on low strings, bass instruments, or breathy tones. Try the following: increase Microphone Gain if the input is quiet, reduce room reverb, or play closer to the mic. On very low notes (below C2), the detection algorithm has inherent limitations.</p>
+
+      <h3>Settings aren't saved between sessions</h3>
+      <p>Tonemap stores settings in your browser's localStorage. If you're in a private/incognito window, or if your browser is set to clear site data on exit, settings will reset. Use a normal browser window for persistent settings.</p>
+
+      <h3>The app is slow or laggy</h3>
+      <p>Tonemap is CPU-intensive because it runs continuous audio analysis. Close other tabs and apps, especially anything using audio. On older iPhones or low-power devices, try reducing History length and disabling the Note View spectrum.</p>
+
+      <h3>I see "Mic blocked" or a permissions error</h3>
+      <p>Your browser or OS is blocking microphone access. On macOS: System Settings → Privacy &amp; Security → Microphone → enable your browser. On iOS: Settings → [Browser name] → Microphone → On. On Android: Settings → Apps → [Browser] → Permissions → Microphone.</p>
+    </section>
+
+    <!-- 8. Contact -->
+    <section id="contact">
+      <h2>8. Contact</h2>
+      <p>For questions, bug reports, or feature requests, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
+      <p>For subscription or billing issues, you can also manage your account directly at <a href="https://polar.sh" target="_blank" rel="noopener">polar.sh</a>.</p>
+      <div class="callout">
+        <strong>Found a bug?</strong> Helpful details: your browser name and version, your OS, what you were doing when it happened, and whether it's reproducible. Screenshots or screen recordings are always appreciated.
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>
+      &copy; 2026 Tonemap&#8482; &nbsp;·&nbsp;
+      <a href="/">Back to Tonemap</a> &nbsp;·&nbsp;
+      <a href="/terms.html">Terms</a>
+    </p>
+  </footer>
+
+</div>
+
+<script>
+  // Highlight active TOC link on scroll
+  (function () {
+    const links = document.querySelectorAll('.toc a');
+    const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href')));
+
+    function onScroll() {
+      let current = sections[0];
+      for (const s of sections) {
+        if (s && s.getBoundingClientRect().top <= 60) current = s;
+      }
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.toc a[href="#${current.id}"]`);
+      if (active) active.classList.add('active');
+    }
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
+
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-X-Sn7Z904imPZY1JcRi2W.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+
+</body>
+</html>
