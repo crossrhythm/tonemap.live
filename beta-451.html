@@ -4625,6 +4625,11 @@
       safariEchoFixApplied = true;
       updateSafariEchoFixStatus('applied');
       console.log('[Tonemap] Safari echo bugfix: shadow stream opened (will stay open)');
+      // getUserMedia resolves as soon as the stream object exists, but Safari's
+      // audio daemon can take several hundred ms to actually propagate the
+      // echoCancellation routing change that prevents the pitch-high artifact.
+      // Only needed on fresh open — the reuse path above skips this.
+      await new Promise(r => setTimeout(r, 600));
       return true;
     } catch (err) {
       safariEchoFixApplied = false;
