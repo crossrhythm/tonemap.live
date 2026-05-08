@@ -366,6 +366,18 @@
     margin-right: 0.08rem;
   }
 
+  .recording-time-readout {
+    min-width: 4.3rem;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.015em;
+    color: rgba(248,250,252,0.82);
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+    pointer-events: none;
+  }
+
   .recorder-btn {
     appearance: none;
     width: 32px;
@@ -532,6 +544,10 @@
 
   :root[data-ui-theme="light"] .recording-timeline-empty {
     color: rgba(15,23,42,0.45);
+  }
+
+  :root[data-ui-theme="light"] .recording-time-readout {
+    color: rgba(15,23,42,0.76);
   }
 
   .recorder-speed-btn {
@@ -3563,7 +3579,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.05";
+  window.APP_VERSION = "2.06";
 </script>
 
 <div class="page">
@@ -3626,6 +3642,7 @@
         <button id="recordingRecordBtn" class="recorder-btn" type="button" aria-label="Start recording" title="Record [Z]">
           <span class="recorder-btn-icon recorder-btn-icon-record" aria-hidden="true"></span>
         </button>
+        <span id="recordingClock" class="recording-time-readout" aria-label="Recorder time">0:00.0</span>
         <button id="recordingPlayBtn" class="recorder-btn" type="button" aria-label="Play recording" title="Play [X]" disabled>
           <span class="recorder-btn-icon recorder-btn-icon-play" aria-hidden="true"></span>
         </button>
@@ -4420,6 +4437,7 @@
   const recordingTipOverlayEl = document.getElementById("recordingTipOverlay");
   const recordingCollapseBtn = document.getElementById("recordingCollapseBtn");
   const recordingRecordBtn = document.getElementById("recordingRecordBtn");
+  const recordingClockEl = document.getElementById("recordingClock");
   const recordingPlayBtn = document.getElementById("recordingPlayBtn");
   const recordingSpeedBtn = document.getElementById("recordingSpeedBtn");
   const recordingSpeedLabelEl = recordingSpeedBtn ? recordingSpeedBtn.querySelector(".recorder-speed-label") : null;
@@ -4940,7 +4958,9 @@
         {
           title: "Latest update",
           items: [
-            "Misc. bug fixes."
+            "Added a Quick Recorder clock between Record and Play with mm:ss.t timing.",
+            "Clock now tracks live record duration, take length when stopped, and playhead position during playback/scrubbing.",
+            "Quick Recorder bug fixes."
           ]
         },
         {
@@ -7846,6 +7866,30 @@
     return recorderState.playbackOffsetMs;
   }
 
+  function formatRecorderClock(totalMs) {
+    const ms = Math.max(0, Math.round(Number(totalMs) || 0));
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const tenths = Math.floor((ms % 1000) / 100);
+    return minutes + ":" + String(seconds).padStart(2, "0") + "." + tenths;
+  }
+
+  function getRecorderClockMs() {
+    if (recorderState.isRecording) return recorderState.durationMs || 0;
+    if (recorderState.isPlaying) return getRecorderCursorMs();
+    const durationMs = Math.max(0, recorderState.durationMs || 0);
+    if (!durationMs) return 0;
+    const offsetMs = Math.max(0, Math.min(durationMs, recorderState.playbackOffsetMs || 0));
+    if (offsetMs > 0 && offsetMs < durationMs) return offsetMs;
+    return durationMs;
+  }
+
+  function updateRecorderClock() {
+    if (!recordingClockEl) return;
+    recordingClockEl.textContent = formatRecorderClock(getRecorderClockMs());
+  }
+
   function queueRecorderTimelineDraw() {
     if (!recordingTimelineCanvas || recorderState.drawRaf) return;
     recorderState.drawRaf = window.requestAnimationFrame(() => {
@@ -7856,6 +7900,7 @@
 
   function drawRecorderTimeline() {
     if (!recordingTimelineCanvas) return;
+    updateRecorderClock();
     const rect = recordingTimelineCanvas.getBoundingClientRect();
     if (rect.width < 2 || rect.height < 2) return;
     const dpr = window.devicePixelRatio || 1;
@@ -8178,6 +8223,7 @@
       recordingTimelineEmptyEl.hidden = hasTake || recorderState.isRecording;
       recordingTimelineEmptyEl.textContent = recorderState.isRecording ? "Recording..." : "Quick Recorder";
     }
+    updateRecorderClock();
     queueRecorderTimelineDraw();
   }
 
@@ -8257,6 +8303,7 @@
         }
         recorderState.waveformPeaks.push(peak);
         recorderState.durationMs = Math.round((recorderState.totalSamples / recorderState.sampleRate) * 1000);
+        updateRecorderClock();
       }
       if (!recorderState.autoStopQueued && recorderState.totalSamples >= maxSamples) {
         recorderState.autoStopQueued = true;
