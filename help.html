@@ -17,6 +17,7 @@
       --sharp: rgb(249,115,22);
       --flat: rgb(147,51,234);
       --radius: 12px;
+      --left-col-medium: 180px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -142,7 +143,7 @@
     /* ── Settings table ── */
     .settings-grid {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: var(--left-col-medium) minmax(0, 1fr);
       gap: 0;
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -161,7 +162,8 @@
       color: var(--text);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .sg-desc {
@@ -232,7 +234,7 @@
     /* ── Key shortcut table ── */
     .keys-grid {
       display: grid;
-      grid-template-columns: auto 1fr;
+      grid-template-columns: var(--left-col-medium) minmax(0, 1fr);
       gap: 0;
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -247,8 +249,44 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       color: var(--text);
-      white-space: nowrap;
+      white-space: normal;
     }
+
+      /* ── Collapsible sections ── */
+      .section-toggle {
+        width: 100%;
+        border: none;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        text-align: left;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      .section-toggle:hover .section-toggle-label {
+        color: var(--accent);
+      }
+
+      .section-toggle-icon {
+        flex-shrink: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1;
+        transition: transform 0.18s ease;
+      }
+
+      section.is-collapsed .section-toggle-icon {
+        transform: rotate(-90deg);
+      }
+
+      section.is-collapsed .section-body {
+        display: none;
+      }
 
     .key-desc {
       padding: 9px 14px;
@@ -340,11 +378,13 @@
       <li><a href="#getting-started">1. Getting Started</a></li>
       <li><a href="#the-display">2. Reading the Display</a></li>
       <li><a href="#settings">3. Settings Reference</a></li>
-      <li><a href="#free-vs-pro">4. Free vs. Pro</a></li>
+      <li><a href="#free-vs-pro">4. Free vs. ★ Pro</a></li>
       <li><a href="#recorder">5. Quick Recorder</a></li>
       <li><a href="#keyboard">6. Keyboard Shortcuts</a></li>
       <li><a href="#troubleshooting">7. Troubleshooting</a></li>
-      <li><a href="#contact">8. Contact</a></li>
+      <li><a href="#github-project">8. GitHub Project</a></li>
+      <li><a href="#about">9. About</a></li>
+      <li><a href="#contact">10. Contact</a></li>
     </ol>
   </nav>
 
@@ -372,7 +412,7 @@
       <p>No. Tonemap runs entirely in your browser with no download, no account, and no plugins required.</p>
 
       <h3>What microphone should I use?</h3>
-      <p>Any microphone works — your device's built-in mic is fine for practice. An external USB mic or audio interface will give cleaner results in noisy environments, but isn't necessary. If the meter stays gray (too quiet), try increasing Microphone Gain in settings or moving closer to the mic.</p>
+      <p>Any microphone works — your device's built-in mic is fine for practice. An external USB mic or audio interface will give cleaner results in noisy environments, but isn't necessary. If the meter stays gray (too quiet), try increasing Microphone Gain in settings or moving closer to the mic.  Conversely, if the meter is too sensitive, try decreasing Microphone Gain or the Onset Filter, or moving further from the mic.</p>
     </section>
 
     <!-- 2. Reading the Display -->
@@ -426,7 +466,7 @@
         </div>
         <div class="sg-row">
           <div class="sg-name">Stretch Tuning</div>
-          <div class="sg-desc">Applies a Railsback-style stretch to target pitches, shifting high notes sharp and (in Full mode) low notes flat — mimicking how a well-tuned piano is actually tuned. Options: None (equal temperament), Minimal (~¼ Railsback, highs only), Medium (~½ Railsback, highs only), Full (classic piano stretch across the range). Free for all users.</div>
+          <div class="sg-desc">Applies a Railsback-style stretch to target pitches, shifting high notes sharp and (in Full mode) low notes flat — mimicking how a well-tuned piano is actually tuned (<a href="https://en.wikipedia.org/wiki/Piano_acoustics" target="_blank" rel="noopener">Piano Acoustics on Wikipedia</a>). Options: None (<a href="https://en.wikipedia.org/wiki/Equal_temperament" target="_blank" rel="noopener">equal temperament</a>), Minimal (~¼ Railsback, highs only), Medium (~½ Railsback, highs only), Full (classic piano stretch across the range). Free for all users.</div>
         </div>
         <div class="sg-row">
           <div class="sg-name">Accidentals</div>
@@ -458,7 +498,7 @@
       <div class="settings-grid">
         <div class="sg-row">
           <div class="sg-name">History</div>
-          <div class="sg-desc">How much accumulated playing time on a pitch contributes to its cell color before older data is discarded. Short (1 s) for rapid drills; Medium (3 s) for phrases; Long (30 s) and Unlimited for building a full session heatmap. Long and Unlimited are Pro only.</div>
+          <div class="sg-desc">How much accumulated playing time on a pitch contributes to its cell color before older data is discarded. Short (1 s) for rapid drills; Medium (3 s) for phrases; Long (30 s) and Unlimited for longer pieces. Long and Unlimited are Pro only.</div>
         </div>
         <div class="sg-row">
           <div class="sg-name">Color Hold</div>
@@ -505,7 +545,7 @@
 
     <!-- 4. Free vs Pro -->
     <section id="free-vs-pro">
-      <h2>4. Free vs. Pro</h2>
+      <h2>4. Free vs. ★ Pro</h2>
       <p>Most of Tonemap is free. Pro adds a handful of features for musicians who want more precision, longer session memory, or the Quick Recorder.</p>
 
       <table class="compare-table">
@@ -580,12 +620,12 @@
       <p>Make sure you activated your license at <a href="/activate">/activate</a>. If you already did, try clearing your browser's cookies for tonemap.live and activating again. If the problem persists, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
 
       <h3>How do I cancel or deactivate?</h3>
-      <p>Cancel your subscription from your <a href="https://polar.sh" target="_blank" rel="noopener">Polar.sh</a> account. To remove Pro access from this browser before expiry, go to <a href="/deactivate">tonemap.live/deactivate</a>.</p>
+      <p>Cancel your subscription from your <a href="https://polar.sh" target="_blank" rel="noopener">Polar.sh</a> account. To remove Pro access from this browser before expiry, go to <a href="/deactivate">tonemap.live/deactivate</a>, or click "Deactivate this device" in Options > Status.</p>
     </section>
 
     <!-- 5. Quick Recorder (Pro) -->
     <section id="recorder">
-      <h2>5. Quick Recorder <span class="badge">Pro</span></h2>
+      <h2>5. Quick Recorder <span class="badge">★ Pro</span></h2>
       <p>The Quick Recorder lets you capture a take, review it with full Tonemap analysis, and save the audio as a WAV file — all without leaving the tuner.</p>
 
       <h3>Recording a take</h3>
@@ -644,10 +684,10 @@
         <div class="key-desc">Scroll Note View timeline (hold Shift for faster)</div>
 
         <div class="key-cell">Z</div>
-        <div class="key-desc">Start / stop recording <span class="badge">Pro</span></div>
+        <div class="key-desc">Start / stop recording <span class="badge">★ Pro</span></div>
 
         <div class="key-cell">X</div>
-        <div class="key-desc">Play / pause recording <span class="badge">Pro</span></div>
+        <div class="key-desc">Play / pause recording <span class="badge">★ Pro</span></div>
       </div>
     </section>
 
@@ -663,7 +703,7 @@
          • On iPhone/iPad, check that the app you're using isn't muting the microphone in Control Center.</p>
 
       <h3>Pitch reads about a semitone sharp for the first few seconds (Safari)</h3>
-      <p>This is a known Safari 26.4+ bug. Tonemap applies an automatic workaround (a "shadow" mic stream) on affected Safari versions. You should see "Applied" in the Status panel when the fix is active. If the fix fails — usually because Safari blocks the second stream — try granting mic permission once, quitting and relaunching Safari, then starting Tonemap again.</p>
+      <p>This is a known Safari 26.4+ bug when echo cancellation is turned off. Tonemap applies an automatic workaround (a "shadow" mic stream) on affected Safari versions. You should see "Applied" in the Status panel when the fix is active. If the fix fails — usually because Safari blocks the second stream — try granting mic permission once, quitting and relaunching Safari, then starting Tonemap again.  Or just wait about 14 seconds and the bug will usually correct itself.</p>
 
       <h3>The pitch jumps around erratically</h3>
       <p>• Raise the Background Noise Reduction setting to filter out room noise.<br>
@@ -684,9 +724,30 @@
       <p>Your browser or OS is blocking microphone access. On macOS: System Settings → Privacy &amp; Security → Microphone → enable your browser. On iOS: Settings → [Browser name] → Microphone → On. On Android: Settings → Apps → [Browser] → Permissions → Microphone.</p>
     </section>
 
-    <!-- 8. Contact -->
+    <!-- 8. GitHub Project -->
+    <section id="github-project">
+      <h2>8. GitHub Project</h2>
+      <p>Tonemap is open source. You can browse the code, report issues, and follow development on GitHub at <a href="https://github.com/crossrhythm/tonemap.live" target="_blank" rel="noopener">github.com/crossrhythm/tonemap.live</a>.</p>
+    </section>
+
+    <!-- 9. About -->
+    <section id="about">
+      <h2>9. About</h2>
+
+      
+      <p>Tonemap was created by <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy" target="_blank" rel="noopener">Jeremy Black</a>, Principal Second Violin of the <a href="https://www.pittsburghsymphony.org" target="_blank" rel="noopener">Pittsburgh Symphony Orchestra</a>, Concertmaster of the <a href="https://www.grantparkmusicfestival.com/about/festival-orchestra" target="_blank" rel="noopener">Grant Park Symphony Orchestra</a>, and founder of <a href="https://www.eastendviolinstudio.com" target="_blank" rel="noopener">East End Violin Studio</a> (along with his wife, Kate).</p>
+    <p>Coding done primarily in VSCode using <a href="https://github.com/features/copilot" target="_blank" rel="noopener">GitHub Copilot</a> and <a href="https://www.anthropic.com/claude" target="_blank" rel="noopener">Claude (Anthropic)</a>. Hosted on <a href="https://www.cloudflare.com" target="_blank" rel="noopener">Cloudflare</a> with authentication and licensing through <a href="https://polar.sh" target="_blank" rel="noopener">Polar</a>.</p>
+      <p>Pitch detection is based on the McLeod Pitch Method (MPM) via <a href="https://github.com/ianprime0509/pitchy" target="_blank" rel="noopener">Pitchy</a>; the original paper is <a href="http://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf" target="_blank" rel="noopener">A Smarter Way to Find Pitch</a>.</p>
+      <p>Quick Recorder slow-motion playback uses time-stretching via <a href="https://github.com/cutterbl/SoundTouchJS" target="_blank" rel="noopener">SoundTouchJS</a> (the JavaScript port of SoundTouch, which is designed for high-quality tempo/rate changes).</p>
+    
+
+      <h3>Follow along</h3>
+      <p>You can find updates and videos here: <a href="https://www.youtube.com/@tonemap" target="_blank" rel="noopener">YouTube (@tonemap)</a> and <a href="https://www.facebook.com/profile.php?id=61575399225139" target="_blank" rel="noopener">Facebook</a>.</p>
+    </section>
+
+    <!-- 10. Contact -->
     <section id="contact">
-      <h2>8. Contact</h2>
+      <h2>10. Contact</h2>
       <p>For questions, bug reports, or feature requests, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
       <p>For subscription or billing issues, you can also manage your account directly at <a href="https://polar.sh" target="_blank" rel="noopener">polar.sh</a>.</p>
       <div class="callout">
@@ -709,6 +770,45 @@
 <script>
   // Highlight active TOC link on scroll
   (function () {
+    const allSections = document.querySelectorAll('main > section');
+
+    // Convert each section heading into an accessible expand/collapse button.
+    allSections.forEach((section) => {
+      const heading = section.querySelector(':scope > h2');
+      if (!heading) return;
+
+      const body = document.createElement('div');
+      body.className = 'section-body';
+      while (heading.nextSibling) {
+        body.appendChild(heading.nextSibling);
+      }
+      section.appendChild(body);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'section-toggle';
+      button.setAttribute('aria-expanded', 'true');
+
+      const label = document.createElement('span');
+      label.className = 'section-toggle-label';
+      while (heading.firstChild) {
+        label.appendChild(heading.firstChild);
+      }
+
+      const icon = document.createElement('span');
+      icon.className = 'section-toggle-icon';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = '▾';
+
+      button.append(label, icon);
+      heading.appendChild(button);
+
+      button.addEventListener('click', () => {
+        const collapsed = section.classList.toggle('is-collapsed');
+        button.setAttribute('aria-expanded', String(!collapsed));
+      });
+    });
+
     const links = document.querySelectorAll('.toc a');
     const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href')));
 
@@ -718,7 +818,8 @@
         if (s && s.getBoundingClientRect().top <= 60) current = s;
       }
       links.forEach(l => l.classList.remove('active'));
-      const active = document.querySelector(`.toc a[href="#${current.id}"]`);
+      if (!current) return;
+      const active = document.querySelector('.toc a[href="#' + current.id + '"]');
       if (active) active.classList.add('active');
     }
 
