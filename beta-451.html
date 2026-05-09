@@ -334,6 +334,8 @@
 
   .recording-dock {
     flex: 0 0 auto;
+    position: relative;
+    z-index: 1;
     height: 0;
     min-height: 0;
     opacity: 0;
@@ -353,6 +355,10 @@
     opacity: 1;
     pointer-events: auto;
     padding: 2px 0.6rem 2px 0.28rem;
+  }
+
+  .left-col.recorder-expanded .grid-shell {
+    height: calc(100% - 50px);
   }
 
   .recording-controls {
