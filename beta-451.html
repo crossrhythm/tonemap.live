@@ -63,6 +63,11 @@
     --safe-area-right: env(safe-area-inset-right, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-left: env(safe-area-inset-left, 0px);
+    --app-pad-top: calc(1rem + var(--safe-area-top));
+    --app-pad-right: calc(1rem + var(--safe-area-right));
+    --app-pad-bottom: calc(1rem + var(--safe-area-bottom));
+    --app-pad-left: calc(1rem + var(--safe-area-left));
+    --app-content-height: calc(100dvh - 2rem - var(--safe-area-top) - var(--safe-area-bottom));
 
     --text-dim: #94a3b8;
     --text-lite: #f8fafc;
@@ -183,7 +188,10 @@
     display: flex;
     flex-direction: column;
     min-height: 100dvh;
-    padding: 1rem;
+    padding-top: var(--app-pad-top);
+    padding-right: var(--app-pad-right);
+    padding-bottom: var(--app-pad-bottom);
+    padding-left: var(--app-pad-left);
     gap: 1rem;
     min-width: 320px;
   }
@@ -224,7 +232,7 @@
     flex-direction: row;
     gap: 1rem;
     min-height: 0;
-    height: calc(100dvh - 2rem); /* viewport minus body padding */
+    height: var(--app-content-height);
     position: relative;
   }
 
@@ -234,7 +242,7 @@
     min-width: 0;
     min-height: 0;
 
-    height: calc(100dvh - 2rem);
+    height: var(--app-content-height);
 
     background: var(--grid-bg);
     border: 1px solid var(--grid-line);
@@ -986,7 +994,7 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-    height: calc(100dvh - 2rem);
+    height: var(--app-content-height);
     position: relative;
     z-index: 2;
     background: transparent;
