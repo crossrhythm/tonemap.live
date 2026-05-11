@@ -234,7 +234,7 @@
     /* ── Key shortcut table ── */
     .keys-grid {
       display: grid;
-      grid-template-columns: var(--left-col-medium) minmax(0, 1fr);
+      grid-template-columns: max-content minmax(0, 1fr);
       gap: 0;
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -249,7 +249,7 @@
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       color: var(--text);
-      white-space: normal;
+      white-space: nowrap;
     }
 
       /* ── Collapsible sections ── */
@@ -412,7 +412,7 @@
       <p>No. Tonemap runs entirely in your browser with no download, no account, and no plugins required.</p>
 
       <h3>What microphone should I use?</h3>
-      <p>Any microphone works — your device's built-in mic is fine for practice. An external USB mic or audio interface will give cleaner results in noisy environments, but isn't necessary. If the meter stays gray (too quiet), try increasing Microphone Gain in settings or moving closer to the mic.  Conversely, if the meter is too sensitive, try decreasing Microphone Gain or the Onset Filter, or moving further from the mic.</p>
+      <p>Any microphone works — your device's built-in mic is fine for practice. An external USB mic or audio interface will give cleaner results in noisy environments, but isn't necessary. If the meter stays gray (too quiet), try increasing Microphone Gain in settings or moving closer to the mic.  Conversely, if the meter is too sensitive (volume meter color turns red), try decreasing Microphone Gain or the Onset Filter, or moving further from the mic.</p>
     </section>
 
     <!-- 2. Reading the Display -->
@@ -611,7 +611,7 @@
       </table>
 
       <h3>How much does Pro cost?</h3>
-      <p>Pro is <strong>$9.99/year</strong> (~83¢/month), with a 7-day free trial. Cancel anytime from your Polar.sh account page.</p>
+      <p>Pro is <strong>$9.99/year</strong> (~83¢/month), with a 7-day free trial. Cancel anytime from your <a href="https://polar.sh/eevs/portal/request" target="_blank" rel="noopener"></a>Polar.sh account page</a>.</p>
 
       <h3>How do I activate Pro?</h3>
       <p>After subscribing, go to <a href="/activate">tonemap.live/activate</a> and enter your license key. Your Pro status is stored as a signed cookie for one year; it re-validates against Polar.sh periodically in the background.</p>
@@ -620,7 +620,7 @@
       <p>Make sure you activated your license at <a href="/activate">/activate</a>. If you already did, try clearing your browser's cookies for tonemap.live and activating again. If the problem persists, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
 
       <h3>How do I cancel or deactivate?</h3>
-      <p>Cancel your subscription from your <a href="https://polar.sh" target="_blank" rel="noopener">Polar.sh</a> account. To remove Pro access from this browser before expiry, go to <a href="/deactivate">tonemap.live/deactivate</a>, or click "Deactivate this device" in Options > Status.</p>
+      <p>Cancel your subscription from your <a href="https://polar.sh/eevs/portal/request" target="_blank" rel="noopener">Polar.sh account page</a>. To remove Pro access from this browser before expiry, go to <a href="/deactivate">tonemap.live/deactivate</a>, or click "Deactivate this device" in Options > Status.</p>
     </section>
 
     <!-- 5. Quick Recorder (Pro) -->
@@ -749,7 +749,7 @@
     <section id="contact">
       <h2>10. Contact</h2>
       <p>For questions, bug reports, or feature requests, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
-      <p>For subscription or billing issues, you can also manage your account directly at <a href="https://polar.sh" target="_blank" rel="noopener">polar.sh</a>.</p>
+      <p>For subscription or billing issues, you can also manage your account directly at <a href="https://polar.sh/eevs/portal/request" target="_blank" rel="noopener">the Polar.sh account page</a>.</p>
       <div class="callout">
         <strong>Found a bug?</strong> Helpful details: your browser name and version, your OS, what you were doing when it happened, and whether it's reproducible. Screenshots or screen recordings are always appreciated.
       </div>

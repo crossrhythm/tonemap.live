@@ -10084,9 +10084,12 @@
       peakAbs <= MIC_STALL_PEAK_THRESHOLD &&
       !pitchValid &&
       clarity < 0.2;
+    // On iOS, a stream can stay readyState "live" while delivering all-zero
+    // samples (OS-level audio session killed). Use a longer grace when
+    // micHealthySinceStart is false so we still catch the dead-start case.
+    const stallGraceMs = micHealthySinceStart ? MIC_STALL_GRACE_MS : MIC_STALL_GRACE_MS + MIC_STALL_DETECT_MS;
     if (
-      micHealthySinceStart &&
-      runtimeMs >= MIC_STALL_GRACE_MS &&
+      runtimeMs >= stallGraceMs &&
       document.visibilityState === "visible" &&
       stalledFrame
     ) {
