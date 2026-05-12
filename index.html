@@ -2157,6 +2157,10 @@
   }
 
   /* Suppress the generic scroll-fade-y bottom pseudo; handled by pro-modal-footer::before */
+  .pro-modal-body.scroll-fade-y::before {
+    top: -1rem;
+  }
+
   .pro-modal-body::after {
     display: none;
   }
@@ -4176,7 +4180,7 @@
       <button id="proModalClose" class="options-close-btn" type="button" aria-label="Close upgrade modal">✕</button>
     </div>
     <div class="pro-modal-body scroll-fade-y">
-      <p>Start your <strong>7-day free trial</strong>, then $9.99/year (~83¢/month). Cancel anytime.</p>
+      <p>Start your <strong>7-day free trial</strong>, then $9.99/year (~83¢/month). Support the development of new features and hosting costs.  Cancel anytime.</p>
       <ul class="pro-modal-features">
         <li data-feature="quickRecord">Quick Record — Record your playing without leaving the tuner. Review every detail with Tonemap analysis, save the takes worth keeping.</li>
         <li data-feature="sensitivity">Hard Mode — tight deadzone, fast response</li>
@@ -4185,8 +4189,7 @@
         <li data-feature="stainHold">Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
         
       </ul>
-      <p class="pro-modal-support">Your subscription supports ongoing development of Tonemap.</p>
-    </div>
+       </div>
     <div class="pro-modal-footer">
       <a id="proModalCTA" class="pro-modal-btn" href="https://buy.polar.sh/polar_cl_2vJBu3kHvJVg00nn8LG8cTBqyiYsiPXks9hZU4XQYse" data-polar-checkout>
         Start Free Trial →
