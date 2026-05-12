@@ -2730,7 +2730,10 @@
 
   @media (max-aspect-ratio: 1/1) {
     body {
-      padding: 0.75rem;
+      padding-top: max(0.75rem, calc(var(--safe-area-top) + 0.5rem));
+      padding-right: max(0.75rem, calc(var(--safe-area-right) + 0.75rem));
+      padding-bottom: max(0.75rem, calc(var(--safe-area-bottom) + 0.75rem));
+      padding-left: max(0.75rem, calc(var(--safe-area-left) + 0.75rem));
       height: 100dvh;
       gap: 0;
       overflow: hidden;
