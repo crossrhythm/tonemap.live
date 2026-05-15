@@ -2119,7 +2119,7 @@
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: rgba(15,23,42,0.72);
+    background: var(--veil-bg);
     backdrop-filter: blur(4px);
   }
 
@@ -2128,15 +2128,17 @@
   }
 
   .pro-modal-card {
+    --pro-modal-surface: color-mix(in srgb, var(--bg-panel) 94%, var(--bg-main));
     width: min(560px, 100%);
     max-height: 88vh;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    background: rgba(15,23,42,0.95);
-    border: 1px solid rgba(148,163,184,0.45);
+    background: var(--pro-modal-surface);
+    color: var(--text-lite);
+    border: 1px solid color-mix(in srgb, var(--border-dim) 58%, transparent);
     border-radius: 1rem;
-    box-shadow: 0 24px 48px rgba(0,0,0,0.6);
+    box-shadow: 0 24px 48px color-mix(in srgb, var(--bg-main) 45%, black);
   }
 
   .pro-modal-header {
@@ -2145,10 +2147,18 @@
     justify-content: space-between;
     gap: 0.75rem;
     padding: 1rem 1.2rem;
-    border-bottom: 1px solid rgba(148,163,184,0.28);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-dim) 42%, transparent);
     color: var(--text-lite);
     font-size: 1rem;
     font-weight: 700;
+  }
+
+  .pro-modal-header .options-close-btn {
+    order: 0;
+    flex: 0 0 auto;
+    border-color: color-mix(in srgb, var(--border-dim) 80%, transparent);
+    color: var(--text-lite);
+    background: color-mix(in srgb, var(--bg-main) 10%, transparent);
   }
 
   .pro-modal-body {
@@ -2171,7 +2181,7 @@
     padding: 0.6rem 1.2rem 1.2rem;
     position: relative;
     z-index: 2;
-    background: rgba(15,23,42,0.95);
+    background: var(--pro-modal-surface);
   }
 
   .pro-modal-footer::before {
@@ -2181,7 +2191,7 @@
     left: 0;
     right: 0;
     height: calc(1.6rem + 10px);
-    background: linear-gradient(to top, rgba(15,23,42,0.95), transparent);
+    background: linear-gradient(to top, var(--ui-scroll-fade-bottom), transparent);
     pointer-events: none;
     z-index: 3;
     opacity: 0;
@@ -2240,7 +2250,7 @@
   }
 
   .pro-modal-or a {
-    color: var(--text-lite);
+    color: var(--ui-text-muted-strong);
   }
 
   @keyframes pro-feature-glow-fade {
