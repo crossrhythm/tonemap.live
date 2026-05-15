@@ -11470,9 +11470,13 @@
     const dtMs = nowT - lastFrameTime;
     lastFrameTime = nowT;
 
+    const hasSignalEnergy =
+      rms > MIC_STALL_RMS_THRESHOLD ||
+      peakAbs > MIC_STALL_PEAK_THRESHOLD;
     const loudEnough = rms >= volumeThreshold;
     const quietSignal = !loudEnough && rms >= Math.max(volumeThreshold * LED_QUIET_RATIO, LED_MIN_FLOOR);
     const pitchValid =
+      hasSignalEnergy &&
       clarity > 0.8 &&
       pitch > MIN_FREQ &&
       pitch < MAX_FREQ;
@@ -11487,8 +11491,7 @@
     const stalledFrame =
       rms <= MIC_STALL_RMS_THRESHOLD &&
       peakAbs <= MIC_STALL_PEAK_THRESHOLD &&
-      !pitchValid &&
-      clarity < 0.2;
+      !pitchValid;
     if (
       analysisSourceMode === "mic" &&
       micHealthySinceStart &&
