@@ -4640,20 +4640,6 @@
 
   let appViewportSyncTimers = [];
 
-  function getStandaloneScreenViewportHeightPx() {
-    const screenObj = window.screen;
-    if (!screenObj) return 0;
-    const portrait = window.matchMedia?.("(orientation: portrait)")?.matches;
-    const byOrientation = portrait ? screenObj.height : screenObj.width;
-    const candidates = [
-      byOrientation,
-      screenObj.height,
-      screenObj.width
-    ].filter(value => Number.isFinite(value) && value > 0);
-    if (!candidates.length) return 0;
-    return Math.max(...candidates);
-  }
-
   function getAppViewportHeightPx() {
     const candidates = [
       window.visualViewport?.height,
@@ -4662,8 +4648,7 @@
     ].filter(value => Number.isFinite(value) && value > 0);
     if (!candidates.length) return 0;
     if (isIOSDevice() && isStandaloneDisplayMode()) {
-      const screenViewportHeight = getStandaloneScreenViewportHeightPx();
-      return Math.max(...candidates, screenViewportHeight);
+      return Math.max(...candidates);
     }
     return candidates[0];
   }
@@ -4690,7 +4675,7 @@
     appViewportSyncTimers = [];
 
     const delays = (isIOSDevice() && isStandaloneDisplayMode())
-      ? [120, 400, 900, 1600, 2400]
+      ? [120, 400, 900]
       : [150];
     delays.forEach(delay => {
       const timerId = window.setTimeout(() => {
@@ -4705,7 +4690,6 @@
   window.addEventListener("resize", scheduleAppViewportHeightSync, { passive: true });
   window.addEventListener("orientationchange", scheduleAppViewportHeightSync, { passive: true });
   window.addEventListener("pageshow", scheduleAppViewportHeightSync, { passive: true });
-  window.addEventListener("load", scheduleAppViewportHeightSync, { passive: true });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
       scheduleAppViewportHeightSync();
