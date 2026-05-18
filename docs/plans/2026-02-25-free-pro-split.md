@@ -1,6 +1,6 @@
 # Free/Pro Split Implementation Plan
 
-> **⚠️ HISTORICAL — DO NOT FOLLOW STEP-BY-STEP.** This is the original Feb 2026 plan. The free/pro split shipped, then was **deliberately simplified** post-launch to keep the free experience uncluttered. The "Approved Feature Split" table below is the *original* spec, not the current state. The actual gated set is now: sensitivity (Hard), A4 (non-440/441/442), history (Long/Unlimited), Color Hold (non-30s), and the Quick Recorder. Transposition, Stretch Tuning, and "Rows start with" are **free for everyone** in the current build. See `CLAUDE.md` for the live matrix. Tasks 4 (rowStart gate), 6 (stretch gate), and 8 (transposition gate) were intentionally rolled back.
+> **⚠️ HISTORICAL — DO NOT FOLLOW STEP-BY-STEP.** This is the original Feb 2026 plan. The free/pro split shipped, then was **deliberately simplified** post-launch to keep the free experience uncluttered. The "Approved Feature Split" table below is the *original* spec, not the current state. The actual gated set is now: sensitivity (Hard), A4 (non-440/441/442/443/444), history (Long/Unlimited), Color Hold (non-30s), and the Quick Recorder. Transposition, Stretch Tuning, and "Rows start with" are **free for everyone** in the current build. See `CLAUDE.md` for the live matrix. Tasks 4 (rowStart gate), 6 (stretch gate), and 8 (transposition gate) were intentionally rolled back.
 
 > **For Claude:** 
 
@@ -19,7 +19,7 @@
 | Mode | Relaxed, Medium | Hard |
 | Rows start with | — (hidden, Pro only) | ✓ |
 | Stretch tuning | None, Minimal | Medium, Full |
-| Performance pitch | 440, 441, 442 presets only | All presets + custom |
+| Performance pitch | 440, 441, 442, 443, 444 presets only | All presets + custom |
 | Transposition | C (+0) only | All keys |
 | Accidentals | ✓ | ✓ |
 | History | Short (1s), Medium (3s) | Long (30s), Unlimited |
@@ -520,7 +520,7 @@ git commit -m "feat(free): gate stretch tuning — remove RAILSBACK_ANCHORS, sim
 
 ---
 
-## Task 7: Gate "Performance Pitch" — restrict A4 presets to 440/441/442
+## Task 7: Gate "Performance Pitch" — restrict A4 presets to 440/441/442/443/444
 
 ### Step 1: Replace aRefSelect options (~lines 1973–1987)
 
@@ -600,7 +600,7 @@ Find:
 
 Replace with:
 ```javascript
-    const FREE_A4_ALLOWED = new Set([440, 441, 442]);
+    const FREE_A4_ALLOWED = new Set([440, 441, 442, 443, 444]);
     const a4Num = Number(a4ValRaw);
     const normalizedA4 = FREE_A4_ALLOWED.has(a4Num) ? a4Num : 440; // clamp to free presets
     syncARefControls(normalizedA4);
@@ -612,13 +612,13 @@ Replace with:
 ```
 
 ### Step 5: Verify in browser
-- Options → Performance Pitch shows only 440/441/442 with ★ Pro badge; custom input hidden
+- Options → Performance Pitch shows only 440/441/442/443/444 with ★ Pro badge; custom input hidden
 - If localStorage had `a4: 432`, normalizes to 440 on load
 
 ### Step 6: Commit
 ```bash
 git add free.html
-git commit -m "feat(free): gate A4 presets — restrict to 440/441/442, hide custom input"
+git commit -m "feat(free): gate A4 presets — restrict to 440/441/442/443/444, hide custom input"
 ```
 
 ---
@@ -948,7 +948,7 @@ Wait for Pages deployment (~1 min), then verify tonemap.live loads with gated Pr
 - [ ] Hard Mode absent from Options → Mode dropdown; ★ Pro badge present
 - [ ] Rows start with note shows grayed-out Pro placeholder
 - [ ] Stretch Tuning shows None + Minimal only; ★ Pro badge present
-- [ ] A4 presets show only 440/441/442; custom input hidden; ★ Pro badge present
+- [ ] A4 presets show only 440/441/442/443/444; custom input hidden; ★ Pro badge present
 - [ ] Transposition shows C only; ★ Pro badge present
 - [ ] History shows Short + Medium only; ★ Pro badge present
 - [ ] Color Hold shows "30 seconds" static; ★ Pro badge present

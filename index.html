@@ -4195,7 +4195,7 @@
       <ul class="pro-modal-features">
         <li data-feature="quickRecord">Quick Record — Record your playing without leaving the tuner. Review every detail with Tonemap analysis, save the takes worth keeping.</li>
         <li data-feature="sensitivity">Hard Mode — tight deadzone, fast response</li>
-        <li data-feature="a4">All A4 reference frequencies (392–470 Hz + custom)</li>
+        <li data-feature="a4">Extended A4 range (392–470 Hz + custom; 440–444 Hz free for all users)</li>
         <li data-feature="history">Long and Unlimited pitch history</li>
         <li data-feature="stainHold">Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
         
@@ -6218,7 +6218,7 @@
     sensitivity: new Set(["relaxed", "medium"]),
     history: new Set(["short", "medium"]),
     stainHold: new Set(["30"]),
-    a4: new Set([440, 441, 442]),
+    a4: new Set([440, 441, 442, 443, 444]),
   });
 
   function isProLockedValue(type, value) {
