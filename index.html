@@ -4662,7 +4662,27 @@
     }
   }
 
+  function clearAppViewportHeightOverride() {
+    const root = document.documentElement;
+    if (!root) return;
+    // Revert to the CSS default (`100dvh`). In an iOS standalone PWA there is
+    // no collapsing URL bar, so `100dvh` is the most reliable viewport height
+    // and avoids a first-paint bug where visualViewport / innerHeight /
+    // clientHeight briefly report the layout viewport without the home-
+    // indicator safe area, leaving a dark gap below the page until the user
+    // rotates the device.
+    root.style.removeProperty("--app-viewport-height");
+  }
+
   function scheduleAppViewportHeightSync() {
+    appViewportSyncTimers.forEach(timerId => window.clearTimeout(timerId));
+    appViewportSyncTimers = [];
+
+    if (isIOSDevice() && isStandaloneDisplayMode()) {
+      clearAppViewportHeightOverride();
+      return;
+    }
+
     applyAppViewportHeight();
     requestAnimationFrame(() => {
       applyAppViewportHeight();
@@ -4671,12 +4691,7 @@
       });
     });
 
-    appViewportSyncTimers.forEach(timerId => window.clearTimeout(timerId));
-    appViewportSyncTimers = [];
-
-    const delays = (isIOSDevice() && isStandaloneDisplayMode())
-      ? [120, 400, 900]
-      : [150];
+    const delays = [150];
     delays.forEach(delay => {
       const timerId = window.setTimeout(() => {
         applyAppViewportHeight();
