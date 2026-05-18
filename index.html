@@ -3469,7 +3469,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.07";
+  window.APP_VERSION = "2.08";
   // If the user has the non-HttpOnly Pro flag cookie, send them straight to
   // /pro. The real HttpOnly HMAC cookie (tm_pro) isn't visible to JS, so the
   // Worker sets tm_pro_flag=1 alongside it as a client-readable hint. Worker
@@ -3676,8 +3676,8 @@
                 <option value="440" selected>440</option>
                 <option value="441">441</option>
                 <option value="442">442</option>
-                <option value="443">443 ★ Pro</option>
-                <option value="444">444 ★ Pro</option>
+                <option value="443">443</option>
+                <option value="444">444</option>
                 <option value="466">466 ★ Pro</option>
                 <option value="470">470 ★ Pro</option>
                 <option value="custom">Custom ★ Pro</option>
@@ -4921,9 +4921,7 @@
         {
           title: "Latest update",
           items: [
-            "Fixed an iPad audio bug where Tonemap could get microphone access but still fail to show notes on the grid or in Note View.",
-            "Fixed iPhone and iPad homescreen layout issues where the main screen could open with extra space until the device was rotated.",
-            "Cleaned up a handful of other small bugs and layout problems across the app."
+            "443 Hz and 444 Hz reference pitches have been moved to the free tier for our European friends."
           ]
         }
       ],
