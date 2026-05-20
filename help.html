@@ -17,6 +17,7 @@
       --sharp: rgb(249,115,22);
       --flat: rgb(147,51,234);
       --radius: 12px;
+      --left-col-min: 100px;
       --left-col-medium: 180px;
     }
 
@@ -143,7 +144,7 @@
     /* ── Settings table ── */
     .settings-grid {
       display: grid;
-      grid-template-columns: var(--left-col-medium) minmax(0, 1fr);
+      grid-template-columns: clamp(var(--left-col-min), 30%, var(--left-col-medium)) minmax(0, 1fr);
       gap: 0;
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -404,6 +405,9 @@
       <div class="callout">
         <strong>First time?</strong>  Play a scale slowly and watch your intonation tendencies appear on the grid.  Cells fade in as they gain confidence, and fade out over time when you leave the pitch. Yellow means you're tending sharp; blues mean you're tending flat. Experiment with different settings to find what works best for you.
       </div>
+
+      <h3>Video walkthroughs</h3>
+      <p>For demos and tutorials, see the <a href="https://youtube.com/playlist?list=PL2EVakQjrgvHhnzaT8NWpxk1PqT8YguVc" target="_blank" rel="noopener">Tonemap YouTube playlist</a> — short videos showing how to use the app and what each feature looks like in practice.</p>
 
       <h3>Does it work on mobile?</h3>
       <p>Yes — Tonemap works on iPhone, iPad, and Android in any modern browser. Safari on iOS and Chrome on Android are both supported. A larger screen, and landscape orientation, tend to work better, especially on mobile devices.  By tapping the logo, the UI will shrink to give you more space to see the grid.</p>
