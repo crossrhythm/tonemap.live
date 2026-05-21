@@ -1362,8 +1362,30 @@
   }
 
   .mic-btn.paused {
-    box-shadow: 0 0 14px rgba(239,68,68,0.55);
     border-color: var(--err-color);
+    box-shadow: 0 0 12px rgba(239,68,68,0.5);
+    animation: mic-paused-warning 1s ease-in-out infinite;
+  }
+
+  @keyframes mic-paused-warning {
+    0%,
+    100% {
+      box-shadow:
+        0 0 8px rgba(239,68,68,0.42),
+        0 0 0 0 rgba(239,68,68,0.38);
+    }
+    50% {
+      box-shadow:
+        0 0 20px rgba(239,68,68,0.95),
+        0 0 0 8px rgba(239,68,68,0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mic-btn.paused {
+      animation: none;
+      box-shadow: 0 0 16px rgba(239,68,68,0.72);
+    }
   }
 
   .mic-btn.android-chrome-mic-icon-fix {
@@ -1993,7 +2015,7 @@
   .options-grid #optMode,
   .options-grid #optPerformancePitch,
   .options-grid #optNoteViewStyle,
-  .options-grid #optOnsetFilter {
+  .options-grid #optMicAdjustments {
     margin-top: -0.7rem;
   }
 
@@ -2015,8 +2037,8 @@
   #optNoteViewStyle { order: 8; }
   #optNeedleDirection { order: 9; }
 
-  #optOnsetFilter { order: 11; }
-  #optMicAdjustments { order: 12; }
+  #optMicAdjustments { order: 11; }
+  #optOnsetFilter { order: 12; }
   #optHistory { order: 13; }
   #optColorHold { order: 14; }
 
@@ -2354,7 +2376,19 @@
     width: 100%;
     min-width: 0;
   }
-  .mic-adj-meter { width: 100%; }
+  .mic-adj-meter {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .mic-adj-meter-label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
   .mic-adj-meter .rms-gauge { width: 100%; max-width: 100%; flex: 0 0 100%; }
   .bgn-slider-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
   .bgn-slider-col input[type="range"] { width: 100%; display: block; }
@@ -3591,7 +3625,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.08";
+  window.APP_VERSION = "2.09";
 </script>
 
 <div class="page">
@@ -4033,6 +4067,8 @@
               <option value="5">5 seconds</option>
               <option value="15">15 seconds</option>
               <option value="30" selected>30 seconds</option>
+              <option value="45">45 seconds</option>
+              <option value="60">1 minute</option>
               <option value="120">2 minutes</option>
               <option value="300">5 minutes</option>
               <option value="unlimited">No fade</option>
@@ -4069,6 +4105,7 @@
             </div>
           </div>
           <div id="optLevelsMonitor" class="mic-adj-meter">
+            <span class="mic-adj-meter-label">Vol. Level:</span>
             <div class="rms-gauge" aria-hidden="true">
               <div class="rms-gauge-track">
                 <div id="rmsGaugeFill" class="rms-gauge-fill gray"></div>
@@ -5047,11 +5084,13 @@
         {
           title: "Latest update",
           items: [
-            "443 Hz and 444 Hz reference pitches have been moved to the free tier for our friends in Europe."
+            "Advanced Options were reorganized so Mic Gain, Noise Reduction, and Vol. Level now appear before Onset Filter.",
+            "Color Hold Before Fade now includes 45 seconds and 1 minute options (Pro-locked in free mode; fully available in Pro).",
+            "The paused microphone button now uses a stronger flashing red warning pulse for better visibility."
           ]
         }
       ],
-      note: "Thanks for the bug reports and feedback. If you spot anything else, please reach out at support@tonemap.live."
+      note: "Thanks for the feedback and feature requests. If you spot anything else, please reach out at support@tonemap.live."
     }
   ];
 
@@ -6146,6 +6185,8 @@
     "5": 5,
     "15": 15,
     "30": 30,
+    "45": 45,
+    "60": 60,
     "120": 120,
     "300": 300,
     "unlimited": Infinity
@@ -6554,7 +6595,7 @@
     stainHold: {
       title: "Color Hold Before Fade",
       summary: "Delays how soon a colored cell starts fading after a hit.",
-      detail: "No fade keeps colors locked until you reset. Fade begins after the hold, then decays based on your history window."
+      detail: "Choose how long color persists after you leave a pitch: 5s, 15s, 30s, 45s, 1 min, 2 min, 5 min, or No Fade. No Fade keeps colors locked until you reset."
     },
     volume: {
       title: "Volume Sensitivity",

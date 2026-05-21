@@ -902,8 +902,30 @@
   }
 
   .mic-btn.paused {
-    box-shadow: 0 0 14px rgba(239,68,68,0.55);
     border-color: var(--err-color);
+    box-shadow: 0 0 12px rgba(239,68,68,0.5);
+    animation: mic-paused-warning 1s ease-in-out infinite;
+  }
+
+  @keyframes mic-paused-warning {
+    0%,
+    100% {
+      box-shadow:
+        0 0 8px rgba(239,68,68,0.42),
+        0 0 0 0 rgba(239,68,68,0.38);
+    }
+    50% {
+      box-shadow:
+        0 0 20px rgba(239,68,68,0.95),
+        0 0 0 8px rgba(239,68,68,0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mic-btn.paused {
+      animation: none;
+      box-shadow: 0 0 16px rgba(239,68,68,0.72);
+    }
   }
 
   .mic-btn.android-chrome-mic-icon-fix {
@@ -1946,7 +1968,19 @@
     width: 100%;
     min-width: 0;
   }
-  .mic-adj-meter { width: 100%; }
+  .mic-adj-meter {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .mic-adj-meter-label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
   .mic-adj-meter .rms-gauge { width: 100%; max-width: 100%; flex: 0 0 100%; }
 
   .bgn-slider-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
@@ -3469,7 +3503,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.08";
+  window.APP_VERSION = "2.09";
   // If the user has the non-HttpOnly Pro flag cookie, send them straight to
   // /pro. The real HttpOnly HMAC cookie (tm_pro) isn't visible to JS, so the
   // Worker sets tm_pro_flag=1 alongside it as a client-readable hint. Worker
@@ -3740,17 +3774,41 @@
           </div>
         </div>
 
-        <div class="option-field" id="optOnsetFilter">
-          <div class="opt-label-row">
-            <label class="opt-label" for="attackSpeedSlider">Onset Filter (Pitch Stabilization)</label>
-            <button class="info-btn" type="button" data-info-key="attackSpeed" aria-label="Learn about Onset Filter (Pitch Stabilization)">i</button>
-          </div>
-          <div class="opt-control opt-control-slider">
-            <div class="attack-speed-wrap">
-              <div class="attack-speed-slider-col">
-                <input id="attackSpeedSlider" type="range" min="0" max="100" step="1" />
+        <div class="option-field" id="optMicAdjustments">
+          <div class="mic-adj-pair">
+            <div class="mic-adj-sub">
+              <div class="opt-label-row">
+                <label class="opt-label" for="micGain">Mic Gain</label>
+                <button class="info-btn" type="button" data-info-key="micGain" aria-label="Learn about Mic Gain">i</button>
               </div>
-              <span id="attackSpeedValue" class="attack-speed-value">None</span>
+              <div class="mic-adj-wrap">
+                <input id="micGain" type="range" min="0" max="1" step="0.001" />
+                <span id="micGainValue" class="mic-adj-readout">1.0×</span>
+              </div>
+            </div>
+            <div class="mic-adj-sub">
+              <div class="opt-label-row">
+                <label class="opt-label" for="volThresh">Noise Reduction</label>
+                <button class="info-btn" type="button" data-info-key="bgNoiseReduction" aria-label="Learn about Background Noise Reduction">i</button>
+              </div>
+              <div class="mic-adj-wrap">
+                <div class="bgn-slider-col">
+                  <input id="volThresh" type="range" min="0" max="5" step="1" />
+                  <div class="bgn-ticks" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                </div>
+                <span id="bgNoiseValue" class="mic-adj-readout bg-noise-readout">None</span>
+              </div>
+            </div>
+          </div>
+          <div id="optLevelsMonitor" class="mic-adj-meter">
+            <span class="mic-adj-meter-label">Vol. Level:</span>
+            <div class="rms-gauge" aria-hidden="true">
+              <div class="rms-gauge-track">
+                <div id="rmsGaugeFill" class="rms-gauge-fill gray"></div>
+                <div id="rmsGaugeThreshold" class="rms-gauge-threshold"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -3883,6 +3941,8 @@
               <option value="5">5 seconds ★ Pro</option>
               <option value="15">15 seconds ★ Pro</option>
               <option value="30" selected>30 seconds</option>
+              <option value="45">45 seconds ★ Pro</option>
+              <option value="60">1 minute ★ Pro</option>
               <option value="120">2 minutes ★ Pro</option>
               <option value="300">5 minutes ★ Pro</option>
               <option value="unlimited">No fade ★ Pro</option>
@@ -3890,40 +3950,17 @@
           </div>
         </div>
 
-        <div class="option-field" id="optMicAdjustments">
-          <div class="mic-adj-pair">
-            <div class="mic-adj-sub">
-              <div class="opt-label-row">
-                <label class="opt-label" for="micGain">Mic Gain</label>
-                <button class="info-btn" type="button" data-info-key="micGain" aria-label="Learn about Mic Gain">i</button>
-              </div>
-              <div class="mic-adj-wrap">
-                <input id="micGain" type="range" min="0" max="1" step="0.001" />
-                <span id="micGainValue" class="mic-adj-readout">1.0×</span>
-              </div>
-            </div>
-            <div class="mic-adj-sub">
-              <div class="opt-label-row">
-                <label class="opt-label" for="volThresh">Noise Reduction</label>
-                <button class="info-btn" type="button" data-info-key="bgNoiseReduction" aria-label="Learn about Background Noise Reduction">i</button>
-              </div>
-              <div class="mic-adj-wrap">
-                <div class="bgn-slider-col">
-                  <input id="volThresh" type="range" min="0" max="5" step="1" />
-                  <div class="bgn-ticks" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span><span></span><span></span>
-                  </div>
-                </div>
-                <span id="bgNoiseValue" class="mic-adj-readout bg-noise-readout">None</span>
-              </div>
-            </div>
+        <div class="option-field" id="optOnsetFilter">
+          <div class="opt-label-row">
+            <label class="opt-label" for="attackSpeedSlider">Onset Filter (Pitch Stabilization)</label>
+            <button class="info-btn" type="button" data-info-key="attackSpeed" aria-label="Learn about Onset Filter (Pitch Stabilization)">i</button>
           </div>
-          <div id="optLevelsMonitor" class="mic-adj-meter">
-            <div class="rms-gauge" aria-hidden="true">
-              <div class="rms-gauge-track">
-                <div id="rmsGaugeFill" class="rms-gauge-fill gray"></div>
-                <div id="rmsGaugeThreshold" class="rms-gauge-threshold"></div>
+          <div class="opt-control opt-control-slider">
+            <div class="attack-speed-wrap">
+              <div class="attack-speed-slider-col">
+                <input id="attackSpeedSlider" type="range" min="0" max="100" step="1" />
               </div>
+              <span id="attackSpeedValue" class="attack-speed-value">None</span>
             </div>
           </div>
         </div>
@@ -4197,7 +4234,7 @@
         <li data-feature="sensitivity">Hard Mode — tight deadzone, fast response</li>
         <li data-feature="a4">Extended A4 range (392–470 Hz + custom; 440–444 Hz free for all users)</li>
         <li data-feature="history">Long and Unlimited pitch history</li>
-        <li data-feature="stainHold">Color Hold: 5s, 15s, 2 min, 5 min, No Fade</li>
+        <li data-feature="stainHold">Color Hold: 5s, 15s, 45s, 1 min, 2 min, 5 min, No Fade</li>
         
       </ul>
        </div>
@@ -4921,11 +4958,13 @@
         {
           title: "Latest update",
           items: [
-            "443 Hz and 444 Hz reference pitches have been moved to the free tier for our friends in Europe."
+            "Advanced Options were reorganized so Mic Gain, Noise Reduction, and Vol. Level now appear before Onset Filter.",
+            "Color Hold Before Fade now includes 45 seconds and 1 minute options (Pro-locked in free mode; fully available in Pro).",
+            "The paused microphone button now uses a stronger flashing red warning pulse for better visibility."
           ]
         }
       ],
-      note: "Thanks for the bug reports and feedback. If you spot anything else, please reach out at support@tonemap.live."
+      note: "Thanks for the feedback and feature requests. If you spot anything else, please reach out at support@tonemap.live."
     }
   ];
 
@@ -6348,7 +6387,7 @@
     stainHold: {
       title: "Color Hold Before Fade",
       summary: "Delays how soon a colored cell starts fading after a hit.",
-      detail: "No fade keeps colors locked until you reset. Fade begins after the hold, then decays based on your history window."
+      detail: "Choose how long color persists after you leave a pitch: 30s (free), or 5s, 15s, 45s, 1 min, 2 min, 5 min, and No Fade (Pro). No Fade keeps colors locked until you reset."
     },
     micGain: {
       title: "Microphone Gain",
