@@ -660,6 +660,7 @@
       inset 0 0 10px rgba(239,68,68,0.45),
       0 0 6px rgba(239,68,68,0.5);
     animation: mic-paused-warning 1s ease-in-out infinite;
+    transition: none;
   }
 
   .mini-btn .icon-micstate.playing {
@@ -2850,6 +2851,7 @@
       padding: 0;
       background: transparent;
       border: none;
+      overflow: visible;
     }
     .right-col {
       transition: padding 220ms ease, background-color 220ms ease, border-color 220ms ease;
@@ -2887,6 +2889,7 @@
       opacity: 1;
       transform: translateY(0);
       max-height: 84px;
+      overflow: visible;
       pointer-events: auto;
     }
     .right-col.mini-mode .right-fixed,
