@@ -1780,6 +1780,15 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .mic-gain-auto-badge {
+    font-size: 0.6rem;
+    color: var(--accent-green);
+    opacity: 0.85;
+    margin-left: 0.25em;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
   .options-full-row {
     grid-column: 1 / -1;
   }
@@ -2024,7 +2033,8 @@
   .options-grid #optMode,
   .options-grid #optPerformancePitch,
   .options-grid #optNoteViewStyle,
-  .options-grid #optMicAdjustments {
+  .options-grid #optAgc,
+  .options-grid #optLevelsMonitorField {
     margin-top: -0.7rem;
   }
 
@@ -2046,10 +2056,17 @@
   #optNoteViewStyle { order: 8; }
   #optNeedleDirection { order: 9; }
 
-  #optMicAdjustments { order: 11; }
-  #optOnsetFilter { order: 12; }
-  #optHistory { order: 13; }
-  #optColorHold { order: 14; }
+  #optAgc { order: 11; }
+  #optLevelsMonitorField { order: 12; }
+  #optMicGain { order: 13; }
+  #optNoiseReduction { order: 14; }
+  #optOnsetFilter { order: 15; }
+  #optHistory { order: 16; }
+  #optColorHold { order: 17; }
+
+  #optMicGain .mic-adj-wrap,
+  #optNoiseReduction .mic-adj-wrap { width: 100%; }
+  #optMicGain .mic-adj-wrap > input[type="range"] { flex: 1 1 0; width: 100%; min-width: 0; }
 
 .scroll-fade-y {
   flex: 1 1 auto;
@@ -2366,39 +2383,19 @@
     flex: 0 0 50%;
   }
 
-  .mic-adj-pair {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* Microphone Volume Level: full-width meter on its own line, sized to the
+     same height as the On/Off toggle buttons (.theme-mode-label box model). */
+  #optLevelsMonitorField .opt-control { width: 100%; }
+  #optLevelsMonitorField .rms-gauge {
     width: 100%;
-    gap: 0.6rem;
-    margin-bottom: 0.55rem;
-  }
-  .mic-adj-sub {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-  .mic-adj-sub .mic-adj-wrap { width: 100%; }
-  .mic-adj-sub .mic-adj-wrap > input[type="range"] {
-    flex: 1 1 0;
-    width: 100%;
+    max-width: none;
+    flex: 1 1 100%;
     min-width: 0;
   }
-  .mic-adj-meter {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  #optLevelsMonitorField .rms-gauge-track {
+    box-sizing: border-box;
+    height: calc(1.1 * clamp(0.62rem, 1.35vw, 0.75rem) + 2 * clamp(0.34rem, 0.95vw, 0.42rem) + 2px);
   }
-  .mic-adj-meter-label {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    color: var(--text-dim);
-    font-size: 0.78rem;
-    font-weight: 600;
-  }
-  .mic-adj-meter .rms-gauge { width: auto; max-width: none; flex: 1 1 auto; min-width: 0; }
   .bgn-slider-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
   .bgn-slider-col input[type="range"] { width: 100%; display: block; }
   .bg-noise-readout {
@@ -3636,7 +3633,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.09";
+  window.APP_VERSION = "2.11";
 </script>
 
 <div class="page">
@@ -4087,42 +4084,65 @@
           </div>
         </div>
 
-        <div class="option-field" id="optMicAdjustments">
-          <div class="mic-adj-pair">
-            <div class="mic-adj-sub">
-              <div class="opt-label-row">
-                <label class="opt-label" for="micGain">Mic Gain</label>
-                <button class="info-btn" type="button" data-info-key="micGain" aria-label="Learn about Mic Gain">i</button>
+        <div class="option-field" id="optAgc">
+          <div class="opt-label-row">
+            <label class="opt-label" for="agcOn">Automatic Gain Control</label>
+            <button class="info-btn" type="button" data-info-key="agc" aria-label="Learn about Automatic Gain Control">i</button>
+          </div>
+          <div class="opt-control">
+            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Automatic Gain Control">
+              <div class="theme-mode-item">
+                <input id="agcOn" class="theme-mode-radio" type="radio" name="agcEnabled" value="on" />
+                <label class="theme-mode-label" for="agcOn">On</label>
               </div>
-              <div class="mic-adj-wrap">
-                <input id="micGain" type="range" min="0" max="1" step="0.001" />
-                <span id="micGainValue" class="mic-adj-readout">1.0×</span>
-              </div>
-            </div>
-            <div class="mic-adj-sub">
-              <div class="opt-label-row">
-                <label class="opt-label" for="volThresh">Noise Reduction</label>
-                <button class="info-btn" type="button" data-info-key="bgNoiseReduction" aria-label="Learn about Background Noise Reduction">i</button>
-              </div>
-              <div class="mic-adj-wrap">
-                <div class="bgn-slider-col">
-                  <input id="volThresh" type="range" min="0" max="5" step="1" />
-                  <div class="bgn-ticks" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span><span></span><span></span>
-                  </div>
-                </div>
-                <span id="bgNoiseValue" class="mic-adj-readout bg-noise-readout">None</span>
+              <div class="theme-mode-item">
+                <input id="agcOff" class="theme-mode-radio" type="radio" name="agcEnabled" value="off" />
+                <label class="theme-mode-label" for="agcOff">Off</label>
               </div>
             </div>
           </div>
-          <div id="optLevelsMonitor" class="mic-adj-meter">
-            <span class="mic-adj-meter-label">Vol. Level:</span>
+        </div>
+
+        <div class="option-field" id="optLevelsMonitorField">
+          <div class="opt-label-row">
+            <label class="opt-label">Microphone Volume Level</label>
+            <button class="info-btn" type="button" data-info-key="micLevel" aria-label="Learn about Microphone Volume Level">i</button>
+          </div>
+          <div id="optLevelsMonitor" class="opt-control">
             <div class="rms-gauge" aria-hidden="true">
               <div class="rms-gauge-track">
                 <div id="rmsGaugeFill" class="rms-gauge-fill gray"></div>
                 <div id="rmsGaugeThreshold" class="rms-gauge-threshold"></div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div class="option-field" id="optMicGain">
+          <div class="opt-label-row">
+            <label class="opt-label" for="micGain">Mic Gain</label>
+            <button class="info-btn" type="button" data-info-key="micGain" aria-label="Learn about Mic Gain">i</button>
+          </div>
+          <div class="mic-adj-wrap">
+            <input id="micGain" type="range" min="0" max="1" step="0.001" />
+            <span id="micGainValue" class="mic-adj-readout">1.0×</span>
+            <span id="micGainAutoBadge" class="mic-gain-auto-badge" style="display:none;" title="Automatic Gain Control reduced the gain to prevent overload">·auto</span>
+          </div>
+        </div>
+
+        <div class="option-field" id="optNoiseReduction">
+          <div class="opt-label-row">
+            <label class="opt-label" for="volThresh">Noise Reduction</label>
+            <button class="info-btn" type="button" data-info-key="bgNoiseReduction" aria-label="Learn about Background Noise Reduction">i</button>
+          </div>
+          <div class="mic-adj-wrap">
+            <div class="bgn-slider-col">
+              <input id="volThresh" type="range" min="0" max="5" step="1" />
+              <div class="bgn-ticks" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <span id="bgNoiseValue" class="mic-adj-readout bg-noise-readout">None</span>
           </div>
         </div>
 
@@ -4469,6 +4489,9 @@
   const bgNoiseValueEl = document.getElementById("bgNoiseValue");
   const micGainEl     = document.getElementById("micGain");
   const micGainValueEl = document.getElementById("micGainValue");
+  const micGainAutoBadgeEl = document.getElementById("micGainAutoBadge");
+  const agcOnEl       = document.getElementById("agcOn");
+  const agcOffEl      = document.getElementById("agcOff");
   const optLevelsMonitorEl = document.getElementById("optLevelsMonitor");
   const rmsGaugeFillEl = document.getElementById("rmsGaugeFill");
   const rmsGaugeThresholdEl = document.getElementById("rmsGaugeThreshold");
@@ -5095,7 +5118,9 @@
         {
           title: "Latest update",
           items: [
-            "Advanced Options were reorganized so Mic Gain, Noise Reduction, and Vol. Level now appear before Onset Filter.",
+            "New Automatic Gain Control (Advanced Options) quietly eases the mic gain down if the input sustainedly overloads — including during Quick Record (Pro). On by default; the Mic Gain slider moves to show it working.",
+            "The Microphone Volume Level meter is now a peak-hold meter, so its yellow/red zones reflect what's actually clipping.",
+            "Advanced Options were reorganized: Automatic Gain Control, Microphone Volume Level, Mic Gain, and Noise Reduction now lead the section before Onset Filter.",
             "Color Hold Before Fade now includes 45 seconds and 1 minute options (Pro-locked in free mode; fully available in Pro).",
             "The paused microphone button now uses a stronger flashing red warning pulse for better visibility."
           ]
@@ -5541,10 +5566,10 @@
     }
   }
 
-  function updateRmsGauge(rms, threshold) {
+  function updateRmsGauge(level, threshold) {
     if (!rmsGaugeFillEl) return;
-    const safeRms = Number.isFinite(rms) ? rms : 0;
-    const normalized = Math.max(0, Math.min(1, safeRms));
+    const safeLevel = Number.isFinite(level) ? level : 0;
+    const normalized = Math.max(0, Math.min(1, safeLevel));
     const gate = Number.isFinite(threshold) ? threshold : 0;
 
     // Curtain covers the right portion; gradient on track reveals the zones
@@ -5894,7 +5919,11 @@
   let relaxedNeedleLastMs = performance.now();
   let relaxedSmoothingActive = false;
   const RMS_GAUGE_RELEASE_MS = 450;
-  let rmsGaugeDisplay = 0;
+  // The Volume Meter is a peak-hold meter: it jumps up instantly to the loudest
+  // sample (so transient peaks/clipping are visible) and eases back down slowly.
+  // This is fed the post-gain peak — the same thing AGC reacts to — so the
+  // yellow/red zones line up with what's actually overloading.
+  let gaugePeakDisplay = 0;
   let heldMidiForDisplay = null;
   let heldCentsForDisplay = 0;
   let stainedThisTick = new Set();
@@ -5908,23 +5937,26 @@
 
   function resetRmsGaugeDisplay(value = 0) {
     const safeValue = Number.isFinite(value) ? value : 0;
-    rmsGaugeDisplay = Math.max(0, Math.min(1, safeValue));
+    gaugePeakDisplay = Math.max(0, Math.min(1, safeValue));
   }
 
-  function getRmsGaugeDisplayValue(rms, dtMs) {
-    const safeRms = Math.max(0, Math.min(1, Number.isFinite(rms) ? rms : 0));
-    if (safeRms >= rmsGaugeDisplay) {
-      rmsGaugeDisplay = safeRms;
-      return rmsGaugeDisplay;
+  // Peak-hold ballistics: instant attack to a new peak, slow exponential
+  // release. `level` is the post-gain peak (0..1, clamped); values >= 1 peg the
+  // meter at full (red), which is exactly the overload we want to surface.
+  function getGaugePeakDisplay(level, dtMs) {
+    const safeLevel = Math.max(0, Math.min(1, Number.isFinite(level) ? level : 0));
+    if (safeLevel >= gaugePeakDisplay) {
+      gaugePeakDisplay = safeLevel;
+      return gaugePeakDisplay;
     }
 
     const safeDtMs = Math.max(0, Number.isFinite(dtMs) ? dtMs : 0);
-    if (safeDtMs <= 0) return rmsGaugeDisplay;
+    if (safeDtMs <= 0) return gaugePeakDisplay;
 
     const releaseAlpha = 1 - Math.exp(-safeDtMs / RMS_GAUGE_RELEASE_MS);
-    rmsGaugeDisplay += (safeRms - rmsGaugeDisplay) * releaseAlpha;
-    if (Math.abs(rmsGaugeDisplay - safeRms) < 0.0005) rmsGaugeDisplay = safeRms;
-    return rmsGaugeDisplay;
+    gaugePeakDisplay += (safeLevel - gaugePeakDisplay) * releaseAlpha;
+    if (Math.abs(gaugePeakDisplay - safeLevel) < 0.0005) gaugePeakDisplay = safeLevel;
+    return gaugePeakDisplay;
   }
 
   function normalizeNoteViewRange(lowMidi, highMidi) {
@@ -6520,6 +6552,7 @@
     range: null, // computed default
     minVol: 0.025,
     micGain: DEFAULT_MIC_GAIN,
+    agcEnabled: true,
     colorPalette: null,
     attackMs: ATTACK_SPEED_DEFAULT_MS,
     uiTheme: "system"
@@ -6628,6 +6661,28 @@
         { html: `<table class="option-info-table"><thead><tr><th>Browser / OS</th><th>Default</th></tr></thead><tbody><tr><td>Firefox</td><td>1×</td></tr><tr><td>Chromium on macOS desktop</td><td>1×</td></tr><tr><td>Chromium on Windows / Android / ChromeOS</td><td>2×</td></tr><tr><td>Safari on macOS desktop</td><td>5×</td></tr><tr><td>Safari on iPhone / iPad</td><td>10×</td></tr><tr><td>Other browsers</td><td>1× desktop, 2× on iPhone / iPad</td></tr></tbody></table>` },
         "Boost only helps a quiet signal — if the meter is peaking (red), lower the input at the OS/mic level; gain here cannot fix clipping.",
         "Changes apply instantly; no need to restart the mic."
+      ]
+    },
+    agc: {
+      title: "Automatic Gain Control",
+      summary: "Quietly lowers the gain in the background if the mic is sustainedly overloading.",
+      detail: [
+        "Watches the input level and, when it stays hot (near peaking) for a moment, eases the gain down a little at a time until it stops overloading. Brief loud accents are ignored — only sustained overload triggers it.",
+        "It only ever reduces gain, never boosts, and won't snap back during a session. The Mic Gain slider and readout move to show the reduced level, with a small \"·auto\" tag next to the readout while it's holding the gain down.",
+        "Moving the Mic Gain slider yourself, resetting settings, or reloading the page starts it fresh from that value.",
+        "Active during Quick Record too — the recording gets the same overload protection as the live meter.",
+        "It can only tame overload caused by Tonemap's own gain. If your mic is clipping at the OS/hardware level, lower the input there — no software can undo that.",
+        "On by default. Turn it Off to keep a fixed manual gain."
+      ]
+    },
+    micLevel: {
+      title: "Microphone Volume Level",
+      summary: "Live peak-level meter for your microphone input.",
+      detail: [
+        "Shows the peak signal level in real time — the same value that drives Automatic Gain Control.",
+        "• Green: healthy signal. Keep it here for accurate pitch tracking.",
+        "• Yellow / Red: the signal is hot and may be clipping. Lower Mic Gain, reduce the OS input level, or let AGC bring it down automatically.",
+        "The white tick marks the current Noise Reduction cutoff. Input below that line is ignored by the tuner."
       ]
     },
     bgNoiseReduction: {
@@ -7760,7 +7815,17 @@
     currentSettings.micGain = micGainVal;
     if (micGainEl) micGainEl.value = String(micGainToSliderPos(micGainVal));
     if (micGainValueEl) micGainValueEl.textContent = formatMicGain(micGainVal);
-    if (activeMicGainNode) activeMicGainNode.gain.value = MIC_INPUT_GAIN * micGainVal;
+
+    const originalAgc = settings.agcEnabled;
+    const agcVal = originalAgc !== false; // default on; only explicit false disables
+    if (agcVal !== originalAgc) needsPersist = true;
+    currentSettings.agcEnabled = agcVal;
+    if (agcOnEl) agcOnEl.checked = agcVal;
+    if (agcOffEl) agcOffEl.checked = !agcVal;
+    if (!agcVal) agcTrim = 1.0; // disabled: run at the user's slider value
+    applyEffectiveMicGain();
+    updateMicGainAutoBadge();
+    updateMicGainSliderDisplay();
 
     const originalAccidental = settings.accidentalMode;
     const accidentalVal = originalAccidental === "flats" ? "flats" : "sharps";
@@ -8413,7 +8478,9 @@
       if (copyLength > 0) {
         const chunk = new Float32Array(copyLength);
         chunk.set(input.subarray(0, copyLength));
-        const totalGain = MIC_INPUT_GAIN * (currentSettings.micGain ?? 1.0);
+        // Use the AGC-adjusted gain so the recording tracks AGC the same way the
+        // live meter does — recordings get the same overload protection.
+        const totalGain = effectiveMicGain();
         if (totalGain !== 1.0) {
           for (let i = 0; i < chunk.length; i++) chunk[i] *= totalGain;
         }
@@ -11554,6 +11621,96 @@
   }
   let volumeThreshold = sliderToThreshold(currentSettings.minVol ?? 0);
 
+  // --- Automatic Gain Control (AGC) ---------------------------------------
+  // Background, reduce-only ("ratchet") gain trim. When the post-gain signal
+  // is *sustained*ly hot, AGC quietly lowers the effective mic gain so the
+  // input stops overloading. It never boosts and never snaps back within a
+  // session — agcTrim resets to 1.0 only on mic (re)start, a manual slider
+  // move, Reset Settings, or page reload. During Quick Record the recorder
+  // applies effectiveMicGain() too, so AGC also protects the recording.
+  const AGC_PEAK_HOT         = 0.92; // post-gain peak counted as "hot"
+  const AGC_HOT_TRIGGER_MS   = 300;  // sustained hot time before a step
+  const AGC_HOT_DECAY        = 0.6;  // leak rate when not hot (tolerates brief gaps)
+  const AGC_STEP_DOWN        = 0.85; // per-step gain multiplier (~ -1.4 dB)
+  const AGC_STEP_COOLDOWN_MS = 350;  // min time between steps
+  const AGC_TRIM_MIN         = 0.05; // floor (~ -26 dB); never attenuate below
+  const AGC_RAW_CLIP_GUARD   = 0.98; // est. raw peak >= this => source clipping, don't dive
+  const AGC_BADGE_TRIM       = 0.99; // show "·auto" when agcTrim < this
+  const AGC_HOT_CAP_MS       = AGC_HOT_TRIGGER_MS * 2; // clamp accumulator
+  let agcTrim = 1.0;     // runtime-only multiplier, never persisted
+  let agcHotMs = 0;      // leaky accumulator of sustained hot time
+  let agcLastStepMs = 0; // timestamp of last reduction step (cooldown)
+
+  function effectiveMicGain() {
+    return MIC_INPUT_GAIN * (currentSettings.micGain ?? 1.0) * agcTrim;
+  }
+  function applyEffectiveMicGain() {
+    if (!activeMicGainNode) return;
+    const target = effectiveMicGain();
+    if (audioContext && typeof activeMicGainNode.gain.setTargetAtTime === "function") {
+      // ~30 ms smoothing avoids zipper clicks on auto steps.
+      activeMicGainNode.gain.setTargetAtTime(target, audioContext.currentTime, 0.03);
+    } else {
+      activeMicGainNode.gain.value = target;
+    }
+  }
+  function resetAgcTrim() {
+    agcTrim = 1.0;
+    agcHotMs = 0;
+    agcLastStepMs = 0;
+    updateMicGainAutoBadge();
+  }
+  function updateMicGainAutoBadge() {
+    if (!micGainAutoBadgeEl) return;
+    const show = !!(currentSettings.agcEnabled) && agcTrim < AGC_BADGE_TRIM;
+    micGainAutoBadgeEl.style.display = show ? "" : "none";
+  }
+  // The value the Mic Gain control should display: the user's base gain after
+  // any active AGC trim, so the slider visually tracks AGC reductions. The
+  // persisted base (currentSettings.micGain) is never changed by this.
+  function micGainDisplayValue() {
+    const base = clampMicGain(currentSettings.micGain ?? 1.0);
+    const trim = currentSettings.agcEnabled ? agcTrim : 1.0;
+    return clampMicGain(base * trim);
+  }
+  function updateMicGainSliderDisplay() {
+    const shown = micGainDisplayValue();
+    if (micGainEl) micGainEl.value = String(micGainToSliderPos(shown));
+    if (micGainValueEl) micGainValueEl.textContent = formatMicGain(shown);
+  }
+  function updateAGC(peakAbs, dtMs) {
+    if (!currentSettings.agcEnabled || !activeMicGainNode) return;
+    const dt = Math.max(0, dtMs);
+
+    if (peakAbs >= AGC_PEAK_HOT) {
+      agcHotMs = Math.min(AGC_HOT_CAP_MS, agcHotMs + dt);
+    } else {
+      agcHotMs = Math.max(0, agcHotMs - dt * AGC_HOT_DECAY);
+    }
+
+    if (agcHotMs < AGC_HOT_TRIGGER_MS || agcTrim <= AGC_TRIM_MIN) return;
+
+    const now = nowMs();
+    if (now - agcLastStepMs < AGC_STEP_COOLDOWN_MS) return;
+
+    // Estimate the raw (pre-gain) mic peak. If the mic itself is clipping at
+    // the OS/hardware level, trimming our digital gain can't restore fidelity,
+    // so don't keep diving — let it ride and reset the accumulator.
+    const eff = effectiveMicGain();
+    const rawPeakEst = eff > 0 ? peakAbs / eff : peakAbs;
+    if (rawPeakEst >= AGC_RAW_CLIP_GUARD) {
+      agcHotMs = 0;
+      return;
+    }
+
+    agcTrim = Math.max(AGC_TRIM_MIN, agcTrim * AGC_STEP_DOWN);
+    agcLastStepMs = now;
+    agcHotMs = 0;
+    applyEffectiveMicGain();
+    updateMicGainAutoBadge();
+    updateMicGainSliderDisplay();
+  }
+
   function tick() {
     if (!running && !playbackAnalysisActive) return;
 
@@ -11619,7 +11776,12 @@
       micStallAccumMs = 0;
     }
 
-    updateRmsGauge(getRmsGaugeDisplayValue(rms, dtMs), volumeThreshold);
+    updateAGC(peakAbs, dtMs);
+
+    // Drive the meter from the post-gain peak (peak-hold), so its yellow/red
+    // zones reflect actual clipping and track what AGC reacts to. The threshold
+    // tick still marks the (RMS-based) Noise Reduction cutoff.
+    updateRmsGauge(getGaugePeakDisplay(peakAbs, dtMs), volumeThreshold);
 
     const mode = sensitivitySelect.value;
     const minHold = getCurrentMinHoldMs();
@@ -11816,8 +11978,9 @@
       micSourceNode = audioContext.createMediaStreamSource(micStream);
 
       const micGainNode = audioContext.createGain();
-      micGainNode.gain.value = MIC_INPUT_GAIN * (currentSettings.micGain ?? 1.0);
       activeMicGainNode = micGainNode;
+      resetAgcTrim(); // fresh mic start: AGC begins from the user's slider value
+      micGainNode.gain.value = effectiveMicGain();
       analyserNode = audioContext.createAnalyser();
       analyserNode.fftSize = 2048;
       analyserNode.smoothingTimeConstant = 0;
@@ -12921,10 +13084,29 @@
       const val = sliderPosToMicGain(micGainEl.value);
       currentSettings.micGain = val;
       if (micGainValueEl) micGainValueEl.textContent = formatMicGain(val);
-      if (activeMicGainNode) activeMicGainNode.gain.value = MIC_INPUT_GAIN * val;
+      resetAgcTrim(); // user reclaims control: AGC re-adapts from the new value
+      if (activeMicGainNode && audioContext) activeMicGainNode.gain.cancelScheduledValues(audioContext.currentTime);
+      applyEffectiveMicGain();
       persistSettings(currentSettings);
     });
   }
+
+  function setAgcEnabled(enabled) {
+    currentSettings.agcEnabled = !!enabled;
+    if (agcOnEl) agcOnEl.checked = !!enabled;
+    if (agcOffEl) agcOffEl.checked = !enabled;
+    if (!enabled) {
+      // Turning AGC off restores the user's slider value.
+      resetAgcTrim();
+      if (activeMicGainNode && audioContext) activeMicGainNode.gain.cancelScheduledValues(audioContext.currentTime);
+      applyEffectiveMicGain();
+    }
+    updateMicGainAutoBadge();
+    updateMicGainSliderDisplay();
+    persistSettings(currentSettings);
+  }
+  if (agcOnEl) agcOnEl.addEventListener("change", () => { if (agcOnEl.checked) setAgcEnabled(true); });
+  if (agcOffEl) agcOffEl.addEventListener("change", () => { if (agcOffEl.checked) setAgcEnabled(false); });
 
   if (attackSpeedSliderEl) {
     attackSpeedSliderEl.addEventListener("input", () => {
@@ -13105,7 +13287,12 @@
         currentSettings.micGain = mg;
         if (micGainEl) micGainEl.value = String(micGainToSliderPos(mg));
         if (micGainValueEl) micGainValueEl.textContent = formatMicGain(mg);
-        if (activeMicGainNode) activeMicGainNode.gain.value = MIC_INPUT_GAIN * mg;
+        resetAgcTrim(); // settings reset: AGC starts fresh from the restored value
+        if (agcOnEl) agcOnEl.checked = !!currentSettings.agcEnabled;
+        if (agcOffEl) agcOffEl.checked = !currentSettings.agcEnabled;
+        applyEffectiveMicGain();
+        updateMicGainAutoBadge();
+        updateMicGainSliderDisplay();
       }
       dbgThresh.textContent = volumeThreshold.toExponential(2);
       finalizeActiveSegment();
