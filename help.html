@@ -517,16 +517,20 @@
       <h3>Audio Input</h3>
       <div class="settings-grid">
         <div class="sg-row">
-          <div class="sg-name">Volume Sensitivity</div>
-          <div class="sg-desc">Sets the minimum RMS level required before the tuner reacts. Drag right to raise the threshold and block out room noise; drag left to catch quieter sounds. The bar shows live RMS level — green means above threshold, gray means below.</div>
+          <div class="sg-name">Automatic Gain Control</div>
+          <div class="sg-desc">Automatically eases Mic Gain down when the input sustainedly overloads (the meter holding in the yellow/red), then leaves it there for the rest of the session — it only reduces gain, never boosts, and brief loud accents are ignored. The Mic Gain slider and readout move to show the reduced level, with a small <strong>·auto</strong> tag while it is active. Moving the slider yourself, resetting settings, or reloading the page starts it fresh. It also protects Quick Recorder takes (★ Pro), not just the live meter. On by default — turn it off for a fixed manual gain. Note: it can only tame overload from Tonemap's own gain; if your mic clips at the OS or hardware level, lower the input there.</div>
+        </div>
+        <div class="sg-row">
+          <div class="sg-name">Microphone Volume Level</div>
+          <div class="sg-desc">A peak-hold meter showing your live input level — the same value Automatic Gain Control watches. It reads gray below the Noise Reduction cutoff, then green (healthy) → yellow (hot) → red (clipping) as the signal climbs. The white tick marks where the Noise Reduction cutoff sits. Keep normal playing in the green for the most accurate pitch tracking.</div>
         </div>
         <div class="sg-row">
           <div class="sg-name">Microphone Gain</div>
           <div class="sg-desc">Multiplies the input signal feeding the tuner. Useful if your meter stays mostly gray during normal playing. The slider is exponential (1×–100×). Default gain varies by browser and platform — Safari on iPhone uses a higher default than desktop Chrome. Gain cannot fix clipping; if the meter is peaking red, lower input at the OS or mic level instead.</div>
         </div>
         <div class="sg-row">
-          <div class="sg-name">Background Noise Reduction</div>
-          <div class="sg-desc">Ignores sounds below a chosen amplitude threshold. None reacts to any detected pitch; higher settings progressively ignore quieter sounds. The white tick on the meter shows where the cutoff sits.</div>
+          <div class="sg-name">Noise Reduction</div>
+          <div class="sg-desc">Ignores input below a chosen level so room noise doesn't trigger the tuner. <strong>None</strong> reacts to any detected pitch; <strong>Minimal / Low / Medium / High / Very High</strong> progressively ignore quieter sounds (about 2.5% / 5% / 10% / 25% / 50% of full scale). The white tick on the Microphone Volume Level meter marks the current cutoff — input below it reads gray.</div>
         </div>
       </div>
 
@@ -703,14 +707,14 @@
       <p>Check the level meter in the Options panel. If it stays gray, the tuner isn't hearing you:</p>
       <p>• Make sure your browser has microphone permission (check the address bar or your OS privacy settings).<br>
          • Try increasing Microphone Gain — especially on Safari or if using a quiet condenser mic.<br>
-         • Move the Volume Sensitivity slider left (less restrictive threshold).<br>
+         • Lower the Noise Reduction setting (toward None) so the tuner catches quieter sounds.<br>
          • On iPhone/iPad, check that the app you're using isn't muting the microphone in Control Center.</p>
 
       <h3>Pitch reads about a semitone sharp for the first few seconds (Safari)</h3>
       <p>This is a known Safari 26.4+ bug when echo cancellation is turned off. Tonemap applies an automatic workaround (a "shadow" mic stream) on affected Safari versions. You should see "Applied" in the Status panel when the fix is active. If the fix fails — usually because Safari blocks the second stream — try granting mic permission once, quitting and relaunching Safari, then starting Tonemap again.  Or just wait about 14 seconds and the bug will usually correct itself.</p>
 
       <h3>The pitch jumps around erratically</h3>
-      <p>• Raise the Background Noise Reduction setting to filter out room noise.<br>
+      <p>• Raise the Noise Reduction setting to filter out room noise.<br>
          • Switch to Relaxed mode for more smoothing.<br>
          • Increase the Onset Filter to skip brief transients at the start of each note.<br>
          • If you're in a reverberant room, use a closer or directional mic.</p>
