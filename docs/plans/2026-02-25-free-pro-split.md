@@ -1,6 +1,6 @@
 # Free/Pro Split Implementation Plan
 
-> **⚠️ HISTORICAL — DO NOT FOLLOW STEP-BY-STEP.** This is the original Feb 2026 plan. The free/pro split shipped, then was **deliberately simplified** post-launch to keep the free experience uncluttered. The "Approved Feature Split" table below is the *original* spec, not the current state. The actual gated set is now: sensitivity (Hard), A4 (non-440/441/442/443/444), history (Long/Unlimited), Color Hold (non-30s), and the Quick Recorder. Transposition, Stretch Tuning, and "Rows start with" are **free for everyone** in the current build. See `CLAUDE.md` for the live matrix. Tasks 4 (rowStart gate), 6 (stretch gate), and 8 (transposition gate) were intentionally rolled back.
+> **⚠️ HISTORICAL — DO NOT FOLLOW STEP-BY-STEP.** This is the original Feb 2026 plan. The free/pro split shipped, then was **deliberately simplified** post-launch to keep the free experience uncluttered. The "Approved Feature Split" table below is the *original* spec, not the current state. The actual gated set is now: sensitivity (Hard) and the Quick Recorder. A4, History, Color Hold, Transposition, Stretch Tuning, and "Rows start with" are **free for everyone** in the current build. See `CLAUDE.md` for the live matrix. Tasks 4 (rowStart gate), 6 (stretch gate), and 8 (transposition gate) were intentionally rolled back.
 
 > **For Claude:** 
 

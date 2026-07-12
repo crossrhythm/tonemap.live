@@ -40,12 +40,12 @@ The split was intentionally simplified post-launch to keep the free experience u
 | Feature | Free | Pro |
 |---|---|---|
 | Mode (sensitivity) | Relaxed, Medium | + Hard |
-| History | Short (1s), Medium (3s) | + Long (30s), Unlimited |
-| Color Hold | 30s only | + 5s, 15s, 2min, 5min, No Fade |
-| Performance Pitch (A4) | 440, 441, 442, 443, 444 | All presets + custom |
+| History | All options | Same |
+| Color Hold | All options | Same |
+| Performance Pitch (A4) | Full 100–1000 Hz range + custom | Same |
 | Quick Recorder | ✗ (not yet in index.html) | ✓ (in beta-451.html) |
 
-**Free for everyone (not gated):** Transposition (all keys), Stretch Tuning (None / Minimal / Medium / Full Railsback), "Rows start with" (any note), accidentals, palette colors, Note View, mic gain / noise reduction, all other UI options.
+**Free for everyone (not gated):** Performance Pitch (A4), History, Color Hold, Transposition (all keys), Stretch Tuning (None / Minimal / Medium / Full Railsback), "Rows start with" (any note), accidentals, palette colors, Note View, mic gain / noise reduction, all other UI options.
 
 If you're tempted to add a Pro gate to a setting that isn't in the table above, stop — that's a deliberate product decision, not an oversight.
 
@@ -77,9 +77,6 @@ activeNoteInfo = { midiNote, frequency, clarity, ... }
 ```js
 const FREE_ALLOWED = Object.freeze({
   sensitivity: new Set(["relaxed", "medium"]),
-  history: new Set(["short", "medium"]),
-  stainHold: new Set(["30"]),
-  a4: new Set([440, 441, 442, 443, 444]),
 });
 
 function isProLockedValue(type, value) { ... }

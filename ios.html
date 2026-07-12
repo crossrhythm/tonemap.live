@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tonemap for iOS — Privacy Policy</title>
+  <meta name="description" content="Tonemap for iOS: a native iPhone and iPad tuner app. Privacy policy and data handling details." />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #475569;
+      --accent: rgb(34,197,94);
+      --accent-dim: rgba(34,197,94,0.15);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      padding: 48px 0 48px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .logo-link { display: block; margin-bottom: 32px; }
+    .logo-img { width: 100%; max-width: 300px; height: auto; display: block; border-radius: 6px; }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle { color: var(--muted); font-size: 1rem; margin-bottom: 12px; }
+
+    .updated {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .badge-live {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 2px 9px;
+      font-size: 0.72rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+
+    section { margin-bottom: 44px; scroll-margin-top: 24px; }
+
+    h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 24px 0 8px;
+    }
+
+    p { color: var(--text); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .callout {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .callout strong { color: var(--text); }
+
+    ul { margin: 0 0 12px 20px; color: var(--text); }
+    li { margin-bottom: 6px; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0 48px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    footer a { color: var(--muted); text-decoration: underline; }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <a href="/" class="logo-link">
+        <img src="tonemaplogo-ios-ui.jpg" alt="Tonemap" class="logo-img">
+      </a>
+      <h1>Tonemap for iOS</h1>
+      <p class="subtitle">A native iPhone &amp; iPad tuner app, currently in development.<span class="badge-live">Coming soon</span></p>
+      <div class="updated">Privacy policy last updated: July 2026</div>
+    </header>
+
+    <section id="about">
+      <h2>About the iOS app</h2>
+      <p>Tonemap for iOS brings the same real-time pitch and intonation visualization from <a href="/">tonemap.live</a> to a native iPhone and iPad app — built entirely in Swift and SwiftUI, with no web view, no third-party frameworks, and no build tooling beyond Xcode. Pitch detection, rendering, and audio handling all happen natively on-device.</p>
+      <p>The app is not yet available on the App Store. This page exists ahead of that release so the privacy policy is in place before submission — the sections below describe how the app will handle your data at launch.</p>
+    </section>
+
+    <section id="privacy">
+      <h2>Privacy Policy</h2>
+
+      <h3>Audio never leaves your device</h3>
+      <p>Tonemap processes microphone input entirely on-device using Apple's audio frameworks (<code>AVAudioEngine</code>). Pitch detection runs locally. No audio is recorded, transmitted, or stored on Tonemap's servers, and no audio ever leaves your device.</p>
+
+      <h3>Microphone access</h3>
+      <p>The app requests microphone permission the first time it's opened, to power real-time pitch detection. If permission is denied, the tuner cannot function, but you can grant access at any time from your device's Settings.</p>
+
+      <h3>What Tonemap collects</h3>
+      <p>By default, using the free tier of the app requires no account and involves no data collection. Tonemap does not use advertising or third-party analytics/tracking frameworks inside the app, does not sell data, and does not share data with third parties beyond what's described below for Pro subscribers.</p>
+
+      <h3>Tonemap Pro &amp; subscriptions</h3>
+      <p>Tonemap Pro can be unlocked one of two ways, and each has different data-handling implications:</p>
+      <ul>
+        <li><strong>Existing web (Polar) subscription.</strong> If you already subscribe to Tonemap Pro on the web, you can enter your license key in the app to unlock Pro on iOS at no extra cost. The app sends that license key to Tonemap's own server (a Cloudflare Worker at tonemap.live) over an encrypted connection, which verifies it with our payment processor, <a href="https://polar.sh" target="_blank" rel="noopener">Polar</a>. A signed authorization token is then stored securely in your device's Keychain to remember your Pro status — this token does not contain your name, email, or any other personal information. Your account, email, and payment details for a Polar-based subscription are held by Polar in accordance with their <a href="https://polar.sh/privacy" target="_blank" rel="noopener">privacy policy</a>, not by Tonemap.</li>
+        <li><strong>App Store subscription (coming soon).</strong> Once available, you'll also be able to subscribe directly through the App Store. In that case, Apple handles the entire transaction — Tonemap's servers are not involved and never receive your name, email, or payment details. Your purchase is recorded by Apple's StoreKit and tied to your Apple ID; see <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple's privacy policy</a> for how they handle that information.</li>
+      </ul>
+      <div class="callout">
+        <strong>Note:</strong> at launch, an App Store subscription unlocks Pro on your iOS devices only — it does not automatically unlock the web version. See the <a href="/help.html#free-vs-pro">Help &amp; FAQ page</a> for details on both paths.
+      </div>
+
+      <h3>Third-party services</h3>
+      <p>Tonemap's iOS app relies on two outside services, only when relevant to your use: <a href="https://polar.sh/privacy" target="_blank" rel="noopener">Polar</a> for web-originated subscription and license verification, and <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple</a> for App Store purchases. Neither is contacted unless you activate or purchase Pro. The app itself embeds no advertising SDKs, analytics SDKs, or other third-party frameworks.</p>
+
+      <h3>Data retention &amp; deletion</h3>
+      <p>The only data Tonemap's server retains related to the iOS app is the license-key/activation record already used to serve the web app's Pro tier (see the <a href="/terms.html#privacy">web Terms &amp; Privacy section</a> for that system's retention details). You can remove a device's Pro authorization at any time from the app's Settings, or by emailing <a href="mailto:support@tonemap.live">support@tonemap.live</a> to request removal.</p>
+
+      <h3>Children's privacy</h3>
+      <p>Tonemap does not knowingly collect personal information from anyone, including children under 13 — the app doesn't collect personal data as part of its normal operation in the first place.</p>
+
+      <h3>Changes to this policy</h3>
+      <p>We may update this policy as the iOS app develops, particularly once it ships and as any future cross-platform account features are added. The date at the top of this page reflects the most recent update.</p>
+
+      <h3>Contact</h3>
+      <p>Questions about this policy can be directed to <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
+    </section>
+
+    <footer>
+      <p>
+        &copy; 2026 Tonemap&#8482; &nbsp;·&nbsp;
+        <a href="/help.html">Help</a> &nbsp;·&nbsp;
+        <a href="/terms.html">Terms</a> &nbsp;·&nbsp;
+        <a href="/">Back to Tonemap</a>
+      </p>
+    </footer>
+
+  </div>
+
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-X-Sn7Z904imPZY1JcRi2W.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+</body>
+</html>

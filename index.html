@@ -2030,10 +2030,6 @@
     flex: 0 1 auto;
   }
 
-  .opt-label-row .pro-badge {
-    order: 2;
-  }
-
   .opt-label-row .info-btn {
     order: 3;
     margin-left: auto;
@@ -2072,32 +2068,9 @@
     text-shadow: 0 0 10px rgba(250,204,21,0.12);
   }
 
-  .pro-badge {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid rgba(220,197,111,0.24);
-    background: rgba(220,197,111,0.05);
-    color: #dcc56f;
-    border-radius: 999px;
-    padding: 0.08rem 0.45rem;
-    font-size: 0.68rem;
-    font-weight: 700;
-    line-height: 1.35;
-    white-space: nowrap;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-    cursor: pointer;
-    user-select: none;
-  }
-
   .pro-locked-choice {
     opacity: 0.56;
     white-space: nowrap;
-  }
-
-  .pro-locked-control {
-    opacity: 0.78;
   }
 
   .recording-launcher-shell {
@@ -3511,7 +3484,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.11";
+  window.APP_VERSION = "2.12";
   // If the user has the non-HttpOnly Pro flag cookie, send them straight to
   // /pro. The real HttpOnly HMAC cookie (tm_pro) isn't visible to JS, so the
   // Worker sets tm_pro_flag=1 alongside it as a client-readable hint. Worker
@@ -3574,7 +3547,8 @@
       </div>
     </div>
     <button class="recording-launcher-shell recording-launcher" type="button"
-            aria-label="Quick Record — Pro feature"
+            aria-label="Quick Record is available in Tonemap Pro"
+            title="Quick Record is available in Tonemap Pro"
             data-open-pro-modal data-pro-feature="quickRecord">
       <span class="recording-launcher-dot"></span>
       <span class="recorder-arrow-icon" aria-hidden="true">&gt;</span>
@@ -3700,29 +3674,27 @@
                 max="1000"
                 step="any"
                 inputmode="decimal"
-                aria-label="Performance pitch in Hz, controlled by presets"
-                aria-readonly="true"
-                readonly
-                tabindex="-1"
+                aria-label="Custom performance pitch in Hz"
+                placeholder="Custom Hz"
                 value="440"
               />
             </div>
             <div class="a-ref-preset">
               <span class="preset-label" id="presetLabel">Presets:</span>
-              <select id="aRefSelect" class="pro-locked-control" aria-labelledby="presetLabel">
-                <option value="392">392 ★ Pro</option>
-                <option value="415">415 ★ Pro</option>
-                <option value="430">430 ★ Pro</option>
-                <option value="432">432 ★ Pro</option>
-                <option value="438">438 ★ Pro</option>
+              <select id="aRefSelect" aria-labelledby="presetLabel">
+                <option value="392">392</option>
+                <option value="415">415</option>
+                <option value="430">430</option>
+                <option value="432">432</option>
+                <option value="438">438</option>
                 <option value="440" selected>440</option>
                 <option value="441">441</option>
                 <option value="442">442</option>
                 <option value="443">443</option>
                 <option value="444">444</option>
-                <option value="466">466 ★ Pro</option>
-                <option value="470">470 ★ Pro</option>
-                <option value="custom">Custom ★ Pro</option>
+                <option value="466">466</option>
+                <option value="470">470</option>
+                <option value="custom">Custom</option>
               </select>
             </div>
           </div>
@@ -3746,7 +3718,7 @@
               </div>
               <div class="theme-mode-item">
                 <input id="sensitivityModeHard" class="theme-mode-radio" type="radio" name="sensitivityMode" value="hard" />
-                <label class="theme-mode-label pro-locked-choice" for="sensitivityModeHard" title="Fast response with smallest dead zone">Hard <span class="pro-brand">★ Pro</span></label>
+                <label class="theme-mode-label pro-locked-choice" for="sensitivityModeHard" title="Hard Mode is available in Tonemap Pro">Hard <span class="pro-brand">★ Pro</span></label>
               </div>
             </div>
             <select id="sensitivitySelect" class="select-replaced-hidden" aria-hidden="true">
@@ -3949,14 +3921,13 @@
           <div class="opt-label-row">
             <label id="historyLabel" class="opt-label" for="historySelect">History (per-cell memory)</label>
             <button class="info-btn" type="button" data-info-key="history" aria-label="Learn about History memory">i</button>
-            <span class="pro-badge" data-open-pro-modal data-pro-feature="history">★ Pro</span>
           </div>
           <div class="opt-control">
-            <select id="historySelect" class="pro-locked-control">
+            <select id="historySelect">
               <option value="short" selected>Short (1 second)</option>
               <option value="medium">Medium (3 seconds)</option>
-              <option value="long">Long (30 seconds) ★ Pro</option>
-              <option value="unlimited">Unlimited ★ Pro</option>
+              <option value="long">Long (30 seconds)</option>
+              <option value="unlimited">Unlimited</option>
             </select>
           </div>
         </div>
@@ -3965,18 +3936,17 @@
           <div class="opt-label-row">
             <label id="stainHoldLabel" class="opt-label" for="stainHoldSelect">Color Hold Before Fade</label>
             <button class="info-btn" type="button" data-info-key="stainHold" aria-label="Learn about Color Hold Before Fade">i</button>
-            <span class="pro-badge" data-open-pro-modal data-pro-feature="stainHold">★ Pro</span>
           </div>
           <div class="opt-control">
-            <select id="stainHoldSelect" class="pro-locked-control">
-              <option value="5">5 seconds ★ Pro</option>
-              <option value="15">15 seconds ★ Pro</option>
+            <select id="stainHoldSelect">
+              <option value="5">5 seconds</option>
+              <option value="15">15 seconds</option>
               <option value="30" selected>30 seconds</option>
-              <option value="45">45 seconds ★ Pro</option>
-              <option value="60">1 minute ★ Pro</option>
-              <option value="120">2 minutes ★ Pro</option>
-              <option value="300">5 minutes ★ Pro</option>
-              <option value="unlimited">No fade ★ Pro</option>
+              <option value="45">45 seconds</option>
+              <option value="60">1 minute</option>
+              <option value="120">2 minutes</option>
+              <option value="300">5 minutes</option>
+              <option value="unlimited">No fade</option>
             </select>
           </div>
         </div>
@@ -4255,18 +4225,14 @@
 <div id="proUpgradeModal" class="pro-modal-overlay" aria-hidden="true">
   <div class="pro-modal-card" role="dialog" aria-modal="true" aria-labelledby="proModalTitle">
     <div class="pro-modal-header">
-      <span id="proModalTitle" class="pro-brand-title">★ Unlock Tonemap Pro</span>
+      <span id="proModalTitle" class="pro-brand-title">★ Tonemap Pro</span>
       <button id="proModalClose" class="options-close-btn" type="button" aria-label="Close upgrade modal">✕</button>
     </div>
     <div class="pro-modal-body scroll-fade-y">
       <p>Start your <strong>7-day free trial</strong>, then $9.99/year (~83¢/month). Support the development of new features and hosting costs.  Cancel anytime.</p>
       <ul class="pro-modal-features">
-        <li data-feature="quickRecord">Quick Record — Record your playing without leaving the tuner. Review every detail with Tonemap analysis, save the takes worth keeping.</li>
-        <li data-feature="sensitivity">Hard Mode — tight deadzone, fast response</li>
-        <li data-feature="a4">Extended A4 range (392–470 Hz + custom; 440–444 Hz free for all users)</li>
-        <li data-feature="history">Long and Unlimited pitch history</li>
-        <li data-feature="stainHold">Color Hold: 5s, 15s, 45s, 1 min, 2 min, 5 min, No Fade</li>
-        
+        <li data-feature="quickRecord">Quick Record — record your playing without leaving the tuner, review it with Tonemap analysis, and save the takes worth keeping.</li>
+        <li data-feature="sensitivity">Hard Mode — the tightest dead zone and fastest response.</li>
       </ul>
        </div>
     <div class="pro-modal-footer">
@@ -4992,11 +4958,9 @@
         {
           title: "Latest update",
           items: [
-            "New Automatic Gain Control (Advanced Options) quietly eases the mic gain down if the input sustainedly overloads — including during Quick Record (Pro). On by default; the Mic Gain slider moves to show it working.",
-            "The Microphone Volume Level meter is now a peak-hold meter, so its yellow/red zones reflect what's actually clipping.",
-            "Advanced Options were reorganized: Automatic Gain Control, Microphone Volume Level, Mic Gain, and Noise Reduction now lead the section before Onset Filter.",
-            "Color Hold Before Fade now includes 45 seconds and 1 minute options (Pro-locked in free mode; fully available in Pro).",
-            "The paused microphone button now uses a stronger flashing red warning pulse for better visibility."
+            "The free/pro split is now simpler: Hard Mode and Quick Record are the only Pro-gated features. This keeps the web app aligned with the upcoming iOS version.",
+            "The Pro overlay and help text now reflect the new split.",
+            "iOS Privacy Policy page added."
           ]
         }
       ],
@@ -6311,22 +6275,15 @@
   const A_REF_ERROR_MESSAGE = "Please enter a value between 100 and 1000 (e.g., 440).";
 
   const FREE_ALLOWED = Object.freeze({
+    // Only Hard Mode is gated among settings. Quick Record is gated by its launcher.
     sensitivity: new Set(["relaxed", "medium"]),
-    history: new Set(["short", "medium"]),
-    stainHold: new Set(["30"]),
-    a4: new Set([440, 441, 442, 443, 444]),
   });
 
   function isProLockedValue(type, value) {
     if (value == null) return false;
-    const raw = String(value);
-    if (type === "a4") {
-      const parsed = Number(value);
-      return !FREE_ALLOWED.a4.has(parsed);
-    }
     const allowed = FREE_ALLOWED[type];
     if (!allowed) return false;
-    return !allowed.has(raw);
+    return !allowed.has(String(value));
   }
 
   function openProModal(featureKey) {
@@ -6369,7 +6326,7 @@
     a4: {
       title: "Performance Pitch (A4)",
       summary: "Sets the reference frequency so all targets shift up or down from this A4 anchor.",
-      detail: "Use 440 for modern pitch; pick 415, 430, 442, etc. to match an ensemble or recording."
+      detail: "Use any value from 100–1000 Hz, or pick a preset such as 440, 415, 430, or 442 to match an ensemble or recording."
     },
     mode: {
       title: "Mode",
@@ -6377,7 +6334,7 @@
       detail: [
           "• Relaxed: ±4 cents dead zone, 350ms needle smoothing.",
           "• Medium: ±3.5 cents dead zone, 80ms needle smoothing.",
-          "• Hard: ±1.8 cents dead zone, 30ms needle smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily. (★ Pro)"
+          "• Hard: ±1.8 cents dead zone, 30ms needle smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily. Hard Mode is available in Tonemap Pro."
       ]
     },
     noteViewStyle: {
@@ -6431,7 +6388,7 @@
     stainHold: {
       title: "Color Hold Before Fade",
       summary: "Delays how soon a colored cell starts fading after a hit.",
-      detail: "Choose how long color persists after you leave a pitch: 30s (free), or 5s, 15s, 45s, 1 min, 2 min, 5 min, and No Fade (Pro). No Fade keeps colors locked until you reset."
+      detail: "Choose how long color persists after you leave a pitch: 5s, 15s, 30s, 45s, 1 min, 2 min, 5 min, or No Fade. No Fade keeps colors locked until you reset."
     },
     micGain: {
       title: "Microphone Gain",
@@ -7497,12 +7454,24 @@
     }
   }
 
+  function handleARefInputChange() {
+    if (!aRefInput) return;
+    const raw = aRefInput.value.trim();
+    const parsed = Number(raw);
+    if (!raw || !isValidARefValue(parsed)) {
+      showARefError(A_REF_ERROR_MESSAGE);
+      if (aRefSelect) aRefSelect.value = A_REF_CUSTOM_VALUE;
+      return;
+    }
+    setA4Value(parsed);
+  }
+
   function applySettingsToUI(settings) {
     let needsPersist = false;
 
     const originalA4 = settings.a4;
     const a4ValRaw = Number(originalA4);
-    const normalizedA4 = FREE_ALLOWED.a4.has(a4ValRaw) ? a4ValRaw : 440;
+    const normalizedA4 = isValidARefValue(a4ValRaw) ? a4ValRaw : 440;
     syncARefControls(normalizedA4);
     clearARefError();
     if (normalizedA4 !== a4ValRaw) {
@@ -7538,13 +7507,13 @@
     currentSettings.stretch = stretchVal;
 
     const originalHistory = settings.history;
-    const historyVal = FREE_ALLOWED.history.has(originalHistory) ? originalHistory : "medium";
+    const historyVal = HISTORY_KEYS.includes(originalHistory) ? originalHistory : HISTORY_DEFAULT;
     if (historySelect) historySelect.value = historyVal;
     if (originalHistory !== historyVal) needsPersist = true;
     currentSettings.history = historyVal;
 
     const originalStainHold = settings.stainHold;
-    const stainHoldVal = FREE_ALLOWED.stainHold.has(originalStainHold) ? originalStainHold : "30";
+    const stainHoldVal = STAIN_HOLD_SECONDS[originalStainHold] != null ? originalStainHold : STAIN_HOLD_DEFAULT;
     if (stainHoldSelect) stainHoldSelect.value = stainHoldVal;
     if (originalStainHold !== stainHoldVal) needsPersist = true;
     currentSettings.stainHold = stainHoldVal;
@@ -8946,14 +8915,10 @@
       const isUserWindowActive = noteViewScrollIsUserInitiated || nowMs() <= noteViewUserScrollUntilMs;
 
       if (isUserWindowActive) {
-        const freeScrollMinLeft = getNoteViewFreeScrollMinLeft();
-        if (currentScrollLeft < freeScrollMinLeft - 1) {
-          noteViewRenderState.isLive = false;
-          noteViewContainer.scrollLeft = freeScrollMinLeft;
-          openNoteViewHistoryUpsell();
-          if (noteViewActive) renderNoteView();
-          return;
+        if (nowMs() > noteViewUserScrollUntilMs) {
+          noteViewScrollIsUserInitiated = false;
         }
+        return;
       }
 
       if (maxScroll > 0) {
@@ -11277,23 +11242,10 @@
   }
 
   function openNoteViewHistoryUpsell() {
-    const OVERLAY_COOLDOWN_MS = 800;
-    const nowT = nowMs();
-    if (nowT - noteViewScrollBackOverlayLastMs < OVERLAY_COOLDOWN_MS) {
-      return true;
-    }
-    noteViewScrollBackOverlayLastMs = nowT;
-    openProModal("history");
-    return true;
+    return false;
   }
 
   function blockNoteViewFreeScroll(nextLeft) {
-    if (!noteViewContainer) return false;
-    const freeScrollMinLeft = getNoteViewFreeScrollMinLeft();
-    if (nextLeft >= freeScrollMinLeft - 1) return false;
-    noteViewRenderState.isLive = false;
-    noteViewContainer.scrollLeft = freeScrollMinLeft;
-    openNoteViewHistoryUpsell();
     return true;
   }
 
@@ -11659,13 +11611,10 @@
     aRefSelect.addEventListener("change", () => {
       const value = aRefSelect.value;
       if (value === A_REF_CUSTOM_VALUE) {
-        openProModal("a4");
-        aRefSelect.value = String(currentSettings.a4 || 440);
-        return;
-      }
-      if (isProLockedValue("a4", Number(value))) {
-        openProModal("a4");
-        aRefSelect.value = String(currentSettings.a4 || 440);
+        if (aRefInput) {
+          aRefInput.focus();
+          aRefInput.select?.();
+        }
         return;
       }
       const parsed = parseFloat(value);
@@ -11674,6 +11623,10 @@
       }
       updateQuickState();
     });
+  }
+
+  if (aRefInput) {
+    aRefInput.addEventListener("input", handleARefInputChange);
   }
 
   volThreshEl.addEventListener("input", () => {
@@ -11927,11 +11880,6 @@
 
   // History change reinterprets stain (no reset)
   historySelect.addEventListener("change", () => {
-    if (isProLockedValue("history", historySelect.value)) {
-      historySelect.value = currentSettings.history || "medium";
-      openProModal("history");
-      return;
-    }
     currentSettings.history = historySelect.value;
     persistSettings(currentSettings);
     updateDebugPanel({});
@@ -11940,11 +11888,6 @@
 
   if (stainHoldSelect) {
     stainHoldSelect.addEventListener("change", () => {
-      if (isProLockedValue("stainHold", stainHoldSelect.value)) {
-        stainHoldSelect.value = currentSettings.stainHold || "30";
-        openProModal("stainHold");
-        return;
-      }
       currentSettings.stainHold = stainHoldSelect.value;
       persistSettings(currentSettings);
       renderHeatmap();

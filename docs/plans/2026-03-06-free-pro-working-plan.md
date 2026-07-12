@@ -4,7 +4,7 @@ Date: 2026-03-06
 Status: **HISTORICAL** — see note below
 Owner: Jeremy + AI assistant
 
-> **⚠️ HISTORICAL — DO NOT FOLLOW STEP-BY-STEP.** This plan executed the original split (with transposition, stretch, and rowStart gated). After launch the split was **deliberately simplified** to give free users a cleaner experience. The currently gated set is: sensitivity (Hard), A4 (non-440/441/442/443/444), history (Long/Unlimited), Color Hold (non-30s), and the Quick Recorder. Transposition, Stretch Tuning, and "Rows start with" are now **free for everyone**. See `CLAUDE.md` for the live matrix.
+> **⚠️ HISTORICAL — DO NOT FOLLOW STEP-BY-STEP.** This plan executed the original split (with transposition, stretch, and rowStart gated). After launch the split was **deliberately simplified** to give free users a cleaner experience. The currently gated set is: sensitivity (Hard) and the Quick Recorder. A4, History, Color Hold, Transposition, Stretch Tuning, and "Rows start with" are now **free for everyone**. See `CLAUDE.md` for the live matrix.
 
 ## Purpose
 Execute the free/pro split with the simplest viable architecture:

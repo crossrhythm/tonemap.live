@@ -3633,7 +3633,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.11";
+  window.APP_VERSION = "2.12";
 </script>
 
 <div class="page">
@@ -5118,11 +5118,9 @@
         {
           title: "Latest update",
           items: [
-            "New Automatic Gain Control (Advanced Options) quietly eases the mic gain down if the input sustainedly overloads — including during Quick Record (Pro). On by default; the Mic Gain slider moves to show it working.",
-            "The Microphone Volume Level meter is now a peak-hold meter, so its yellow/red zones reflect what's actually clipping.",
-            "Advanced Options were reorganized: Automatic Gain Control, Microphone Volume Level, Mic Gain, and Noise Reduction now lead the section before Onset Filter.",
-            "Color Hold Before Fade now includes 45 seconds and 1 minute options (Pro-locked in free mode; fully available in Pro).",
-            "The paused microphone button now uses a stronger flashing red warning pulse for better visibility."
+            "The free/pro split is now simpler: Hard Mode and Quick Record are the only Pro-gated features. This keeps the web app aligned with the upcoming iOS version.",
+            "The Pro overlay and help text now reflect the new split.",
+            "iOS Privacy Policy page added."
           ]
         }
       ],
@@ -6577,7 +6575,7 @@
     a4: {
       title: "Performance Pitch (A4)",
       summary: "Sets the reference frequency so all targets shift up or down from this A4 anchor.",
-      detail: "Use 440 for modern pitch; pick 415, 430, 442, etc. to match an ensemble or recording."
+      detail: "Use any value from 100–1000 Hz, or pick a preset such as 440, 415, 430, or 442 to match an ensemble or recording."
     },
     mode: {
       title: "Mode",
