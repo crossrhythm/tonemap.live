@@ -96,6 +96,20 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
+    .appstore-badge {
+      display: inline-block;
+      line-height: 0;
+      margin: 4px 0;
+    }
+    .appstore-badge:hover { text-decoration: none; opacity: 0.85; }
+    .appstore-badge img {
+      height: 40px;
+      width: auto;
+      display: block;
+      border-radius: 0;
+    }
+
+
     footer {
       border-top: 1px solid var(--border);
       padding: 32px 0 48px;
@@ -191,6 +205,7 @@
     </section>
 
     <footer>
+      <p style="margin-bottom: 16px;"><a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a></p>
       <p>
         &copy; 2026 Tonemap&#8482; &nbsp;·&nbsp;
         <a href="/help.html">Help</a> &nbsp;·&nbsp;

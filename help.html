@@ -141,6 +141,20 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
+    .appstore-badge {
+      display: inline-block;
+      line-height: 0;
+      margin: 4px 0;
+    }
+    .appstore-badge:hover { text-decoration: none; opacity: 0.85; }
+    .appstore-badge img {
+      height: 40px;
+      width: auto;
+      display: block;
+      border-radius: 0;
+    }
+
+
     /* ── Settings table ── */
     .settings-grid {
       display: grid;
@@ -397,7 +411,7 @@
       <h2>1. Getting Started</h2>
 
       <h3>What is Tonemap?</h3>
-      <p>Tonemap is a browser-based real-time pitch and intonation visualizer. It listens through your microphone and paints a color-coded grid showing which notes you play and how in-tune they are — sharp, flat, or centered. Nothing is recorded or sent anywhere; all processing happens locally in your browser.</p>
+      <p>Tonemap.live is a browser-based real-time pitch and intonation visualizer. It listens through your microphone and paints a color-coded grid showing which notes you play and how in-tune they are — sharp, flat, or centered. Nothing is recorded or sent anywhere; all processing happens locally in your browser.</p>
 
       <h3>How do I start?</h3>
       <p>Press the microphone button (or hit <strong>Space</strong>). Your browser will ask for microphone permission the first time — click Allow. Play a note and you should see the grid light up within a moment. Press the button again (or Space) to stop.</p>
@@ -410,10 +424,10 @@
       <p>For demos and tutorials, see the <a href="https://youtube.com/playlist?list=PL2EVakQjrgvHhnzaT8NWpxk1PqT8YguVc" target="_blank" rel="noopener">Tonemap YouTube playlist</a> — short videos showing how to use the app and what each feature looks like in practice.</p>
 
       <h3>Does it work on mobile?</h3>
-      <p>Yes — Tonemap works on iPhone, iPad, and Android in any modern browser. Safari on iOS and Chrome on Android are both supported. A larger screen, and landscape orientation, tend to work better, especially on mobile devices.  By tapping the logo, the UI will shrink to give you more space to see the grid.</p>
+      <p>Yes — Tonemap.live works on iPhone, iPad, and Android in any modern browser. Safari on iOS and Chrome on Android are both supported. A larger screen, and landscape orientation, tend to work better, especially on mobile devices.  By tapping the logo, the UI will shrink to give you more space to see the grid.</p>
 
       <h3>Do I need to install anything?</h3>
-      <p>No. Tonemap runs entirely in your browser with no download, no account, and no plugins required.</p>
+      <p>No. Tonemap.live runs entirely in your browser with no download, no account, and no plugins required.</p>
 
       <h3>What microphone should I use?</h3>
       <p>Any microphone works — your device's built-in mic is fine for practice. An external USB mic or audio interface will give cleaner results in noisy environments, but isn't necessary. If the meter stays gray (too quiet), try increasing Microphone Gain in settings or moving closer to the mic.  Conversely, if the meter is too sensitive (volume meter color turns red), try decreasing Microphone Gain or the Onset Filter, or moving further from the mic.</p>
@@ -619,13 +633,14 @@
       </table>
 
       <h3>How much does Pro cost?</h3>
-      <p>Pro is <strong>$9.99/year</strong> (~83¢/month), with a 7-day free trial. Cancel anytime from your <a href="https://polar.sh/eevs/portal/request" target="_blank" rel="noopener"></a>Polar.sh account page</a>.</p>
+      <p>Pro is <strong>$9.99/year</strong> (~83¢/month), with a 7-day free trial. Cancel anytime from your <a href="https://polar.sh/eevs/portal/request" target="_blank" rel="noopener">Polar.sh account page</a>.</p>
 
       <h3>How do I activate Pro?</h3>
       <p>After subscribing, go to <a href="/activate">tonemap.live/activate</a> and enter your license key. Your Pro status is stored as a signed cookie for one year; it re-validates against Polar.sh periodically in the background.</p>
 
-      <h3>Web (Polar) or App Store — which subscription should I use? <span class="badge">iOS coming soon</span></h3>
-      <p>An iOS app is in development (see <a href="/ios.html">tonemap.live/ios</a>). Once it's released, there will be two ways to get Tonemap Pro on your phone, and they behave differently:</p>
+      <h3>Web (Polar) or App Store — which subscription should I use?</h3>
+      <p>Tonemap is also a native iPhone and iPad app, <a href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener">Tonemap Tuner</a> on the App Store (see <a href="/ios.html">tonemap.live/ios</a>). There are two separate ways to subscribe to Pro, and they cover different things:</p>
+      <p><a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a></p>
 
       <table class="compare-table">
         <thead>
@@ -643,13 +658,13 @@
           </tr>
           <tr>
             <td>Unlocks Pro on</td>
-            <td>Web <em>and</em> iOS — enter the same license key on each device, up to 5 total</td>
-            <td>Your iOS devices signed into the same Apple ID</td>
+            <td>tonemap.live in any browser — including Safari on iPhone and iPad — on up to 5 devices</td>
+            <td>The iOS app, on devices signed into the same Apple Account</td>
           </tr>
           <tr>
-            <td>Also get web access?</td>
-            <td><span class="check">✓</span> Already included</td>
-            <td><span class="cross">—</span> Not automatically — email <a href="mailto:support@tonemap.live">support@tonemap.live</a> if you'd like it</td>
+            <td>Covers the other platform?</td>
+            <td><span class="cross">—</span> Not the iOS app — Pro in the app is available only as an App Store subscription</td>
+            <td><span class="cross">—</span> Not automatically — email <a href="mailto:support@tonemap.live">support@tonemap.live</a> if you'd like web access too</td>
           </tr>
           <tr>
             <td>Manage or cancel</td>
@@ -659,7 +674,7 @@
         </tbody>
       </table>
 
-      <p>Short version: if you already subscribe on the web, activate the same license key in the iOS app instead of subscribing again — it's free once you're already a Polar subscriber. If you're starting fresh on iPhone or iPad, the App Store subscription is the simplest option, with the tradeoff that it currently only covers iOS. See the <a href="/ios.html">iOS page</a> for how your data is handled under each path.</p>
+      <p>Short version: subscribe wherever you actually use Tonemap. If you want Pro in the native iPhone or iPad app, subscribe through the App Store. If you use Tonemap in a browser — desktop or mobile — subscribe on the web through Polar. License keys apply to the web app only; the iOS app uses App Store subscriptions. See the <a href="/ios.html">iOS page</a> for how your data is handled under each path.</p>
 
       <h3>I subscribed but the app still shows Free</h3>
       <p>Make sure you activated your license at <a href="/activate">/activate</a>. If you already did, try clearing your browser's cookies for tonemap.live and activating again. If the problem persists, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
@@ -772,7 +787,7 @@
     <!-- 8. GitHub Project -->
     <section id="github-project">
       <h2>8. GitHub Project</h2>
-      <p>Tonemap is open source. You can browse the code, report issues, and follow development on GitHub at <a href="https://github.com/crossrhythm/tonemap.live" target="_blank" rel="noopener">github.com/crossrhythm/tonemap.live</a>.</p>
+      <p>Tonemap.live is open source. You can browse the code, report issues, and follow development on GitHub at <a href="https://github.com/crossrhythm/tonemap.live" target="_blank" rel="noopener">github.com/crossrhythm/tonemap.live</a>.</p>
     </section>
 
     <!-- 9. About -->

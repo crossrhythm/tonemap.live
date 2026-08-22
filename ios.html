@@ -112,6 +112,20 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
+    .appstore-badge {
+      display: inline-block;
+      line-height: 0;
+      margin: 4px 0;
+    }
+    .appstore-badge:hover { text-decoration: none; opacity: 0.85; }
+    .appstore-badge img {
+      height: 40px;
+      width: auto;
+      display: block;
+      border-radius: 0;
+    }
+
+
     .callout {
       background: var(--surface);
       border-left: 3px solid var(--accent);
@@ -123,6 +137,14 @@
     }
 
     .callout strong { color: var(--text); }
+
+    code {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85em;
+      background: var(--surface);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
 
     ul { margin: 0 0 12px 20px; color: var(--text); }
     li { margin-bottom: 6px; }
@@ -147,39 +169,36 @@
       </a>
       <h1>Tonemap for iOS</h1>
       <p class="subtitle">A native iPhone &amp; iPad tuner app.<span class="badge-live">Available now</span></p>
-      <div class="updated">Privacy policy last updated: July 2026</div>
+      <p style="margin-bottom: 16px;"><a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a></p>
+      <div class="updated">Privacy policy last updated: August 2026</div>
     </header>
 
     <section id="about">
       <h2>About the iOS app</h2>
       <p>Tonemap for iOS brings the same real-time pitch and intonation visualization from <a href="/">tonemap.live</a> to a native iPhone and iPad app — built entirely in Swift and SwiftUI, with no web view, no third-party frameworks, and no build tooling beyond Xcode. Pitch detection, rendering, and audio handling all happen natively on-device.</p>
-      <p>The app is available on the App Store. This page explains how Tonemap for iOS handles your data.</p>
+      <p>The app is available on the App Store as <a href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener">Tonemap Tuner</a>. This page explains how Tonemap for iOS handles your data.</p>
     </section>
 
     <section id="privacy">
       <h2>Privacy Policy</h2>
 
-      <h3>Audio never leaves your device</h3>
-      <p>Tonemap processes microphone input entirely on-device using Apple's audio frameworks (<code>AVAudioEngine</code>). Pitch detection runs locally. No audio is recorded, transmitted, or stored on Tonemap's servers, and no audio ever leaves your device.</p>
+      <h3>No accounts, no ads, no data sharing</h3>
+      <p>Tonemap for iOS has no sign-up and no account. It contains no advertising SDKs and no analytics or tracking frameworks, and it shows no ads or interruptive pop-ups. It collects no personal data, sells no data, and shares no data with third parties.</p>
 
       <h3>Microphone access</h3>
-      <p>The app requests microphone permission the first time it's opened, to power real-time pitch detection. If permission is denied, the tuner cannot function, but you can grant access at any time from your device's Settings.</p>
-
-      <h3>What Tonemap collects</h3>
-      <p>By default, using the free tier of the app requires no account and involves no data collection. Tonemap does not use advertising or third-party analytics/tracking frameworks inside the app, does not sell data, and does not share data with third parties beyond what's described below for Pro subscribers.</p>
+      <p>The app requests microphone permission the first time it's opened, to power real-time pitch detection. Audio is analyzed in real time by Apple's audio frameworks (<code>AVAudioEngine</code>) and is not recorded, stored, or transmitted. If permission is denied, the tuner cannot function, but you can grant access at any time from your device's Settings.</p>
 
       <h3>Tonemap Pro &amp; subscriptions</h3>
-      <p>In the iOS app, Tonemap Pro is unlocked by subscribing through the App Store. Apple handles the entire transaction — Tonemap's servers are not involved and never receive your name, email, or payment details. Your purchase is recorded by Apple's StoreKit and tied to your Apple ID; see <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple's privacy policy</a> for how they handle that information.</p>
-      <p>Tonemap Pro on the web (tonemap.live) is a separate subscription handled by our payment processor, <a href="https://polar.sh" target="_blank" rel="noopener">Polar</a>, and is activated on the website with a license key. Your account, email, and payment details for a web subscription are held by Polar in accordance with their <a href="https://polar.sh/privacy" target="_blank" rel="noopener">privacy policy</a>, not by Tonemap.</p>
+      <p>Tonemap Pro is unlocked in the app by subscribing through the App Store. Apple handles the entire transaction — Tonemap's servers are not involved and never receive your name, email, or payment details. Your purchase is recorded by Apple's StoreKit and tied to your Apple Account; see <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple's privacy policy</a> for how they handle that information.</p>
       <div class="callout">
-        <strong>Note:</strong> the two subscriptions are independent. An App Store subscription unlocks Pro on your iOS devices; a web subscription unlocks Pro at tonemap.live. See the <a href="/help.html#free-vs-pro">Help &amp; FAQ page</a> for details on both.
+        <strong>Note:</strong> Tonemap Pro in the iOS app and Tonemap Pro on tonemap.live are separate subscriptions — an App Store subscription unlocks Pro on your iOS devices, and a web subscription unlocks Pro at tonemap.live. See the <a href="/help.html#free-vs-pro">Help &amp; FAQ page</a> for details on both.
       </div>
 
       <h3>Third-party services</h3>
       <p>Tonemap's iOS app relies on one outside service: <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple</a>, for App Store purchases, and only if you choose to subscribe. The app itself embeds no advertising SDKs, analytics SDKs, or other third-party frameworks.</p>
 
       <h3>Data retention &amp; deletion</h3>
-      <p>Tonemap's servers retain no data about your use of the iOS app. Subscription records for the App Store are held by Apple; records for a web subscription are held by Polar and by Tonemap's license system, described in the <a href="/terms#privacy">web Terms &amp; Privacy section</a>. Questions about any record we hold can be sent to <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
+      <p>Tonemap's servers retain no data about your use of the iOS app. Subscription records for the App Store are held by Apple. Data handling for the tonemap.live website is described in the <a href="/terms.html#privacy">web Terms &amp; Privacy section</a>. Questions about any record we hold can be sent to <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
 
       <h3>Children's privacy</h3>
       <p>Tonemap does not knowingly collect personal information from anyone, including children under 13 — the app doesn't collect personal data as part of its normal operation in the first place.</p>
