@@ -2167,6 +2167,20 @@
     min-height: 0;
   }
 
+  /* Explains a control whose displayed value comes from a session-only state
+     rather than the saved setting -- currently only Show Temperament Bar,
+     which reads Off while the bar's own (x) is holding it hidden. */
+  .opt-session-note {
+    width: 100%;
+    margin: 4px 0 0;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: var(--text-dim);
+    padding-left: 10px;
+  }
+
+  .opt-session-note[hidden] { display: none; }
+
   .option-field .reset-stack {
     display: flex;
     width: 100%;
@@ -4330,6 +4344,9 @@
               </div>
             </div>
           </div>
+          <p id="showTemperamentBarSessionNote" class="opt-session-note" hidden>
+            Hidden for this session &mdash; it comes back on reload. Select Off to keep it hidden.
+          </p>
         </div>
         <div class="option-field" id="optTemperament">
           <div class="opt-label-row">
@@ -4886,6 +4903,7 @@
   const temperamentBannerDismissBtn = document.getElementById("temperamentBannerDismissBtn");
   const showTemperamentBarOnEl = document.getElementById("showTemperamentBarOn");
   const showTemperamentBarOffEl = document.getElementById("showTemperamentBarOff");
+  const showTemperamentBarSessionNote = document.getElementById("showTemperamentBarSessionNote");
   const pitchCenterSelect = document.getElementById("pitchCenterSelect");
   const optTemperamentField = document.getElementById("optTemperament");
   const optPitchCenterField = document.getElementById("optPitchCenter");
@@ -7039,7 +7057,7 @@
       summary: "Shows a bar over the grid with quick Temperament and Pitch Center controls, plus a shortcut to the Custom editor.",
       detail: [
         "Off by default; turns on automatically the first time you pick a temperament other than Equal, from here or from the bar itself.",
-        "The bar's own (\u00d7) hides it for the rest of this session only \u2014 it comes back next time you reload or pick a new temperament. Turn this off to stop it reappearing altogether.",
+        "The bar's own (\u00d7) hides it for the rest of this session only \u2014 it comes back next time you reload or pick a new temperament. This setting then reads Off, with a note saying so; select Off yourself to stop it reappearing altogether.",
         "Once shown, the bar stays available even if you switch back to Equal, so you can flip between temperaments without reopening Options."
       ]
     },
@@ -8897,14 +8915,23 @@
         }
       }
     }
-    if (showTemperamentBarOnEl) showTemperamentBarOnEl.checked = !!currentSettings.showTemperamentBar;
-    if (showTemperamentBarOffEl) showTemperamentBarOffEl.checked = !currentSettings.showTemperamentBar;
-
     // Visibility is driven entirely by the Show Temperament Bar setting (plus
     // this session's dismiss state) -- deliberately NOT by isEqual, so the bar
     // stays put if the user steps back to Equal rather than disappearing.
+    const barVisible = !!currentSettings.showTemperamentBar && !temperamentBarSessionDismissed;
+
+    // The radio reports what the user can actually see, not just the saved
+    // setting: while the bar's own (x) is holding it hidden it reads Off, with
+    // a note saying the hiding lasts only for this session.
+    if (showTemperamentBarOnEl) showTemperamentBarOnEl.checked = barVisible;
+    if (showTemperamentBarOffEl) showTemperamentBarOffEl.checked = !barVisible;
+    if (showTemperamentBarSessionNote) {
+      showTemperamentBarSessionNote.hidden =
+        !(currentSettings.showTemperamentBar && temperamentBarSessionDismissed);
+    }
+
     if (temperamentBanner && temperamentBannerPill) {
-      temperamentBanner.hidden = !currentSettings.showTemperamentBar || temperamentBarSessionDismissed;
+      temperamentBanner.hidden = !barVisible;
     }
 
     // Both pitch-center controls are kept in step, whichever one was used.
@@ -8933,6 +8960,19 @@
     if (tempEditorA4) {
       tempEditorA4.textContent = `A4=${currentSettings?.a4 ?? A4 ?? 440}`;
     }
+  }
+
+  // Single entry point for the Options radio. Picking either side clears the
+  // session dismiss, so the radio and the bar cannot disagree afterwards:
+  // On shows the bar now, Off makes a session-only hide permanent.
+  function setShowTemperamentBar(on) {
+    const next = !!on;
+    temperamentBarSessionDismissed = false;
+    if (currentSettings.showTemperamentBar !== next) {
+      currentSettings.showTemperamentBar = next;
+      persistSettings(currentSettings);
+    }
+    updateTemperamentUiState();
   }
 
   function getTemperamentLabel() {
@@ -13215,23 +13255,23 @@
     });
   }
 
+  // Both "change" and "click": while the bar is dismissed for the session the
+  // radio already reads Off, so choosing Off to make that permanent fires no
+  // change event. setShowTemperamentBar is idempotent, so the double bind is safe.
   if (showTemperamentBarOnEl) {
-    showTemperamentBarOnEl.addEventListener("change", () => {
-      if (!showTemperamentBarOnEl.checked) return;
-      currentSettings.showTemperamentBar = true;
-      temperamentBarSessionDismissed = false;
-      persistSettings(currentSettings);
-      updateTemperamentUiState();
-    });
+    const pickOn = () => {
+      if (showTemperamentBarOnEl.checked) setShowTemperamentBar(true);
+    };
+    showTemperamentBarOnEl.addEventListener("change", pickOn);
+    showTemperamentBarOnEl.addEventListener("click", pickOn);
   }
 
   if (showTemperamentBarOffEl) {
-    showTemperamentBarOffEl.addEventListener("change", () => {
-      if (!showTemperamentBarOffEl.checked) return;
-      currentSettings.showTemperamentBar = false;
-      persistSettings(currentSettings);
-      updateTemperamentUiState();
-    });
+    const pickOff = () => {
+      if (showTemperamentBarOffEl.checked) setShowTemperamentBar(false);
+    };
+    showTemperamentBarOffEl.addEventListener("change", pickOff);
+    showTemperamentBarOffEl.addEventListener("click", pickOff);
   }
 
   for (const input of needleModeInputs) {
