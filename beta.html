@@ -371,6 +371,15 @@
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f8fafc' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
+  /* Pitch Center does nothing under Equal: dim the label and select to match
+     the disabled fields in Options (.option-field.is-disabled). */
+  .temperament-banner-label.is-disabled,
+  .temperament-banner-select:disabled {
+    opacity: 0.45;
+  }
+
+  .temperament-banner-select:disabled { cursor: not-allowed; }
+
   .temperament-banner-gear {
     appearance: none;
     border: none;
@@ -3978,7 +3987,7 @@
         <div class="temperament-banner-pill">
           <select id="bannerTemperamentSelect" class="temperament-banner-select" aria-label="Temperament"></select>
           <span class="temperament-banner-sep">&bull;</span>
-          <span class="temperament-banner-label">Pitch Center:</span>
+          <span id="bannerPitchCenterLabel" class="temperament-banner-label">Pitch Center:</span>
           <select id="bannerPitchCenterSelect" class="temperament-banner-select" aria-label="Pitch Center"></select>
           <button id="bannerCustomGearBtn" class="temperament-banner-gear" type="button"
             aria-label="Edit Custom Temperament" title="Edit Custom Temperament">&#9881;</button>
@@ -4899,6 +4908,7 @@
   const temperamentBannerPill = temperamentBanner?.querySelector(".temperament-banner-pill") || null;
   const bannerTemperamentSelect = document.getElementById("bannerTemperamentSelect");
   const bannerPitchCenterSelect = document.getElementById("bannerPitchCenterSelect");
+  const bannerPitchCenterLabel = document.getElementById("bannerPitchCenterLabel");
   const bannerCustomGearBtn = document.getElementById("bannerCustomGearBtn");
   const temperamentBannerDismissBtn = document.getElementById("temperamentBannerDismissBtn");
   const showTemperamentBarOnEl = document.getElementById("showTemperamentBarOn");
@@ -8851,6 +8861,32 @@
       }
       sel.value = value;
     }
+    // innerHTML above wiped the banner's "--" option; put it back if needed.
+    syncBannerPitchCenterPlaceholder();
+  }
+
+  // Under Equal the banner's Pitch Center reads "--" and is dimmed, so a note
+  // name there is not mistaken for a live setting. The saved center is left
+  // untouched and reappears as soon as a non-Equal temperament is picked.
+  function syncBannerPitchCenterPlaceholder() {
+    if (!bannerPitchCenterSelect) return;
+    const isEqual = (currentSettings?.temperament || "equal") === "equal";
+    let placeholder = bannerPitchCenterSelect.querySelector("option[data-placeholder]");
+    if (isEqual) {
+      if (!placeholder) {
+        placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "--";
+        placeholder.dataset.placeholder = "true";
+        bannerPitchCenterSelect.prepend(placeholder);
+      }
+      bannerPitchCenterSelect.value = "";
+    } else {
+      if (placeholder) placeholder.remove();
+      bannerPitchCenterSelect.value = String(getPitchCenterPc());
+    }
+    bannerPitchCenterSelect.disabled = isEqual;
+    if (bannerPitchCenterLabel) bannerPitchCenterLabel.classList.toggle("is-disabled", isEqual);
   }
 
   // Shared by both pitch-center controls: the one in Options and the one in the
@@ -8940,10 +8976,7 @@
       pitchCenterSelect.disabled = isEqual;
       if (pitchCenterSelect.options.length) pitchCenterSelect.value = centerPc;
     }
-    if (bannerPitchCenterSelect && bannerPitchCenterSelect.options.length) {
-      bannerPitchCenterSelect.disabled = isEqual;
-      bannerPitchCenterSelect.value = centerPc;
-    }
+    syncBannerPitchCenterPlaceholder();
     // Under equal temperament both halves of every cell are 50c, so the two
     // needle modes render identically. Dim the choice, as Pitch Center is.
     for (const input of needleModeInputs) input.disabled = isEqual;
@@ -13238,7 +13271,11 @@
   }
 
   if (bannerPitchCenterSelect) {
-    bannerPitchCenterSelect.addEventListener("change", () => setPitchCenterValue(bannerPitchCenterSelect.value));
+    bannerPitchCenterSelect.addEventListener("change", () => {
+      // "" is the "--" placeholder shown under Equal; never save it as a center.
+      if (bannerPitchCenterSelect.value === "") return;
+      setPitchCenterValue(bannerPitchCenterSelect.value);
+    });
   }
 
   if (bannerCustomGearBtn) {
