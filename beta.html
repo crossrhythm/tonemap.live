@@ -2359,8 +2359,9 @@
     text-shadow: 0 0 10px rgba(250,204,21,0.12);
   }
 
-  .pro-locked-choice {
-    opacity: 0.56;
+  /* Marks a choice as Pro-branded without implying it is disabled. Hard Mode is
+     selectable during the beta, so it carries the badge but not the dimming. */
+  .pro-marked-choice {
     white-space: nowrap;
   }
 
@@ -4215,7 +4216,7 @@
               </div>
               <div class="theme-mode-item">
                 <input id="sensitivityModeHard" class="theme-mode-radio" type="radio" name="sensitivityMode" value="hard" />
-                <label class="theme-mode-label pro-locked-choice" for="sensitivityModeHard" title="Hard Mode is available in Tonemap Pro">Hard <span class="pro-brand">★ Pro</span></label>
+                <label class="theme-mode-label pro-marked-choice" for="sensitivityModeHard" title="Tightest dead zone and fastest response. Unlocked in this beta; will be part of Tonemap Pro at public release.">Hard <span class="pro-brand">★ Pro</span></label>
               </div>
             </div>
             <select id="sensitivitySelect" class="select-replaced-hidden" aria-hidden="true">
@@ -5962,6 +5963,11 @@
   const MEDIUM_ERR_SCALE = 0.7;
   const MEDIUM_NEEDLE_TAU_MS = 80;
 
+  // Hard mode softened but still tighter than Medium
+  const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 2; // ~0.11%
+  const HARD_ERR_SCALE = 0.9;
+  const HARD_NEEDLE_TAU_MS = 30;
+
   // ---------------------------------------------------------------------------
   // Temperaments
   //
@@ -6987,10 +6993,11 @@
   const A_REF_MAX = 1000;
   const A_REF_ERROR_MESSAGE = "Please enter a value between 100 and 1000 (e.g., 440).";
 
-  const FREE_ALLOWED = Object.freeze({
-    // Only Hard Mode is gated among settings. Quick Record is gated by its launcher.
-    sensitivity: new Set(["relaxed", "medium"]),
-  });
+  // No setting is gated during the beta: Hard Mode is unlocked here and becomes
+  // part of Pro at public release. Quick Record stays gated at its launcher,
+  // which does not go through this table. isProLockedValue() returns false for
+  // any type absent here, so the call sites can stay as they are.
+  const FREE_ALLOWED = Object.freeze({});
 
   function isProLockedValue(type, value) {
     if (value == null) return false;
@@ -7047,7 +7054,7 @@
       detail: [
           "• Relaxed: ±4 cents dead zone, 350ms needle smoothing.",
           "• Medium: ±3.5 cents dead zone, 80ms needle smoothing.",
-          "• Hard: ±1.8 cents dead zone, 30ms needle smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily. Hard Mode is available in Tonemap Pro."
+          "• Hard: ±1.8 cents dead zone, 30ms needle smoothing. Gradient color also changes more quickly, so recent pitches are weighted more heavily. Unlocked in this beta; will be part of Tonemap Pro at public release."
       ]
     },
     noteViewStyle: {
@@ -8168,6 +8175,7 @@
     if (sensitivitySelect) {
       const val = resolveMode(sensitivitySelect.value);
       if (val === "relaxed") modeText = "Relaxed Mode";
+      else if (val === "hard") modeText = "Hard Mode";
       else modeText = "Medium Mode";
     }
     quickLine2.textContent = `${keyText} • ${modeText}`;
@@ -8276,7 +8284,10 @@
     currentSettings.a4 = normalizedA4;
 
     const originalSensitivity = settings.sensitivity;
-    const validModes = FREE_ALLOWED.sensitivity;
+    // Validity, not entitlement -- these are the modes the engine implements.
+    // Reading it off FREE_ALLOWED used to reset a saved "hard" back to "medium"
+    // on every reload.
+    const validModes = new Set(["relaxed", "medium", "hard"]);
     const sensitivityVal = validModes.has(originalSensitivity) ? originalSensitivity : "medium";
     if (sensitivitySelect) sensitivitySelect.value = sensitivityVal;
     if (originalSensitivity !== sensitivityVal) needsPersist = true;
@@ -9360,8 +9371,8 @@
         dbgSens.textContent     = "Medium";
         dbgDeadZone.textContent = "~0.21%";
     } else {
-      dbgSens.textContent     = "Medium";
-      dbgDeadZone.textContent = "~0.21%";
+        dbgSens.textContent     = "Hard";
+        dbgDeadZone.textContent = "~0.11%";
     }
     dbgHold.textContent = formatAttackSpeedText(getCurrentMinHoldMs());
 
@@ -9987,9 +9998,43 @@
     }
   }
 
+  function biasHard(avgErrRatio) {
+    const base = currentPalette.center;
+    const sharpCol = currentPalette.sharp;
+    const flatCol  = currentPalette.flat;
+
+    const dz = HARD_DEADZONE_RATIO;
+    const scaledErr = avgErrRatio * HARD_ERR_SCALE;
+    const absErr = Math.abs(scaledErr);
+
+    if (absErr <= dz) {
+      return base;
+    } else {
+      const span = 8 * dz;
+      let t = span > 0 ? (absErr - dz) / span : 1;
+      if (t<0) t=0;
+      if (t>1) t=1;
+
+      if (scaledErr > 0) {
+        return {
+          r: lerp(base.r, sharpCol.r, t),
+          g: lerp(base.g, sharpCol.g, t),
+          b: lerp(base.b, sharpCol.b, t),
+        };
+      } else {
+        return {
+          r: lerp(base.r, flatCol.r, t),
+          g: lerp(base.g, flatCol.g, t),
+          b: lerp(base.b, flatCol.b, t),
+        };
+      }
+    }
+  }
+
   function computeColorBiasFromErr(avgErrRatio) {
     const mode = resolveMode(sensitivitySelect?.value || "medium");
     if (mode === "relaxed") return biasRelaxed(avgErrRatio);
+    if (mode === "hard") return biasHard(avgErrRatio);
     return biasMedium(avgErrRatio);
   }
 
@@ -10105,6 +10150,7 @@
 
   function resolveMode(modeRaw) {
     if (modeRaw === "relaxed") return "relaxed";
+    if (modeRaw === "hard") return "hard";
     return "medium";
   }
 
@@ -10133,6 +10179,7 @@
   function getCurrentDeadzoneRatio() {
     const mode = resolveMode(sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium");
     if (mode === "relaxed") return RELAXED_DEADZONE_RATIO;
+    if (mode === "hard") return HARD_DEADZONE_RATIO;
     return MEDIUM_DEADZONE_RATIO;
   }
 
@@ -11875,7 +11922,9 @@
       let displayCents = cents;
       const tauMs = mode === "relaxed"
         ? RELAXED_NEEDLE_TAU_MS
-        : MEDIUM_NEEDLE_TAU_MS;
+        : mode === "hard"
+          ? HARD_NEEDLE_TAU_MS
+          : MEDIUM_NEEDLE_TAU_MS;
       if (tauMs > 0) {
         if (!relaxedSmoothingActive) {
           relaxedNeedleCents = cents;
