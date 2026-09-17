@@ -184,10 +184,32 @@
     margin: 0;
   }
 
+  /* Belt and braces for the rule on `body` below: an engine that propagates the
+     body's scrolling to the viewport can disregard touch-action set there, so
+     name the tappable things directly too. Everything here is tap- or
+     drag-operated; none of it wants a double-tap. */
+  button,
+  [role="button"],
+  select,
+  label,
+  input,
+  .grid-cell,
+  .grid-surface,
+  .edge-key {
+    touch-action: manipulation;
+  }
+
   body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg-main);
     color: var(--text-lite);
+    /* No double-tap-to-zoom: rapid repeat taps on the +/- range buttons or on
+       Record were being read as a zoom gesture. `manipulation` suppresses only
+       double-tap zoom -- panning, scrolling and pinch-to-zoom are unaffected,
+       so the page stays zoomable for accessibility. Honoured by iOS Safari
+       since 9.3. touch-action is resolved down the ancestor chain, so setting
+       it here covers every control without per-element rules. */
+    touch-action: manipulation;
     display: flex;
     flex-direction: column;
     min-height: var(--app-viewport-height);
@@ -8151,9 +8173,13 @@
     quickLine2.textContent = `${keyText} • ${modeText}`;
   }
 
-  function syncARefControls(value) {
+  // skipInput: the user is mid-keystroke in the text field. Writing the parsed
+  // number back would eat a trailing decimal point ("441." -> "441"), so the
+  // next digit lands as "4415" and trips the range error. Leave their text as
+  // typed and only re-sync the field once they commit (blur / change).
+  function syncARefControls(value, { skipInput = false } = {}) {
     const valueText = Number.isFinite(value) ? `${value}` : "";
-    if (aRefInput) {
+    if (aRefInput && !skipInput) {
       aRefInput.value = valueText;
     }
     if (aRefSelect) {
@@ -8179,17 +8205,26 @@
     return Number.isFinite(value) && value >= A_REF_MIN && value <= A_REF_MAX;
   }
 
-  function setA4Value(newValue, { persist = true } = {}) {
-    if (!isValidARefValue(newValue)) {
+  // Reference pitches are stored to a tenth of a Hz (441.52 -> 441.5). That is
+  // roughly 0.004 cents of resolution at A4 -- far finer than anyone can hear --
+  // and it keeps the quick-state line and debug readout from showing a value
+  // like 440.1234567890123 that a float round-trip happens to produce.
+  function roundARefValue(value) {
+    return Math.round(value * 10) / 10;
+  }
+
+  function setA4Value(rawValue, { persist = true, fromInput = false } = {}) {
+    if (!isValidARefValue(rawValue)) {
       showARefError(A_REF_ERROR_MESSAGE);
       if (aRefSelect) aRefSelect.value = A_REF_CUSTOM_VALUE;
       return;
     }
+    const newValue = roundARefValue(rawValue);
     const changed = A4 !== newValue;
     A4 = newValue;
     dbgARef.textContent = `${A4}`;
     currentSettings.a4 = A4;
-    syncARefControls(A4);
+    syncARefControls(A4, { skipInput: fromInput });
     clearARefError();
     if (persist) {
       persistSettings(currentSettings);
@@ -8208,6 +8243,22 @@
       if (aRefSelect) aRefSelect.value = A_REF_CUSTOM_VALUE;
       return;
     }
+    setA4Value(parsed, { fromInput: true });
+  }
+
+  // Called when the user is done typing (blur, or Enter / the stepper firing a
+  // change). Tidies "441." to "441" and "441.52" to "441.5"; if what is in the
+  // box cannot be used, quietly put the reference pitch that is actually in
+  // effect back in the field rather than leaving a rejected value sitting there.
+  function handleARefInputCommit() {
+    if (!aRefInput) return;
+    const raw = aRefInput.value.trim();
+    const parsed = Number(raw);
+    if (!raw || !isValidARefValue(parsed)) {
+      syncARefControls(A4);
+      clearARefError();
+      return;
+    }
     setA4Value(parsed);
   }
 
@@ -8216,7 +8267,7 @@
 
     const originalA4 = settings.a4;
     const a4ValRaw = Number(originalA4);
-    const normalizedA4 = isValidARefValue(a4ValRaw) ? a4ValRaw : 440;
+    const normalizedA4 = isValidARefValue(a4ValRaw) ? roundARefValue(a4ValRaw) : 440;
     syncARefControls(normalizedA4);
     clearARefError();
     if (normalizedA4 !== a4ValRaw) {
@@ -13065,6 +13116,8 @@
 
   if (aRefInput) {
     aRefInput.addEventListener("input", handleARefInputChange);
+    aRefInput.addEventListener("change", handleARefInputCommit);
+    aRefInput.addEventListener("blur", handleARefInputCommit);
   }
 
   volThreshEl.addEventListener("input", () => {
