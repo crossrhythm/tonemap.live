@@ -182,10 +182,32 @@
     margin: 0;
   }
 
+  /* Belt and braces for the rule on `body` below: an engine that propagates the
+     body's scrolling to the viewport can disregard touch-action set there, so
+     name the tappable things directly too. Everything here is tap- or
+     drag-operated; none of it wants a double-tap. */
+  button,
+  [role="button"],
+  select,
+  label,
+  input,
+  .grid-cell,
+  .grid-surface,
+  .edge-key {
+    touch-action: manipulation;
+  }
+
   body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg-main);
     color: var(--text-lite);
+    /* No double-tap-to-zoom: rapid repeat taps on the +/- range buttons or on
+       Record were being read as a zoom gesture. `manipulation` suppresses only
+       double-tap zoom -- panning, scrolling and pinch-to-zoom are unaffected,
+       so the page stays zoomable for accessibility. Honoured by iOS Safari
+       since 9.3. touch-action is resolved down the ancestor chain, so setting
+       it here covers every control without per-element rules. */
+    touch-action: manipulation;
     display: flex;
     flex-direction: column;
     min-height: var(--app-viewport-height);
@@ -274,6 +296,153 @@
     height: 100%;
     display: grid;
     grid-template-columns: 1fr var(--edge-col-width);
+  }
+
+  /* Shown only when the temperament is not Equal. Floated rather than inserted:
+     the grid is height:100% with 1fr rows, so a bar taking real space would
+     shrink every cell and re-run the sizing maths. Confined to the grid column
+     (right: var(--edge-col-width)) so it never sits over the range rail. */
+  .temperament-banner {
+    position: absolute;
+    top: clamp(0.16rem, 0.45vh, 0.4rem);
+    left: 0;
+    right: var(--edge-col-width);
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    /* Above .note-view-container (z-index 10), which is opaque and would other-
+       wise hide this the moment you switch to Note View. Horizontally confined
+       to the grid column, so it never fights the range rail. */
+    z-index: 12;
+  }
+
+  .temperament-banner[hidden] { display: none; }
+
+  .temperament-banner-pill {
+    max-width: calc(100% - 1.5rem);
+    /* Sized continuously from viewport height rather than stepped: the grid's
+       border thresholds fire at height < 1200, which every laptop is under, so
+       reusing them pinned this at its smallest size on every real display.
+       Padding is in em so it tracks the type. */
+    padding: 0.34em 1.05em;
+    border-radius: 999px;
+    /* The accent carries the emphasis instead of bold text: a green rim and a
+       soft glow read as "something is deliberately not default" without the
+       weight fighting the note labels behind it. */
+    --temperament-banner-bg: color-mix(in srgb, var(--bg-panel) 93%, var(--accent-green));
+    border: 1px solid color-mix(in srgb, var(--accent-green) 50%, transparent);
+    /* 75% transparent at every size; the blur behind it and the green rim keep
+       the text legible over grid lines. */
+    background: color-mix(in srgb, var(--temperament-banner-bg) 25%, transparent);
+    backdrop-filter: blur(10px);
+    box-shadow:
+      0 0 0.85rem color-mix(in srgb, var(--accent-green) 20%, transparent),
+      0 6px 18px rgba(2, 6, 23, 0.38);
+    color: var(--text-lite);
+    font-size: clamp(0.75rem, 1.75vh, 1.05rem);
+    font-weight: 400;
+    line-height: 1.25;
+    letter-spacing: 0.01em;
+    /* Real controls live inside now, so the pill can no longer ellipsis a single
+       text run -- let it wrap onto a second line on narrow screens instead. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 0.2em;
+    column-gap: 0.4em;
+    /* Overrides the ancestor's pointer-events:none (set so the floated banner
+       never blocks grid taps); only the pill itself needs to be clickable. */
+    pointer-events: auto;
+  }
+
+  .temperament-banner-label {
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+
+  .temperament-banner-sep {
+    opacity: 0.55;
+  }
+
+  .temperament-banner-select {
+    appearance: none;
+    font: inherit;
+    font-size: 0.9em;
+    color: var(--text-lite);
+    background-color: color-mix(in srgb, var(--bg-panel) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent-green) 45%, transparent);
+    border-radius: 999px;
+    padding: 0.05em 1.5em 0.05em 0.6em;
+    cursor: pointer;
+    max-width: 12rem;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f8fafc' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 0.6rem 0.4rem;
+    background-position: right 0.55em center;
+  }
+
+  :root[data-ui-theme="light"] .temperament-banner-select {
+    /* The pill's own background stays dark-tinted in both themes (see
+       --temperament-banner-bg above), so the light-theme arrow keeps the dark
+       stroke it already had rather than switching to the app-wide light one. */
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f8fafc' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+
+  /* Pitch Center does nothing under Equal: dim the label and select to match
+     the disabled fields in Options (.option-field.is-disabled). */
+  .temperament-banner-label.is-disabled,
+  .temperament-banner-select:disabled {
+    opacity: 0.45;
+  }
+
+  .temperament-banner-select:disabled { cursor: not-allowed; }
+
+  .temperament-banner-gear {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: inherit;
+    font-size: 1.1em;
+    line-height: 1;
+    padding: 0.1em 0.35em;
+    margin-left: 0.15em;
+    cursor: pointer;
+    border-radius: 999px;
+    opacity: 0.8;
+  }
+
+  .temperament-banner-gear:hover,
+  .temperament-banner-gear:focus-visible {
+    opacity: 1;
+    background: color-mix(in srgb, var(--accent-green) 22%, transparent);
+  }
+
+  .temperament-banner-dismiss {
+    font-size: 1.3em;
+    font-weight: 700;
+  }
+
+  .temperament-banner-dismiss:hover,
+  .temperament-banner-dismiss:focus-visible {
+    background: color-mix(in srgb, var(--err-color) 25%, transparent);
+  }
+
+  /* Window-driven only -- deliberately independent of Mini UI, which can be used
+     on a large screen where the banner should stay full size. Same breakpoints at
+     which the sidebar goes compact: on a window tight enough to shrink the UI the
+     banner trims its padding. Must stay AFTER the base rule above -- equal
+     specificity, so source order decides. */
+  @media (min-aspect-ratio: 1/1) and (max-width: 1000px),
+         (max-aspect-ratio: 1/1) and (max-width: 820px) {
+    .temperament-banner-pill {
+      padding: 0.2em 0.75em;
+    }
+    .temperament-banner-select {
+      max-width: 8.5rem;
+    }
   }
 
   /* Score View Styles */
@@ -1111,12 +1280,27 @@
     color: var(--text-lite);
     border: 1px solid var(--border-dim);
     border-radius: .5rem;
-    padding: .3rem .5rem;
+    padding: .3rem 1.6rem .3rem .5rem;
     font-size: 0.8rem;
     cursor: pointer;
     white-space: nowrap;
     width: auto;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    /* appearance:none removes the native chevron, so draw it back. Same well and
+       glyph as the Performance Pitch preset picker. Declared after the background
+       shorthand above, which would otherwise clear it. */
+    background-image:
+      linear-gradient(to left, rgba(148,163,184,0.12), rgba(148,163,184,0.12)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f8fafc' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat, no-repeat;
+    background-size: 1.65rem 100%, 0.6rem 0.4rem;
+    background-position: right 0 top 0, right 0.55rem center;
+  }
+
+  :root[data-ui-theme="light"] select {
+    background-image:
+      linear-gradient(to left, rgba(100,116,139,0.12), rgba(100,116,139,0.12)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%230f172a' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
   select.alert {
@@ -1200,11 +1384,13 @@
 
   .a-ref-control .a-ref-input {
     flex: 0 0 auto;
-    width: 6.4ch;
-    min-width: 6.4ch;
+    /* Extra right padding clears the browser's native up/down spinner buttons,
+       which otherwise sit on top of the last digit. */
+    width: 5.5rem;
+    min-width: 5.5rem;
     text-align: right;
     padding-left: 0.35rem;
-    padding-right: 0.35rem;
+    padding-right: 1.6rem;
   }
 
   .a-ref-control .a-ref-input[readonly] {
@@ -1224,8 +1410,8 @@
   }
 
   .a-ref-preset #aRefSelect {
-    width: 7.6ch;
-    min-width: 7.6ch;
+    width: 6rem;
+    min-width: 6rem;
     padding-right: 1.6rem;
     background-image:
       linear-gradient(to left, rgba(148,163,184,0.12), rgba(148,163,184,0.12)),
@@ -1453,6 +1639,7 @@
     border-color: var(--border-dim);
   }
 
+  .options-btn:hover,
   .options-btn:focus-visible,
   .status-btn:hover,
   .status-btn:focus-visible,
@@ -1465,6 +1652,55 @@
     border-color: var(--accent-green);
     color: var(--accent-green);
     outline: none;
+  }
+
+  /* Header actions in Options and Colors share the Custom Temperament button
+     box model -- same type, padding and radius. The theme-scoped selector is
+     matched too because :root[data-ui-theme] .options-close-btn outranks a bare
+     class. Pill buttons elsewhere are untouched. */
+  button.overlay-action-btn,
+  :root[data-ui-theme="light"] button.overlay-action-btn {
+    padding: 0.4rem 0.9rem;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    /* No line-height on purpose: letting the line box inherit is what keeps every
+       one of these buttons the same height. */
+    color: var(--text-lite);
+    background: color-mix(in srgb, var(--bg-main) 25%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-dim) 70%, transparent);
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+
+  /* Keeps the green hover these buttons are meant to have, on top of the
+     editor's background lift. */
+  button.overlay-action-btn:hover,
+  button.overlay-action-btn:focus-visible {
+    background: color-mix(in srgb, var(--bg-main) 45%, transparent);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    outline: none;
+  }
+
+  button.overlay-action-btn.overlay-action-pill {
+    border-radius: 999px;
+  }
+
+  /* Only the two confirm-and-close buttons go solid green; the bare X dismiss
+     buttons share .options-close-btn and must not follow. */
+  button.overlay-action-btn.options-apply-btn,
+  :root[data-ui-theme="light"] button.overlay-action-btn.options-apply-btn {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+    color: #05240f;
+  }
+
+  button.overlay-action-btn.options-apply-btn:hover,
+  button.overlay-action-btn.options-apply-btn:focus-visible {
+    background: color-mix(in srgb, var(--accent-green) 85%, white);
+    border-color: var(--accent-green);
+    color: #05240f;
   }
 
 .options-btn:active,
@@ -1604,9 +1840,14 @@
     border-bottom: 1px solid var(--ui-overlay-card-border);
   }
 
-  .options-grid #optMode,
-  .options-grid #optPerformancePitch,
-  .options-grid #optNoteViewStyle,
+  /* Tightens the space under a section heading. This must list exactly the fields
+     in the FIRST row of each section -- Core Tuning, Visual, Advanced. #optNoteViewStyle
+     used to be here from an older field order; it sits in row 2 of Visual, so the
+     pull-up was shortening a gap between two ordinary rows instead. */
+  .options-grid #optTemperament,
+  .options-grid #optPitchCenter,
+  .options-grid #optRowsStart,
+  .options-grid #optAccidentals,
   .options-grid #optAgc,
   .options-grid #optLevelsMonitorField {
     margin-top: -0.7rem;
@@ -1618,7 +1859,8 @@
 
   #optSectionCore { order: 0; }
   #optSectionVisual { order: 5; }
-  #optSectionAdvanced { order: 10; }
+  #optSectionTemperament { order: 10; }
+  #optSectionAdvanced { order: 15; }
 
   #optMode { order: 1; }
   #optPerformancePitch { order: 2; }
@@ -1630,13 +1872,18 @@
   #optNoteViewStyle { order: 8; }
   #optNeedleDirection { order: 9; }
 
-  #optAgc { order: 11; }
-  #optLevelsMonitorField { order: 12; }
-  #optMicGain { order: 13; }
-  #optNoiseReduction { order: 14; }
-  #optOnsetFilter { order: 15; }
-  #optHistory { order: 16; }
-  #optColorHold { order: 17; }
+  #optTemperament { order: 11; }
+  #optPitchCenter { order: 12; }
+  #optShowTemperamentBar { order: 13; }
+  #optNeedleBehavior { order: 14; }
+
+  #optAgc { order: 16; }
+  #optLevelsMonitorField { order: 17; }
+  #optMicGain { order: 18; }
+  #optNoiseReduction { order: 19; }
+  #optOnsetFilter { order: 20; }
+  #optHistory { order: 21; }
+  #optColorHold { order: 22; }
 
   #optMicGain .mic-adj-wrap,
   #optNoiseReduction .mic-adj-wrap { width: 100%; }
@@ -1949,6 +2196,20 @@
     min-height: 0;
   }
 
+  /* Explains a control whose displayed value comes from a session-only state
+     rather than the saved setting -- currently only Show Temperament Bar,
+     which reads Off while the bar's own (x) is holding it hidden. */
+  .opt-session-note {
+    width: 100%;
+    margin: 4px 0 0;
+    font-size: 0.7rem;
+    line-height: 1.4;
+    color: var(--text-dim);
+    padding-left: 10px;
+  }
+
+  .opt-session-note[hidden] { display: none; }
+
   .option-field .reset-stack {
     display: flex;
     width: 100%;
@@ -2150,6 +2411,191 @@
     line-height: 1;
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     transform: translateY(-0.5px);
+  }
+
+  /* ---- Temperament control: preset list + Custom button ---- */
+  .temperament-control {
+    width: 100%;
+    gap: 0.4rem;
+  }
+
+  .temperament-control select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .temperament-custom-btn {
+    flex: 0 0 auto;
+    appearance: none;
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    border: 1px solid var(--border-dim);
+    /* Same pill shape, padding and type scale as .theme-mode-label (Accidentals,
+       Needle Direction) so it matches the other buttons in height and form. */
+    border-radius: 999px;
+    padding: clamp(0.34rem, 0.95vw, 0.42rem) clamp(0.7rem, 1.5vw, 0.95rem);
+    font: inherit;
+    font-size: clamp(0.62rem, 1.35vw, 0.75rem);
+    font-weight: 600;
+    line-height: 1.1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .temperament-custom-btn:hover {
+    border-color: color-mix(in srgb, var(--accent-green) 60%, var(--border-dim));
+  }
+
+  .temperament-custom-btn[aria-pressed="true"] {
+    background-color: rgba(34,197,94,0.12);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  /* ---- Custom temperament editor ---- */
+  .temp-editor-card { width: min(500px, 100%); }
+
+  .temp-editor-load {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.5rem 0.6rem;
+    padding-bottom: 0.85rem;
+    margin-bottom: 0.15rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-dim) 42%, transparent);
+  }
+
+  .temp-editor-load-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-lite);
+  }
+
+  .temp-editor-load select { width: 100%; min-width: 0; }
+
+  /* The pitch center row has no box to type in -- it is 0 by definition. */
+  .temp-row-center {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--text-dim);
+    text-align: right;
+    padding: 0.28rem 0.4rem;
+    border: 1px solid transparent;
+  }
+
+  .temp-editor-note {
+    margin: 0.7rem 0 0.85rem !important;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text-dim);
+  }
+
+  /* Column-major: degrees 0-5 run down the first column, 6-11 down the second,
+     so reading downward follows the chromatic scale. */
+  .temp-editor-rows {
+    display: grid;
+    grid-template-rows: repeat(6, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0.4rem 1rem;
+  }
+
+  .temp-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+  }
+
+  .temp-row-note {
+    flex: 0 0 2.3rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-lite);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .temp-row-degree {
+    flex: 0 0 1.9rem;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+
+  .temp-row input[type="number"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    padding: 0.28rem 0.4rem;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--text-lite);
+    background: color-mix(in srgb, var(--bg-main) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-dim) 65%, transparent);
+    border-radius: 0.35rem;
+  }
+
+  .temp-row input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent-green);
+  }
+
+  .temp-row-unit {
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+
+  /* The inputs already carry min/max, so out-of-range values are flagged live by
+     the browser's own constraint validation -- no JS needed. The readonly pitch
+     center row is barred from validation, so it never lights up. */
+  .temp-row input[type="number"]:invalid {
+    border-color: var(--warn-color);
+    box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--warn-color) 22%, transparent);
+  }
+
+  /* Cancel / Apply sit in the header, as they do in Options and Colors. They use
+     the shared .overlay-action-btn styling rather than a private copy, so the
+     green hover and the box model can never drift apart. */
+  .temp-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+  }
+
+  /* No footer any more, so the body carries the bottom padding itself. */
+  .temp-editor-card .pro-modal-body { padding-bottom: 1.1rem; }
+
+  .temp-editor-hint {
+    margin: 0.7rem 0 0;
+    min-height: 0.95rem;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    color: var(--warn-color);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+
+  .temp-editor-hint.is-visible { opacity: 1; }
+
+  .option-field.is-disabled { opacity: 0.45; }
+  .option-field.is-disabled select { cursor: not-allowed; }
+
+  @media (max-width: 560px) {
+    .temp-editor-load { grid-template-columns: auto minmax(0, 1fr); }
+  }
+
+  @media (max-width: 460px) {
+    .temp-editor-rows {
+      grid-auto-flow: row;
+      grid-template-rows: none;
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .pro-modal-overlay {
@@ -3144,12 +3590,15 @@
     box-shadow: inset 0 0 0 var(--grid-active-border) #ffffff;
   }
 
+  /* --needle-target-pos is set per cell when a temperament puts the target off
+     the geometric centre. Height is untouched, so whatever sizing this had is
+     preserved. */
   .grid-cell.active::after {
     content: "";
     position: absolute;
     left: 0;
     right: 0;
-    top: 50%;
+    top: var(--needle-target-pos, 50%);
     height: 8px;
     background: var(--needle-reference-line);
     transform: translateY(-50%);
@@ -3159,7 +3608,7 @@
   .grid-cell.vertical-needle.active::after {
     width: 8px;
     height: 100%;
-    left: 50%;
+    left: var(--needle-target-pos, 50%);
     right: auto;
     top: 0;
     transform: translateX(-50%);
@@ -3517,7 +3966,7 @@
 <body>
 
 <script>
-  window.APP_VERSION = "2.12";
+  window.APP_VERSION = "2.13";
   // If the user has the non-HttpOnly Pro flag cookie, send them straight to
   // /pro. The real HttpOnly HMAC cookie (tm_pro) isn't visible to JS, so the
   // Worker sets tm_pro_flag=1 alongside it as a client-readable hint. Worker
@@ -3553,6 +4002,18 @@
       <!-- SCORE VIEW CANVAS (hidden by default) -->
       <div id="noteViewContainer" class="note-view-container" style="display: none;">
         <canvas id="noteViewCanvas"></canvas>
+      </div>
+      <div id="temperamentBanner" class="temperament-banner" role="status" aria-live="polite" hidden>
+        <div class="temperament-banner-pill">
+          <select id="bannerTemperamentSelect" class="temperament-banner-select" aria-label="Temperament"></select>
+          <span class="temperament-banner-sep">&bull;</span>
+          <span id="bannerPitchCenterLabel" class="temperament-banner-label">Pitch Center:</span>
+          <select id="bannerPitchCenterSelect" class="temperament-banner-select" aria-label="Pitch Center"></select>
+          <button id="bannerCustomGearBtn" class="temperament-banner-gear" type="button"
+            aria-label="Edit Custom Temperament" title="Edit Custom Temperament">&#9881;</button>
+          <button id="temperamentBannerDismissBtn" class="temperament-banner-gear temperament-banner-dismiss" type="button"
+            aria-label="Hide temperament bar for this session" title="Hide for this session">&times;</button>
+        </div>
       </div>
       <div class="edge-controls" aria-label="Range controls">
         <div class="edge-group edge-group-top">
@@ -3683,9 +4144,9 @@
             Options
           </div>
           <div class="options-header-actions">
-            <button id="optionsPaletteBtn" class="options-btn overlay-nav-btn" type="button">Colors</button>
-            <button id="resetSettingsBtn" class="reset-btn-secondary" type="button">Reset</button>
-            <button id="optionsCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close options overlay">Apply ✕</button>
+            <button id="optionsPaletteBtn" class="options-btn overlay-nav-btn overlay-action-btn overlay-action-pill" type="button">Colors</button>
+            <button id="resetSettingsBtn" class="reset-btn-secondary overlay-action-btn" type="button">Reset</button>
+            <button id="optionsCloseBtn" class="options-close-btn options-apply-btn overlay-action-btn" type="button" aria-label="Apply and close options overlay">Apply ✕</button>
           </div>
         </div>
     <div class="options-overlay-body scroll-fade-y">
@@ -3886,11 +4347,73 @@
           </div>
           <div class="opt-control">
             <select id="stretchSelect">
-              <option value="none">None (Equal Temperament)</option>
+              <option value="none">None</option>
               <option value="minimal" selected>Minimal (¼ Railsback above A4)</option>
               <option value="medium">Medium (½ Railsback above A4)</option>
               <option value="full">Full (Railsback)</option>
             </select>
+          </div>
+        </div>
+
+        <p id="optSectionTemperament" class="options-section-label">Temperament</p>
+        <div class="option-field" id="optShowTemperamentBar">
+          <div class="opt-label-row">
+            <label class="opt-label" for="showTemperamentBarOn">Show Temperament Bar</label>
+            <button class="info-btn" type="button" data-info-key="showTemperamentBar" aria-label="Learn about Show Temperament Bar">i</button>
+          </div>
+          <div class="opt-control">
+            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Show Temperament Bar">
+              <div class="theme-mode-item">
+                <input id="showTemperamentBarOn" class="theme-mode-radio" type="radio" name="showTemperamentBarMode" value="on" />
+                <label class="theme-mode-label" for="showTemperamentBarOn">On</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="showTemperamentBarOff" class="theme-mode-radio" type="radio" name="showTemperamentBarMode" value="off" />
+                <label class="theme-mode-label" for="showTemperamentBarOff">Off</label>
+              </div>
+            </div>
+          </div>
+          <p id="showTemperamentBarSessionNote" class="opt-session-note" hidden>
+            Hidden for this session &mdash; it comes back on reload. Select Off to keep it hidden.
+          </p>
+        </div>
+        <div class="option-field" id="optTemperament">
+          <div class="opt-label-row">
+            <label class="opt-label" for="temperamentSelect">Temperament</label>
+            <button class="info-btn" type="button" data-info-key="temperament" aria-label="Learn about Temperament">i</button>
+          </div>
+          <div class="opt-control temperament-control">
+            <select id="temperamentSelect"></select>
+            <button id="temperamentCustomBtn" class="temperament-custom-btn" type="button"
+                    aria-pressed="false" aria-haspopup="dialog">Custom</button>
+          </div>
+        </div>
+
+        <div class="option-field" id="optPitchCenter">
+          <div class="opt-label-row">
+            <label class="opt-label" for="pitchCenterSelect">Pitch Center</label>
+            <button class="info-btn" type="button" data-info-key="pitchCenter" aria-label="Learn about Pitch Center">i</button>
+          </div>
+          <div class="opt-control">
+            <select id="pitchCenterSelect"></select>
+          </div>
+        </div>
+        <div class="option-field" id="optNeedleBehavior">
+          <div class="opt-label-row">
+            <label class="opt-label" for="needleModeEven">Needle Behavior</label>
+            <button class="info-btn" type="button" data-info-key="needleBehavior" aria-label="Learn about Needle Behavior">i</button>
+          </div>
+          <div class="opt-control">
+            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Needle Behavior">
+              <div class="theme-mode-item">
+                <input id="needleModeEven" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="even" />
+                <label class="theme-mode-label" for="needleModeEven">Even needle travel</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="needleModeCentered" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="centered" />
+                <label class="theme-mode-label" for="needleModeCentered">Centered target pitch</label>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -3916,6 +4439,7 @@
             </select>
           </div>
         </div>
+
 
         <div class="option-field" id="optTransposition">
           <div class="opt-label-row">
@@ -4073,7 +4597,11 @@
         </div>
         <div class="status-row">
           <span class="status-key">Stretch</span>
-          <span class="status-val" id="dbgStretch">None (Equal Temperament)</span>
+          <span class="status-val" id="dbgStretch">None</span>
+        </div>
+        <div class="status-row">
+          <span class="status-key">Temperament</span>
+          <span class="status-val" id="dbgTemperament">Equal Temperament</span>
         </div>
         <div class="status-row">
           <span class="status-key">Dead Zone</span>
@@ -4190,9 +4718,9 @@
     <div class="options-overlay-header">
       <div class="options-overlay-title" id="paletteOverlayTitle">Colors</div>
       <div class="options-header-actions">
-        <button id="paletteToOptionsBtn" class="status-btn overlay-nav-btn" type="button">Options</button>
-        <button id="paletteResetBtn" class="reset-btn-secondary" type="button">Reset</button>
-        <button id="paletteCloseBtn" class="options-close-btn" type="button" aria-label="Apply and close color picker overlay">Apply ✕</button>
+        <button id="paletteToOptionsBtn" class="status-btn overlay-nav-btn overlay-action-btn overlay-action-pill" type="button">Options</button>
+        <button id="paletteResetBtn" class="reset-btn-secondary overlay-action-btn" type="button">Reset</button>
+        <button id="paletteCloseBtn" class="options-close-btn options-apply-btn overlay-action-btn" type="button" aria-label="Apply and close color picker overlay">Apply ✕</button>
       </div>
     </div>
     <div class="options-overlay-body">
@@ -4253,6 +4781,36 @@
       <input id="paletteCenterInput" class="palette-color-input" type="color" aria-label="Pick center color">
       <input id="paletteFlatInput" class="palette-color-input" type="color" aria-label="Pick flat color">
     </div>
+  </div>
+</div>
+
+<div id="temperamentEditor" class="pro-modal-overlay" aria-hidden="true">
+  <div class="pro-modal-card temp-editor-card" role="dialog" aria-modal="true" aria-labelledby="tempEditorTitle">
+    <div class="pro-modal-header">
+      <span id="tempEditorTitle">Custom Temperament</span>
+      <div class="temp-editor-actions">
+        <button id="tempEditorCancel" class="overlay-action-btn" type="button">Cancel</button>
+        <button id="tempEditorApply" class="overlay-action-btn options-apply-btn" type="button">Apply</button>
+      </div>
+    </div>
+    <div class="pro-modal-body scroll-fade-y">
+      <div class="temp-editor-load">
+        <label class="temp-editor-load-label" for="tempEditorLoadSelect">Temperament</label>
+        <select id="tempEditorLoadSelect"></select>
+        <label class="temp-editor-load-label" for="tempEditorCenterSelect">Pitch Center</label>
+        <select id="tempEditorCenterSelect"></select>
+      </div>
+      <p class="temp-editor-note">
+        Cents from equal temperament, relative to the pitch center
+        (<span id="tempEditorCenterName">C</span>). Each note can be adjusted up to
+        &plusmn;45&cent;. The pitch center keeps its equal-tempered frequency from
+        the Performance Pitch reference (<span id="tempEditorA4">A4=440</span>),
+        before stretch. Other notes, including A, follow the temperament offsets.
+      </p>
+      <div id="tempEditorRows" class="temp-editor-rows"></div>
+      <p id="tempEditorHint" class="temp-editor-hint" role="status" aria-live="polite"></p>
+    </div>
+
   </div>
 </div>
 
@@ -4364,10 +4922,36 @@
   const historySelect     = document.getElementById("historySelect");
   const stainHoldSelect   = document.getElementById("stainHoldSelect");
   const stretchSelect     = document.getElementById("stretchSelect");
+  const temperamentSelect = document.getElementById("temperamentSelect");
+  const temperamentCustomBtn = document.getElementById("temperamentCustomBtn");
+  const temperamentBanner = document.getElementById("temperamentBanner");
+  const temperamentBannerPill = temperamentBanner?.querySelector(".temperament-banner-pill") || null;
+  const bannerTemperamentSelect = document.getElementById("bannerTemperamentSelect");
+  const bannerPitchCenterSelect = document.getElementById("bannerPitchCenterSelect");
+  const bannerPitchCenterLabel = document.getElementById("bannerPitchCenterLabel");
+  const bannerCustomGearBtn = document.getElementById("bannerCustomGearBtn");
+  const temperamentBannerDismissBtn = document.getElementById("temperamentBannerDismissBtn");
+  const showTemperamentBarOnEl = document.getElementById("showTemperamentBarOn");
+  const showTemperamentBarOffEl = document.getElementById("showTemperamentBarOff");
+  const showTemperamentBarSessionNote = document.getElementById("showTemperamentBarSessionNote");
+  const pitchCenterSelect = document.getElementById("pitchCenterSelect");
+  const optTemperamentField = document.getElementById("optTemperament");
+  const optPitchCenterField = document.getElementById("optPitchCenter");
+  const temperamentEditor      = document.getElementById("temperamentEditor");
+  const tempEditorApply        = document.getElementById("tempEditorApply");
+  const tempEditorCancel       = document.getElementById("tempEditorCancel");
+  const tempEditorRows         = document.getElementById("tempEditorRows");
+  const tempEditorLoadSelect   = document.getElementById("tempEditorLoadSelect");
+  const tempEditorCenterName   = document.getElementById("tempEditorCenterName");
+  const tempEditorA4           = document.getElementById("tempEditorA4");
+  const tempEditorCenterSelect = document.getElementById("tempEditorCenterSelect");
+  const tempEditorHint         = document.getElementById("tempEditorHint");
   const accidentalToggle  = document.getElementById("accidentalToggle");
   const attackSpeedSliderEl = document.getElementById("attackSpeedSlider");
   const attackSpeedValueEl = document.getElementById("attackSpeedValue");
   const needleDirSelect   = document.getElementById("needleDirSelect");
+  const needleModeInputs = Array.from(document.querySelectorAll('input[name="needleBehaviorMode"]'));
+  const optNeedleBehaviorField = document.getElementById("optNeedleBehavior");
   const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
 
   const noteGrid      = document.getElementById("noteGrid");
@@ -4466,6 +5050,7 @@
 
   const dbgSens       = document.getElementById("dbgSens");
   const dbgStretch    = document.getElementById("dbgStretch");
+  const dbgTemperament = document.getElementById("dbgTemperament");
   const dbgDeadZone   = document.getElementById("dbgDeadZone");
   const dbgHold       = document.getElementById("dbgHold");
   const dbgHist       = document.getElementById("dbgHist");
@@ -4990,11 +5575,27 @@
       version: APP_VERSION,
       sections: [
         {
-          title: "Latest update",
+          title: "Temperaments",
           items: [
-            "The free/pro split is now simpler: Hard Mode and Quick Record are the only Pro-gated features. This keeps the web app aligned with the upcoming iOS version.",
-            "The Pro overlay and help text now reflect the new split.",
-            "iOS Privacy Policy page added."
+            "Play in something other than equal temperament: Pythagorean, 1/4- and 1/6-comma meantone, Vallotti, Werckmeister III, and just intonation in major, minor and 7-limit.",
+            "Pitch Center keeps its equal-tempered frequency from your A4 reference, before stretch. Other notes follow the temperament offsets. With Just major centered on concert C and A4 reference 441, the A4 target is about 437.03 Hz without stretch.",
+            "Build your own with the Custom editor: adjust all twelve notes in cents, load any preset as a starting point, and Cancel puts everything back if you are only auditioning. Your custom table is saved with the rest of your settings.",
+            "A banner above the grid shows the active temperament and pitch center, so a non-equal tuning is never a surprise between pieces."
+          ]
+        },
+        {
+          title: "Tuning accuracy",
+          items: [
+            "Notes are now matched to the nearest tempered target rather than the nearest equal-tempered one. Under a strong temperament this used to name the wrong note near the edge of a cell.",
+            "Grid columns are spaced to match the temperament, so the needle moves at one steady rate and reaches the edge of a cell exactly where the note changes.",
+            "Changing Performance Pitch (A4) now rescores the colors already on your map against the new reference, the way stretch and temperament do."
+          ]
+        },
+        {
+          title: "Interface",
+          items: [
+            "Buttons across Options and Colors now share one size and style, every pulldown shows a dropdown arrow, and spacing under each section heading is consistent.",
+            "Assorted layout and behavior fixes throughout the Options panel."
           ]
         }
       ],
@@ -5340,6 +5941,12 @@
 
   let A4 = 440;
 
+  // Fixed anchor for expressing the A4 calibration as a cent offset. This is NOT
+  // the user's reference pitch (that is A4 above) -- it is the zero point the
+  // stored per-segment offsets are measured against, so changing A4 rebases
+  // history the same way a stretch or temperament change does.
+  const A4_REFERENCE_HZ = 440;
+
   const MIN_FREQ = 14;
   const MAX_FREQ = 8200;
   const RANGE_GATE_TEXT = `${MIN_FREQ}–${MAX_FREQ} Hz`;
@@ -5352,6 +5959,76 @@
   const MEDIUM_DEADZONE_RATIO = 0.0021; // ~0.21%
   const MEDIUM_ERR_SCALE = 0.7;
   const MEDIUM_NEEDLE_TAU_MS = 80;
+
+  // Hard mode softened but still tighter than Medium
+  const HARD_DEADZONE_RATIO = MEDIUM_DEADZONE_RATIO / 2; // ~0.11%
+  const HARD_ERR_SCALE = 0.9;
+  const HARD_NEEDLE_TAU_MS = 30;
+
+  // ---------------------------------------------------------------------------
+  // Temperaments
+  //
+  // Each table is 12 cent offsets from equal temperament, indexed by scale degree
+  // from the temperament's OWN tonic (0 = tonic ... 11 = major 7th), so degrees[0]
+  // is always 0. The Pitch Center setting rotates the table onto absolute pitch
+  // classes; the selected center has zero temperament offset from equal temperament.
+  //
+  // Values are exact (derived from the underlying ratios / fifth sizes), then
+  // rounded to 2dp. See docs/temperments.md for sources and derivations.
+  // ---------------------------------------------------------------------------
+  const TEMPERAMENT_CUSTOM_ID = "custom";
+
+  const TEMPERAMENTS = Object.freeze([
+    { id: "equal", name: "Equal Temperament", short: "Equal",
+      degrees: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+
+    // 5-limit just: 1/1 16/15 9/8 6/5 5/4 4/3 45/32 3/2 8/5 5/3 16/9 15/8
+    { id: "just-major", name: "Just \u2014 major (5/4 third, 5/3 sixth)", short: "Just maj",
+      degrees: [0, 11.73, 3.91, 15.64, -13.69, -1.96, -9.78, 1.96, 13.69, -15.64, -3.91, -11.73] },
+
+    // 5-limit just, minor-tonic spelling: m2 27/25, tritone 36/25, m7 9/5
+    { id: "just-minor", name: "Just \u2014 minor (6/5 third, 8/5 sixth)", short: "Just min",
+      degrees: [0, 33.24, 3.91, 15.64, -13.69, -1.96, 31.28, 1.96, 13.69, -15.64, 17.60, -11.73] },
+
+    // 7-limit: as just major but tritone 7/5 and m7 7/4 (the natural 7th partial)
+    { id: "septimal", name: "Septimal Just (7-limit)", short: "Septimal",
+      degrees: [0, 11.73, 3.91, 15.64, -13.69, -1.96, -17.49, 1.96, 13.69, -15.64, -31.17, -11.73] },
+
+    // Pure 3:2 fifths, chain -5..+6 from the tonic (wolf between +6 and -5).
+    // Gives the wide major 3rd (+7.82) and high leading tone (+9.78) players expect.
+    // Both TE Tuner and Tunable label this "Pythagorean Just".
+    { id: "pythagorean", name: "Pythagorean (Pythagorean Just)", short: "Pythag",
+      degrees: [0, -9.78, 3.91, -5.87, 7.82, -1.96, 11.73, 1.96, -7.82, 5.87, -3.91, 9.78] },
+
+    // Fifths narrowed by 1/4 syntonic comma; chain Eb..G# (wolf G#-Eb). Pure 5/4 thirds.
+    { id: "meantone-quarter", name: "1/4-comma meantone", short: "1/4 mean",
+      degrees: [0, -23.95, -6.84, 10.26, -13.69, 3.42, -20.53, -3.42, -27.37, -10.26, 6.84, -17.11] },
+
+    // Fifths narrowed by 1/6 syntonic comma; same Eb..G# chain.
+    { id: "meantone-sixth", name: "1/6-comma meantone", short: "1/6 mean",
+      degrees: [0, -11.41, -3.26, 4.89, -6.52, 1.63, -9.78, -1.63, -13.04, -4.89, 3.26, -8.15] },
+
+    // Well temperament: F-C-G-D-A-E-B narrowed by 1/6 Pythagorean comma, rest pure.
+    { id: "vallotti", name: "Vallotti", short: "Vallotti",
+      degrees: [0, -5.87, -3.91, -1.96, -7.82, 1.96, -7.82, -1.96, -3.91, -5.87, 0, -9.78] },
+
+    // Well temperament: C-G, G-D, D-A and B-F# narrowed by 1/4 Pythagorean comma, rest pure.
+    { id: "werckmeister3", name: "Werckmeister III", short: "Werck III",
+      degrees: [0, -9.78, -7.82, -5.87, -9.78, -1.96, -11.73, -3.91, -7.82, -11.73, -3.91, -7.82] }
+  ]);
+
+  // Degree labels for the Custom editor, tonic-relative.
+  const TEMPERAMENT_DEGREE_LABELS = Object.freeze([
+    "U", "m2", "M2", "m3", "M3", "P4", "T", "P5", "m6", "M6", "m7", "M7"
+  ]);
+
+  const TEMPERAMENT_EQUAL_DEGREES = Object.freeze([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  // Clamp for Custom entry. Two notes are 100c apart nominally, so adjacent
+  // degrees at +L and -L would sit (100 - 2L) apart: at L=50 they could coincide
+  // and a cell would become unreachable. L=45 keeps the narrowest possible step
+  // at 10c, so the scale can never invert, while still covering every historical
+  // temperament -- 1/3-comma meantone is the widest at 41.71c.
+  const TEMPERAMENT_CENT_LIMIT = 45;
 
   // Average grand-piano Railsback curve (midi vs cents relative to equal temperament)
   const RAILSBACK_ANCHORS = [
@@ -5795,7 +6472,7 @@
     startTime: 0,
     accumTimeMs: 0,
     accumErrWeighted: 0,
-    stretchCents: 0,
+    targetOffsetCents: 0,
     minHoldMs: 0,
     latched: false,
   };
@@ -6163,7 +6840,7 @@
             startMs,
             durMs,
             avgErrRatio: seg.avgErrRatio ?? 0,
-            stretchCents: seg.stretchCents ?? 0,
+            targetOffsetCents: seg.targetOffsetCents ?? 0,
             order: order++
           });
         }
@@ -6190,7 +6867,7 @@
           endMs: segEnd,
           totalDurMs: segDur,
           weightedErrSum: entry.avgErrRatio * segDur,
-          weightedStretchSum: entry.stretchCents * segDur
+          weightedOffsetSum: entry.targetOffsetCents * segDur
         };
         continue;
       }
@@ -6202,7 +6879,7 @@
         current.endMs = Math.max(current.endMs, segEnd);
         current.totalDurMs += segDur;
         current.weightedErrSum += entry.avgErrRatio * segDur;
-        current.weightedStretchSum += entry.stretchCents * segDur;
+        current.weightedOffsetSum += entry.targetOffsetCents * segDur;
       } else {
         if (isNoteViewDrawableDuration(current.totalDurMs)) {
           mergedSegments.push({
@@ -6210,7 +6887,7 @@
             startMs: current.startMs,
             durMs: current.totalDurMs,
             avgErrRatio: current.totalDurMs > 0 ? current.weightedErrSum / current.totalDurMs : 0,
-            stretchCents: current.totalDurMs > 0 ? current.weightedStretchSum / current.totalDurMs : 0
+            targetOffsetCents: current.totalDurMs > 0 ? current.weightedOffsetSum / current.totalDurMs : 0
           });
         }
         current = {
@@ -6219,7 +6896,7 @@
           endMs: segEnd,
           totalDurMs: segDur,
           weightedErrSum: entry.avgErrRatio * segDur,
-          weightedStretchSum: entry.stretchCents * segDur
+          weightedOffsetSum: entry.targetOffsetCents * segDur
         };
       }
     }
@@ -6230,7 +6907,7 @@
         startMs: current.startMs,
         durMs: current.totalDurMs,
         avgErrRatio: current.totalDurMs > 0 ? current.weightedErrSum / current.totalDurMs : 0,
-        stretchCents: current.totalDurMs > 0 ? current.weightedStretchSum / current.totalDurMs : 0
+        targetOffsetCents: current.totalDurMs > 0 ? current.weightedOffsetSum / current.totalDurMs : 0
       });
     }
 
@@ -6264,7 +6941,7 @@
       startMs: Math.max(0, noteViewActiveClockMs - previewDurMs),
       durMs: previewDurMs,
       avgErrRatio,
-      stretchCents: activeNoteInfo.stretchCents ?? getStretchCents(previewMidi),
+      targetOffsetCents: activeNoteInfo.targetOffsetCents ?? getTargetOffsetCents(previewMidi),
       isPreview: true
     };
   }
@@ -6273,6 +6950,9 @@
     a4: 440,
     sensitivity: "medium",
     stretch: "minimal",
+    temperament: "equal",
+    pitchCenter: "0",
+    customTemperament: null,   // 12 cent offsets, tonic-relative; null until first edited
     accidentalMode: "sharps",
     noteViewStyle: NOTE_VIEW_STYLE_DEFAULT,
     transposition: "0",
@@ -6284,6 +6964,8 @@
     history: "medium",
     stainHold: STAIN_HOLD_DEFAULT,
     needleDirection: "horizontal",
+    needleBehavior: "even",
+    showTemperamentBar: false,
     range: null, // computed default
     minVol: 0.025,
     micGain: DEFAULT_MIC_GAIN,
@@ -6359,8 +7041,8 @@
   const OPTION_INFO_CONTENT = {
     a4: {
       title: "Performance Pitch (A4)",
-      summary: "Sets the reference frequency so all targets shift up or down from this A4 anchor.",
-      detail: "Use any value from 100–1000 Hz, or pick a preset such as 440, 415, 430, or 442 to match an ensemble or recording."
+      summary: "Sets the concert A4 reference for the equal-tempered scale used to calculate all target pitches.",
+      detail: "Use any value from 100–1000 Hz, or pick a preset such as 440, 415, 430, or 442. In a non-equal temperament, the pitch center retains its equal-tempered frequency before stretch; A itself may move. For example, Just major centered on concert C with reference 441 targets A4 at about 437.03 Hz."
     },
     mode: {
       title: "Mode",
@@ -6398,10 +7080,54 @@
       title: "Stretch Tuning",
       summary: 'Applies a <a href="https://en.wikipedia.org/wiki/Piano_acoustics" target="_blank" rel="noreferrer">Railsback-style stretch</a> to the target pitches. Notes above A4 are pushed increasingly sharp as they ascend. Low notes are also pushed increasingly flat when Full Railsback is selected.',
       detail: [
-        "• None: Equal temperament; no stretch applied.",
+        "• None: No stretch applied; the selected temperament still applies.",
         "• Minimal: ≈ ¼ Railsback above A4 (lows untouched, highs gently raised).",
         "• Medium: ≈ ½ Railsback above A4 (lows untouched, moderate raise of highs).",
-        "• Full: Typical piano-style Railsback across the range (lows lower, highs higher)."
+        "• Full: Typical piano-style Railsback across the range (lows lower, highs higher).",
+        "Stretch follows sounding (concert) pitch, regardless of instrument transposition. Turn it off for unstretched just ratios."
+      ]
+    },
+    showTemperamentBar: {
+      title: "Show Temperament Bar",
+      summary: "Shows a bar over the grid with quick Temperament and Pitch Center controls, plus a shortcut to the Custom editor.",
+      detail: [
+        "Off by default; turns on automatically the first time you pick a temperament other than Equal, from here or from the bar itself.",
+        "The bar's own (\u00d7) hides it for the rest of this session only \u2014 it comes back next time you reload or pick a new temperament. This setting then reads Off, with a note saying so; select Off yourself to stop it reappearing altogether.",
+        "Once shown, the bar stays available even if you switch back to Equal, so you can flip between temperaments without reopening Options."
+      ]
+    },
+    temperament: {
+      title: "Temperament",
+      summary: "Retunes the target pitch of each note to a historical or custom tuning system, instead of equal temperament.",
+      detail: [
+        "\u2022 Equal: every semitone the same size. The modern default.",
+        "\u2022 Just (major / minor): pure whole-number ratios against the pitch center. Exact for harmony rooted on or near that center; a static 12-note table cannot serve every key at once.",
+        "\u2022 Septimal Just: as Just major, but the 7th and tritone use the natural 7th partial \u2014 useful for brass and vocal dominant sevenths.",
+        "\u2022 Pythagorean: pure fifths, giving wide major thirds and high leading tones. A string-player favourite.",
+        "\u2022 1/4- and 1/6-comma meantone: fifths narrowed to sweeten the thirds. One fifth is left unusable (the \u201cwolf\u201d), placed far from the pitch center.",
+        "\u2022 Vallotti and Werckmeister III: well temperaments \u2014 every key playable, each with its own colour. Usually left centered on C.",
+        "\u2022 Custom: edit the eleven offsets around the fixed pitch center; they are saved with your other settings."
+      ]
+    },
+    pitchCenter: {
+      title: "Pitch Center",
+      summary: "The note the temperament is built from. It keeps its equal-tempered frequency from your Performance Pitch reference, before stretch.",
+      detail: [
+        "Set it to the key you are playing in. It stays put when you switch temperaments, so you can compare them in the same key.",
+        "For Pythagorean and meantone this is the important control: it decides where the unusable \u201cwolf\u201d fifth lands. Put it on your tonic and the wolf falls in a distant key.",
+        "For the well temperaments (Vallotti, Werckmeister III) it is optional \u2014 they were designed around C, where the common keys sound calm and remote keys sound spicier. Leave it on C unless you know you want that pattern moved.",
+        "It has no effect under Equal Temperament, so it is disabled there.",
+        "Pitch Center uses written note names for your instrument. For B-flat trumpet, written C means concert B-flat; the concert name is shown when transposition is active.",
+        "Every note reads zero cents at its own temperament target. A zero temperament offset means unchanged from equal temperament, not the only note that can be in tune."
+      ]
+    },
+    needleBehavior: {
+      title: "Needle Behavior",
+      summary: "Under a temperament, a note's two neighbours are rarely the same distance away, so the target is not at the middle of its cell. This chooses what to hold steady.",
+      detail: [
+        "\u2022 Even needle travel: a cent moves the needle the same distance everywhere, so vibrato and slides read exactly as they do in equal temperament. The black reference line moves to mark where the tempered pitch actually sits.",
+        "\u2022 Centered target pitch: the target stays at the middle of the cell, so being in tune always parks the needle dead center. The trade is that a cent is worth more travel on the narrower side of the note.",
+        "Equal temperament is identical either way, so this only takes effect once a temperament is selected."
       ]
     },
     needleDirection: {
@@ -7193,6 +7919,11 @@
       input.checked = input.value === needleValue;
     }
 
+    const behaviorValue = currentSettings.needleBehavior === "centered" ? "centered" : "even";
+    for (const input of needleModeInputs) {
+      input.checked = input.value === behaviorValue;
+    }
+
     updateAccidentalToggleUI();
   }
 
@@ -7426,6 +8157,7 @@
         stretchText = "No stretch";
       }
     }
+    // Temperament is not repeated here: the banner over the grid carries it.
     quickLine1.textContent = `A4=${a4Val} • ${stretchText}`;
 
     let keyText = "Key=C";
@@ -7439,14 +8171,19 @@
     if (sensitivitySelect) {
       const val = resolveMode(sensitivitySelect.value);
       if (val === "relaxed") modeText = "Relaxed Mode";
+      else if (val === "hard") modeText = "Hard Mode";
       else modeText = "Medium Mode";
     }
     quickLine2.textContent = `${keyText} • ${modeText}`;
   }
 
-  function syncARefControls(value) {
+  // skipInput: the user is mid-keystroke in the text field. Writing the parsed
+  // number back would eat a trailing decimal point ("441." -> "441"), so the
+  // next digit lands as "4415" and trips the range error. Leave their text as
+  // typed and only re-sync the field once they commit (blur / change).
+  function syncARefControls(value, { skipInput = false } = {}) {
     const valueText = Number.isFinite(value) ? `${value}` : "";
-    if (aRefInput) {
+    if (aRefInput && !skipInput) {
       aRefInput.value = valueText;
     }
     if (aRefSelect) {
@@ -7472,19 +8209,32 @@
     return Number.isFinite(value) && value >= A_REF_MIN && value <= A_REF_MAX;
   }
 
-  function setA4Value(newValue, { persist = true } = {}) {
-    if (!isValidARefValue(newValue)) {
+  // Reference pitches are stored to a tenth of a Hz (441.52 -> 441.5). That is
+  // roughly 0.004 cents of resolution at A4 -- far finer than anyone can hear --
+  // and it keeps the quick-state line and debug readout from showing a value
+  // like 440.1234567890123 that a float round-trip happens to produce.
+  function roundARefValue(value) {
+    return Math.round(value * 10) / 10;
+  }
+
+  function setA4Value(rawValue, { persist = true, fromInput = false } = {}) {
+    if (!isValidARefValue(rawValue)) {
       showARefError(A_REF_ERROR_MESSAGE);
       if (aRefSelect) aRefSelect.value = A_REF_CUSTOM_VALUE;
       return;
     }
+    const newValue = roundARefValue(rawValue);
+    const changed = A4 !== newValue;
     A4 = newValue;
     dbgARef.textContent = `${A4}`;
     currentSettings.a4 = A4;
-    syncARefControls(A4);
+    syncARefControls(A4, { skipInput: fromInput });
     clearARefError();
     if (persist) {
       persistSettings(currentSettings);
+    }
+    if (changed) {
+      refreshAfterTuningChange();
     }
   }
 
@@ -7497,6 +8247,22 @@
       if (aRefSelect) aRefSelect.value = A_REF_CUSTOM_VALUE;
       return;
     }
+    setA4Value(parsed, { fromInput: true });
+  }
+
+  // Called when the user is done typing (blur, or Enter / the stepper firing a
+  // change). Tidies "441." to "441" and "441.52" to "441.5"; if what is in the
+  // box cannot be used, quietly put the reference pitch that is actually in
+  // effect back in the field rather than leaving a rejected value sitting there.
+  function handleARefInputCommit() {
+    if (!aRefInput) return;
+    const raw = aRefInput.value.trim();
+    const parsed = Number(raw);
+    if (!raw || !isValidARefValue(parsed)) {
+      syncARefControls(A4);
+      clearARefError();
+      return;
+    }
     setA4Value(parsed);
   }
 
@@ -7505,7 +8271,7 @@
 
     const originalA4 = settings.a4;
     const a4ValRaw = Number(originalA4);
-    const normalizedA4 = isValidARefValue(a4ValRaw) ? a4ValRaw : 440;
+    const normalizedA4 = isValidARefValue(a4ValRaw) ? roundARefValue(a4ValRaw) : 440;
     syncARefControls(normalizedA4);
     clearARefError();
     if (normalizedA4 !== a4ValRaw) {
@@ -7514,6 +8280,8 @@
     currentSettings.a4 = normalizedA4;
 
     const originalSensitivity = settings.sensitivity;
+    // The Pro allowlist doubles as the validator on purpose: a stored "hard"
+    // from a hacked localStorage falls back to "medium" on load.
     const validModes = FREE_ALLOWED.sensitivity;
     const sensitivityVal = validModes.has(originalSensitivity) ? originalSensitivity : "medium";
     if (sensitivitySelect) sensitivitySelect.value = sensitivityVal;
@@ -7539,6 +8307,51 @@
     if (stretchSelect) stretchSelect.value = stretchVal;
     if (originalStretch !== stretchVal) needsPersist = true;
     currentSettings.stretch = stretchVal;
+
+    const originalTemperament = settings.temperament;
+    let temperamentVal = String(originalTemperament ?? DEFAULT_SETTINGS.temperament);
+    const knownTemperament = temperamentVal === TEMPERAMENT_CUSTOM_ID || !!getTemperamentById(temperamentVal);
+    if (!knownTemperament) temperamentVal = DEFAULT_SETTINGS.temperament;
+    currentSettings.temperament = temperamentVal;
+    if (String(originalTemperament ?? "") !== temperamentVal) needsPersist = true;
+
+    rebuildTemperamentSelectOptions();
+
+    const originalCustom = settings.customTemperament;
+    const customVal = normalizeDegrees(originalCustom);
+    currentSettings.customTemperament = customVal;
+    if (JSON.stringify(originalCustom ?? null) !== JSON.stringify(customVal)) needsPersist = true;
+
+    // Resolve a stored "custom" whose values reproduce a preset, so the control
+    // names it correctly on the first paint rather than after the first edit.
+    if (currentSettings.temperament === TEMPERAMENT_CUSTOM_ID) {
+      const resolved = temperamentIdForDegrees(customVal);
+      if (resolved !== currentSettings.temperament) {
+        currentSettings.temperament = resolved;
+        needsPersist = true;
+      }
+    }
+    if (temperamentSelect) temperamentSelect.value = currentSettings.temperament;
+
+    // Default off; a saved non-Equal temperament from before this setting existed
+    // counts as "temperaments are used", so it migrates on instead of hiding a bar
+    // that was already effectively in force.
+    const originalShowBar = settings.showTemperamentBar;
+    const showBarVal = typeof originalShowBar === "boolean"
+      ? originalShowBar
+      : currentSettings.temperament !== "equal";
+    currentSettings.showTemperamentBar = showBarVal;
+    if (originalShowBar !== showBarVal) needsPersist = true;
+
+    const originalPitchCenter = settings.pitchCenter;
+    let pitchCenterVal = parseInt(originalPitchCenter, 10);
+    if (!Number.isFinite(pitchCenterVal) || pitchCenterVal < 0 || pitchCenterVal > 11) {
+      pitchCenterVal = parseInt(DEFAULT_SETTINGS.pitchCenter, 10);
+    }
+    currentSettings.pitchCenter = String(pitchCenterVal);
+    if (String(originalPitchCenter ?? "") !== String(pitchCenterVal)) needsPersist = true;
+    rebuildPitchCenterSelectOptions(pitchCenterVal);
+    updateTemperamentUiState();
 
     const originalHistory = settings.history;
     const historyVal = HISTORY_KEYS.includes(originalHistory) ? originalHistory : HISTORY_DEFAULT;
@@ -7599,6 +8412,11 @@
     if (originalAccidental !== accidentalVal) needsPersist = true;
     setAccidentalMode(accidentalVal, { skipPersist: true });
 
+    const originalNeedleBehavior = settings.needleBehavior;
+    const needleBehaviorVal = (originalNeedleBehavior === "centered") ? "centered" : "even";
+    currentSettings.needleBehavior = needleBehaviorVal;
+    if (originalNeedleBehavior !== needleBehaviorVal) needsPersist = true;
+
     const originalNeedleDir = settings.needleDirection;
     const needleDirVal = (originalNeedleDir === "vertical") ? "vertical" : "horizontal";
     if (needleDirSelect) needleDirSelect.value = needleDirVal;
@@ -7642,6 +8460,8 @@
       needsPersist = true;
     }
     currentSettings.transposition = transposeVal;
+    rebuildPitchCenterSelectOptions();
+    updateTemperamentUiState();
 
     const originalNoteViewLowMidi = settings.noteViewLowMidi;
     const originalNoteViewHighMidi = settings.noteViewHighMidi;
@@ -7823,6 +8643,8 @@
     if (!skipPersist) persistSettings(currentSettings);
     rebuildRowStartSelectOptions();
     rebuildLowNoteSelectOptions();
+    rebuildPitchCenterSelectOptions();
+    updateTemperamentUiState();
     updateAccidentalToggleUI();
     updateGridLabelsForAccidentals();
     updateNoteReadoutText();
@@ -7847,7 +8669,7 @@
     return Math.sqrt(sumSq / buf.length);
   }
 
-  function interpolateRailsbackCents(midi) {
+  function computeRailsbackCents(midi) {
     if (!Number.isFinite(midi)) return 0;
     const anchors = RAILSBACK_ANCHORS;
     if (anchors.length === 0) return 0;
@@ -7904,6 +8726,25 @@
     return ys[ys.length - 1];
   }
 
+  // The anchors never change and every caller passes an integer midi, so the
+  // spline above is evaluated once per note and then reused. It used to allocate
+  // five arrays on every call, once per audio frame and once per note-view
+  // balloon; picking the nearest tempered target multiplies those calls.
+  const railsbackTable = new Float64Array(128);
+  let railsbackTableReady = false;
+
+  function interpolateRailsbackCents(midi) {
+    if (!Number.isFinite(midi)) return 0;
+    if (Number.isInteger(midi) && midi >= 0 && midi < 128) {
+      if (!railsbackTableReady) {
+        for (let m = 0; m < 128; m++) railsbackTable[m] = computeRailsbackCents(m);
+        railsbackTableReady = true;
+      }
+      return railsbackTable[midi];
+    }
+    return computeRailsbackCents(midi);
+  }
+
   function getStretchCents(midi) {
     const mode = stretchSelect?.value || currentSettings?.stretch || "none";
     if (mode === "full") {
@@ -7920,6 +8761,528 @@
     return 0;
   }
 
+  // The A4 calibration as a cent offset from the fixed anchor. Memoised on the
+  // current A4 so the note-view draw loop (one call per balloon) stays cheap.
+  let a4OffsetCache = { hz: null, cents: 0 };
+  function getA4OffsetCents() {
+    if (a4OffsetCache.hz !== A4) {
+      a4OffsetCache = { hz: A4, cents: 1200 * Math.log2(A4 / A4_REFERENCE_HZ) };
+    }
+    return a4OffsetCache.cents;
+  }
+
+  function getTemperamentById(id) {
+    return TEMPERAMENTS.find(t => t.id === id) || null;
+  }
+
+  function normalizeDegrees(raw) {
+    if (!Array.isArray(raw) || raw.length !== 12) return null;
+    const out = new Array(12);
+    for (let i = 0; i < 12; i++) {
+      const v = Number(raw[i]);
+      if (!Number.isFinite(v)) return null;
+      out[i] = Math.max(-TEMPERAMENT_CENT_LIMIT, Math.min(TEMPERAMENT_CENT_LIMIT, v));
+    }
+    out[0] = 0;
+    return out;
+  }
+
+  // The 12 tonic-relative cent offsets currently in force.
+  function getActiveTemperamentDegrees() {
+    const id = currentSettings?.temperament || "equal";
+    if (id === TEMPERAMENT_CUSTOM_ID) {
+      return normalizeDegrees(currentSettings?.customTemperament) || TEMPERAMENT_EQUAL_DEGREES;
+    }
+    const t = getTemperamentById(id);
+    return t ? t.degrees : TEMPERAMENT_EQUAL_DEGREES;
+  }
+
+  function getPitchCenterPc() {
+    const raw = parseInt(currentSettings?.pitchCenter ?? "0", 10);
+    if (!Number.isFinite(raw)) return 0;
+    return ((raw % 12) + 12) % 12;
+  }
+
+  // Cent offset the temperament asks for at this midi note. Pitch class 0 = C.
+  function getTemperamentCents(midi) {
+    if (!Number.isFinite(midi)) return 0;
+    const degrees = getActiveTemperamentDegrees();
+    const centerPc = getPitchCenterPc();
+    const pc = ((midi % 12) + 12) % 12;
+    return degrees[((pc - centerPc) % 12 + 12) % 12] ?? 0;
+  }
+
+  // Total offset from the fixed A4 anchor for this note. Cents are logarithmic,
+  // so the register-dependent stretch, the pitch-class-dependent temperament and
+  // the global A4 calibration simply sum. Everything downstream (grid colour,
+  // needle, history rebasing) compares against this combined target.
+  //
+  // A4 has to be part of this sum, not applied separately: rebaseErrRatio() shifts
+  // a stored error from the offset it was captured at to the current one, and it
+  // only speaks cents. Leave A4 out and changing your reference pitch redraws the
+  // heatmap with identical colours instead of rescoring the history.
+  function getTargetOffsetCents(midi) {
+    return getLatticeOffsetCents(midi) + getA4OffsetCents();
+  }
+
+  // How far this note's target sits above its own equal-tempered slot. A4 is
+  // excluded on purpose: it slides the whole lattice, so it cannot change which
+  // note is nearest. This is the quantity note assignment reasons about.
+  function getLatticeOffsetCents(midi) {
+    return getStretchCents(midi + getTransposeOffset()) + getTemperamentCents(midi);
+  }
+
+  // Cell boundaries follow the temperament, so they sit halfway between adjacent
+  // TEMPERED targets rather than at a fixed +/-50c from equal temperament. Returns
+  // how far this note can drift each way before the next note is nearer.
+  function getCellCentSpan(midi) {
+    const here = getLatticeOffsetCents(midi);
+    const below = 100 + here - getLatticeOffsetCents(midi - 1);
+    const above = 100 + getLatticeOffsetCents(midi + 1) - here;
+    return {
+      halfBelow: below > 0 ? below / 2 : 50,
+      halfAbove: above > 0 ? above / 2 : 50
+    };
+  }
+
+  // ---- Temperament UI -------------------------------------------------------
+
+  // The preset the custom table was last seeded from or loaded with. Custom is not
+  // in this list -- it lives on its own button -- so this is what the list shows
+  // (greyed) while custom values are in force.
+  // Which preset, if any, these twelve values reproduce. Every shipped table is
+  // distinct (the closest pair differs by 5.86c), so a match names exactly one.
+  // The tolerance is half the stored precision.
+  function matchTemperamentId(degrees) {
+    if (!Array.isArray(degrees) || degrees.length !== 12) return null;
+    for (const t of TEMPERAMENTS) {
+      if (t.degrees.every((v, i) => Math.abs(v - degrees[i]) < 0.005)) return t.id;
+    }
+    return null;
+  }
+
+  // The control names what you are actually hearing: a preset while the values
+  // still reproduce one exactly, "Custom" only once they diverge. So opening the
+  // editor and changing nothing leaves the pulldown where it was, and loading a
+  // preset inside the editor shows that preset back to you.
+  function temperamentIdForDegrees(degrees) {
+    return matchTemperamentId(degrees) || TEMPERAMENT_CUSTOM_ID;
+  }
+
+  function isCustomTemperamentActive() {
+    return (currentSettings?.temperament || "equal") === TEMPERAMENT_CUSTOM_ID;
+  }
+
+  function rebuildTemperamentSelectOptions() {
+    const prev = currentSettings?.temperament || "equal";
+    for (const select of [temperamentSelect, bannerTemperamentSelect]) {
+      if (!select) continue;
+      select.innerHTML = "";
+      TEMPERAMENTS.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = t.name;
+        select.appendChild(opt);
+      });
+      // Custom lives in the list too, so the control can just say "Custom" rather
+      // than greying out a preset that is not what you are hearing. Re-picking an
+      // already-selected option fires no change event, so the button beside it
+      // stays the way back into the editor.
+      const customOpt = document.createElement("option");
+      customOpt.value = TEMPERAMENT_CUSTOM_ID;
+      customOpt.textContent = "Custom";
+      select.appendChild(customOpt);
+      select.value = select.querySelector(`option[value="${prev}"]`) ? prev : "equal";
+    }
+  }
+
+  function getPitchCenterLabel(pc = getPitchCenterPc()) {
+    const names = getNoteNamesForMode(accidentalMode);
+    const writtenName = names[pc] ?? "C";
+    const offset = getTransposeOffset();
+    if (!offset) return writtenName;
+    const concertPc = ((pc + offset) % 12 + 12) % 12;
+    return `${writtenName} (concert ${names[concertPc]})`;
+  }
+
+  function rebuildPitchCenterSelectOptions(selectedPc = getPitchCenterPc()) {
+    const value = String(((selectedPc % 12) + 12) % 12);
+    for (const sel of [pitchCenterSelect, tempEditorCenterSelect, bannerPitchCenterSelect]) {
+      if (!sel) continue;
+      sel.innerHTML = "";
+      for (let pc = 0; pc < 12; pc++) {
+        const opt = document.createElement("option");
+        opt.value = String(pc);
+        opt.textContent = getPitchCenterLabel(pc);
+        sel.appendChild(opt);
+      }
+      sel.value = value;
+    }
+    // innerHTML above wiped the banner's "--" option; put it back if needed.
+    syncBannerPitchCenterPlaceholder();
+  }
+
+  // Under Equal the banner's Pitch Center reads "--" and is dimmed, so a note
+  // name there is not mistaken for a live setting. The saved center is left
+  // untouched and reappears as soon as a non-Equal temperament is picked.
+  function syncBannerPitchCenterPlaceholder() {
+    if (!bannerPitchCenterSelect) return;
+    const isEqual = (currentSettings?.temperament || "equal") === "equal";
+    let placeholder = bannerPitchCenterSelect.querySelector("option[data-placeholder]");
+    if (isEqual) {
+      if (!placeholder) {
+        placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "--";
+        placeholder.dataset.placeholder = "true";
+        bannerPitchCenterSelect.prepend(placeholder);
+      }
+      bannerPitchCenterSelect.value = "";
+    } else {
+      if (placeholder) placeholder.remove();
+      bannerPitchCenterSelect.value = String(getPitchCenterPc());
+    }
+    bannerPitchCenterSelect.disabled = isEqual;
+    if (bannerPitchCenterLabel) bannerPitchCenterLabel.classList.toggle("is-disabled", isEqual);
+  }
+
+  // Shared by both pitch-center controls: the one in Options and the one in the
+  // editor. Rotating the centre changes which absolute note each degree lands on,
+  // so the editor's row labels are rebuilt as well.
+  function setPitchCenterValue(value) {
+    currentSettings.pitchCenter = String(value);
+    persistSettings(currentSettings);
+    refreshAfterTuningChange();
+    if (isTemperamentEditorOpen()) {
+      renderTemperamentEditorRows(
+        normalizeDegrees(currentSettings.customTemperament) || TEMPERAMENT_EQUAL_DEGREES
+      );
+    }
+  }
+
+  // Not persisted: resets every reload, so a dismissed bar still reminds the
+  // user at the start of the next session if a non-Equal temperament is active.
+  let temperamentBarSessionDismissed = false;
+  // Tracks the temperament id as of the previous call, so the auto-enable/
+  // un-dismiss below only fires on an actual temperament change, not on every
+  // unrelated refresh (A4, stretch, etc. all funnel through this function too).
+  let lastKnownTemperamentIdForBar = null;
+
+  // Pitch center has no effect under equal temperament, so dim it there.
+  function updateTemperamentUiState() {
+    const isEqual = (currentSettings?.temperament || "equal") === "equal";
+    const isCustom = isCustomTemperamentActive();
+
+    const activeId = currentSettings?.temperament || "equal";
+    if (temperamentSelect) {
+      temperamentSelect.value = activeId;
+    }
+    if (bannerTemperamentSelect) {
+      bannerTemperamentSelect.value = activeId;
+    }
+    // The editor's own copy of the list. The main control is behind a blurred
+    // veil while the editor is open, so this is the only readable confirmation
+    // of what the values currently are.
+    if (tempEditorLoadSelect && tempEditorLoadSelect.options.length) {
+      tempEditorLoadSelect.value = activeId;
+    }
+    if (temperamentCustomBtn) {
+      temperamentCustomBtn.setAttribute("aria-pressed", isCustom ? "true" : "false");
+      temperamentCustomBtn.title = isCustom
+        ? "Custom temperament is active - edit its values"
+        : "Build your own temperament";
+    }
+
+    // Picking any non-Equal temperament (from Options, the banner, or the
+    // editor) turns the bar on and un-dismisses it, even if the user is just
+    // auditioning presets. Switching back to Equal does neither -- once earned,
+    // the bar stays available (per Show Temperament Bar) until the user hides
+    // it again themselves.
+    if (activeId !== lastKnownTemperamentIdForBar) {
+      lastKnownTemperamentIdForBar = activeId;
+      if (!isEqual) {
+        temperamentBarSessionDismissed = false;
+        if (!currentSettings.showTemperamentBar) {
+          currentSettings.showTemperamentBar = true;
+          persistSettings(currentSettings);
+        }
+      }
+    }
+    // Visibility is driven entirely by the Show Temperament Bar setting (plus
+    // this session's dismiss state) -- deliberately NOT by isEqual, so the bar
+    // stays put if the user steps back to Equal rather than disappearing.
+    const barVisible = !!currentSettings.showTemperamentBar && !temperamentBarSessionDismissed;
+
+    // The radio reports what the user can actually see, not just the saved
+    // setting: while the bar's own (x) is holding it hidden it reads Off, with
+    // a note saying the hiding lasts only for this session.
+    if (showTemperamentBarOnEl) showTemperamentBarOnEl.checked = barVisible;
+    if (showTemperamentBarOffEl) showTemperamentBarOffEl.checked = !barVisible;
+    if (showTemperamentBarSessionNote) {
+      showTemperamentBarSessionNote.hidden =
+        !(currentSettings.showTemperamentBar && temperamentBarSessionDismissed);
+    }
+
+    if (temperamentBanner && temperamentBannerPill) {
+      temperamentBanner.hidden = !barVisible;
+    }
+
+    // Both pitch-center controls are kept in step, whichever one was used.
+    const centerPc = String(getPitchCenterPc());
+    if (pitchCenterSelect) {
+      pitchCenterSelect.disabled = isEqual;
+      if (pitchCenterSelect.options.length) pitchCenterSelect.value = centerPc;
+    }
+    syncBannerPitchCenterPlaceholder();
+    // Under equal temperament both halves of every cell are 50c, so the two
+    // needle modes render identically. Dim the choice, as Pitch Center is.
+    for (const input of needleModeInputs) input.disabled = isEqual;
+    if (optNeedleBehaviorField) optNeedleBehaviorField.classList.toggle("is-disabled", isEqual);
+    // The editor's copy is never disabled: besides tuning, it decides which note
+    // each row is labelled with, so it does real work even when every offset is 0.
+    if (tempEditorCenterSelect && tempEditorCenterSelect.options.length) {
+      tempEditorCenterSelect.value = centerPc;
+    }
+    if (optPitchCenterField) optPitchCenterField.classList.toggle("is-disabled", isEqual);
+    if (tempEditorCenterName) {
+      tempEditorCenterName.textContent = getPitchCenterLabel();
+    }
+    if (tempEditorA4) {
+      tempEditorA4.textContent = `A4=${currentSettings?.a4 ?? A4 ?? 440}`;
+    }
+  }
+
+  // Single entry point for the Options radio. Picking either side clears the
+  // session dismiss, so the radio and the bar cannot disagree afterwards:
+  // On shows the bar now, Off makes a session-only hide permanent.
+  function setShowTemperamentBar(on) {
+    const next = !!on;
+    temperamentBarSessionDismissed = false;
+    if (currentSettings.showTemperamentBar !== next) {
+      currentSettings.showTemperamentBar = next;
+      persistSettings(currentSettings);
+    }
+    updateTemperamentUiState();
+  }
+
+  function getTemperamentLabel() {
+    const id = currentSettings?.temperament || "equal";
+    if (id === TEMPERAMENT_CUSTOM_ID) return "Custom";
+    const t = getTemperamentById(id);
+    return t ? (t.short || t.name) : "Equal";
+  }
+
+  // ---- Custom temperament editor --------------------------------------------
+
+  function renderTemperamentEditorRows(degrees) {
+    if (!tempEditorRows) return;
+    const names = getNoteNamesForMode(accidentalMode);
+    const centerPc = getPitchCenterPc();
+    tempEditorRows.innerHTML = "";
+    for (let degree = 0; degree < 12; degree++) {
+      const pc = (centerPc + degree) % 12;
+      const row = document.createElement("div");
+      row.className = "temp-row";
+
+      const note = document.createElement("span");
+      note.className = "temp-row-note";
+      note.textContent = names[pc] ?? "";
+
+      const deg = document.createElement("span");
+      deg.className = "temp-row-degree";
+      deg.textContent = TEMPERAMENT_DEGREE_LABELS[degree];
+
+      if (degree === 0) {
+        // The pitch center is the reference: it is 0 by definition, so it gets a
+        // label rather than a box you cannot type in.
+        const center = document.createElement("span");
+        center.className = "temp-row-center";
+        center.textContent = "Pitch Center";
+        row.append(note, deg, center);
+        tempEditorRows.appendChild(row);
+        continue;
+      }
+
+      const input = document.createElement("input");
+      input.type = "number";
+      input.step = "0.01";
+      input.min = String(-TEMPERAMENT_CENT_LIMIT);
+      input.max = String(TEMPERAMENT_CENT_LIMIT);
+      input.value = String(+(degrees[degree] ?? 0).toFixed(2));
+      input.dataset.degree = String(degree);
+      input.setAttribute("aria-label", `${names[pc]} (${TEMPERAMENT_DEGREE_LABELS[degree]}) cents`);
+
+      const unit = document.createElement("span");
+      unit.className = "temp-row-unit";
+      unit.textContent = "\u00A2";
+
+      row.append(note, deg, input, unit);
+      tempEditorRows.appendChild(row);
+    }
+  }
+
+  let tempEditorHintTimer = null;
+  function showTemperamentHint(message) {
+    if (!tempEditorHint) return;
+    tempEditorHint.textContent = message;
+    tempEditorHint.classList.add("is-visible");
+    if (tempEditorHintTimer) clearTimeout(tempEditorHintTimer);
+    tempEditorHintTimer = setTimeout(() => {
+      tempEditorHint.classList.remove("is-visible");
+      tempEditorHintTimer = null;
+    }, 3200);
+  }
+
+  function clearTemperamentHint() {
+    if (!tempEditorHint) return;
+    if (tempEditorHintTimer) clearTimeout(tempEditorHintTimer);
+    tempEditorHintTimer = null;
+    tempEditorHint.classList.remove("is-visible");
+    tempEditorHint.textContent = "";
+  }
+
+  // Reconcile one field with the value actually in force. Runs on `change`, which
+  // covers both blur and Enter. Without this the box can keep showing a number the
+  // app already clamped away, so the display and the sound disagree in silence.
+  function normalizeTemperamentField(input) {
+    const degree = parseInt(input?.dataset?.degree, 10);
+    if (!Number.isFinite(degree) || degree < 1 || degree > 11) return;
+    const raw = String(input.value).trim();
+    const parsed = parseFloat(raw);
+    let value;
+    let clamped = false;
+    if (!Number.isFinite(parsed)) {
+      value = 0;          // blank, or junk the number input already discarded
+    } else {
+      value = Math.max(-TEMPERAMENT_CENT_LIMIT, Math.min(TEMPERAMENT_CENT_LIMIT, parsed));
+      clamped = value !== parsed;
+    }
+    input.value = String(Math.round(value * 100) / 100);
+    if (clamped) {
+      showTemperamentHint(`Adjustments are limited to \u00B1${TEMPERAMENT_CENT_LIMIT}\u00A2.`);
+    }
+  }
+
+  function readTemperamentEditorRows() {
+    const out = new Array(12).fill(0);
+    if (!tempEditorRows) return out;
+    tempEditorRows.querySelectorAll("input[data-degree]").forEach(input => {
+      const degree = parseInt(input.dataset.degree, 10);
+      if (!Number.isFinite(degree) || degree < 0 || degree > 11) return;
+      const v = parseFloat(input.value);
+      out[degree] = Number.isFinite(v)
+        ? Math.max(-TEMPERAMENT_CENT_LIMIT, Math.min(TEMPERAMENT_CENT_LIMIT, v))
+        : 0;
+    });
+    out[0] = 0;
+    return out;
+  }
+
+  // Pull the live values out of the editor and make them the active table. Edits
+  // are previewed live so you can hear the temperament as you build it; Cancel
+  // puts everything back.
+  function commitCustomTemperament() {
+    const degrees = readTemperamentEditorRows();
+    currentSettings.customTemperament = degrees;
+    currentSettings.temperament = temperamentIdForDegrees(degrees);
+    persistSettings(currentSettings);
+    refreshAfterTuningChange();
+  }
+
+  // What to restore if the editor is dismissed rather than applied.
+  let temperamentSnapshot = null;
+
+  // Entering Custom from either affordance: the pulldown's Custom option, or the
+  // button beside it. Your saved table comes back if you have one; otherwise it
+  // seeds from whatever is in force, so opening the editor never changes the sound.
+  function enterCustomTemperament() {
+    // Snapshot BEFORE anything is touched, including the case where no custom
+    // table existed at all -- Cancel has to be able to restore that too.
+    temperamentSnapshot = {
+      temperament: currentSettings.temperament || "equal",
+      pitchCenter: currentSettings.pitchCenter ?? "0",
+      customTemperament: Array.isArray(currentSettings.customTemperament)
+        ? currentSettings.customTemperament.slice()
+        : null
+    };
+    // Reseed unless there is real work to preserve. A saved table that merely
+    // reproduces a preset carries no edits of yours, so it must not follow you
+    // onto a different temperament -- otherwise picking Equal and then Custom
+    // would silently retune you back to whatever you last opened Custom from.
+    // A table matching no preset is genuine work: keep it, and Cancel is there
+    // if you want to audition presets over it.
+    const savedDegrees = normalizeDegrees(currentSettings.customTemperament);
+    if (!savedDegrees || matchTemperamentId(savedDegrees)) {
+      // Read the degrees BEFORE switching, or getActiveTemperamentDegrees()
+      // already answers "custom".
+      currentSettings.customTemperament = getActiveTemperamentDegrees().slice();
+    }
+    currentSettings.temperament = temperamentIdForDegrees(currentSettings.customTemperament);
+    persistSettings(currentSettings);
+    refreshAfterTuningChange();
+    openTemperamentEditor();
+  }
+
+  function applyTemperamentEditor() {
+    commitCustomTemperament();
+    temperamentSnapshot = null;
+    closeTemperamentEditor();
+  }
+
+  // Cancel, and every dismissal gesture, puts back exactly what was there when
+  // the editor opened -- so you can audition presets without losing a table you
+  // spent time on.
+  function cancelTemperamentEditor() {
+    if (temperamentSnapshot) {
+      currentSettings.temperament = temperamentSnapshot.temperament;
+      currentSettings.pitchCenter = temperamentSnapshot.pitchCenter;
+      currentSettings.customTemperament = temperamentSnapshot.customTemperament;
+      persistSettings(currentSettings);
+      rebuildPitchCenterSelectOptions();
+      refreshAfterTuningChange();
+    }
+    temperamentSnapshot = null;
+    closeTemperamentEditor();
+  }
+
+  function openTemperamentEditor() {
+    if (!temperamentEditor) return;
+    const degrees = normalizeDegrees(currentSettings.customTemperament)
+      || TEMPERAMENT_EQUAL_DEGREES.slice();
+    clearTemperamentHint();
+    updateTemperamentUiState();
+    renderTemperamentEditorRows(degrees);
+    temperamentEditor.setAttribute("aria-hidden", "false");
+  }
+
+  function closeTemperamentEditor() {
+    if (!temperamentEditor) return;
+    temperamentEditor.setAttribute("aria-hidden", "true");
+  }
+
+  function isTemperamentEditorOpen() {
+    return temperamentEditor?.getAttribute("aria-hidden") === "false";
+  }
+
+  // Everything that has to be recomputed when the target pitches move.
+  // Shared by every control that moves the target pitches (stretch, temperament,
+  // pitch center): the in-flight note and all cell colours are invalidated.
+  // Note View rebases each balloon against getTargetOffsetCents() at draw time,
+  // so a plain re-render is enough -- its segment cache is still valid.
+  function refreshAfterTuningChange() {
+    updateTemperamentUiState();
+    applyGridColumnWidths();
+    finalizeActiveSegment();
+    clearActiveNote();
+    currentMidiHeld = null;
+    currentMidiHoldStart = nowMs();
+    highlightGridCell(null, 0);
+    recomputeAllCellColorsAndRender();
+    updateDebugPanel({});
+    updateQuickState();
+    if (noteViewActive) renderNoteView();
+  }
+
   function freqToNoteData(freq, A4ref) {
     if (!freq || !isFinite(freq)) {
       return {
@@ -7930,16 +9293,34 @@
         midi: null,
         targetFreq: null,
         errRatio: 0,
-        stretchCents: 0
+        targetOffsetCents: 0
       };
     }
 
     const semitonesFromA4 = 12 * (Math.log(freq / A4ref) / Math.log(2));
-    const midi = Math.round(semitonesFromA4) + 69;
+    const latticePos = semitonesFromA4 + 69;   // fractional midi on the ET lattice
 
-    const equalTempFreq = A4ref * Math.pow(2, (midi - 69) / 12);
-    const stretchCents = getStretchCents(midi);
-    const targetFreq = equalTempFreq * Math.pow(2, stretchCents / 1200);
+    // Pick the note whose TEMPERED target is nearest, not the nearest equal-tempered
+    // slot. Stretch reaches -40c and a temperament 45c, so a target can sit up to
+    // ~85c from its own slot -- nearly a semitone -- which means the ET rounding can
+    // name the wrong note. Searching +/-2 covers the worst combination.
+    let midi = Math.round(semitonesFromA4) + 69;
+    let bestDev = Infinity;
+    for (let cand = midi - 2; cand <= midi + 2; cand++) {
+      if (cand < 0 || cand > 127) continue;
+      const dev = Math.abs((latticePos - cand) * 100 - getLatticeOffsetCents(cand));
+      if (dev < bestDev) {
+        bestDev = dev;
+        midi = cand;
+      }
+    }
+
+    // The target is built from the fixed anchor because getTargetOffsetCents()
+    // already carries the A4 offset. Algebraically identical to
+    // A4ref * 2^((midi-69)/12) * 2^((stretch+temperament)/1200).
+    const equalTempFreq = A4_REFERENCE_HZ * Math.pow(2, (midi - 69) / 12);
+    const targetOffsetCents = getTargetOffsetCents(midi);
+    const targetFreq = equalTempFreq * Math.pow(2, targetOffsetCents / 1200);
 
     const cents = 1200 * (Math.log(freq / targetFreq) / Math.log(2));
     const errRatio = (freq - targetFreq) / targetFreq;
@@ -7955,7 +9336,7 @@
       midi,
       targetFreq,
       errRatio,
-      stretchCents
+      targetOffsetCents
     };
   }
 
@@ -7985,13 +9366,13 @@
         dbgSens.textContent     = "Medium";
         dbgDeadZone.textContent = "~0.21%";
     } else {
-      dbgSens.textContent     = "Medium";
-      dbgDeadZone.textContent = "~0.21%";
+        dbgSens.textContent     = "Hard";
+        dbgDeadZone.textContent = "~0.11%";
     }
     dbgHold.textContent = formatAttackSpeedText(getCurrentMinHoldMs());
 
     if (dbgStretch) {
-      let stretchLabel = "None (Equal Temperament)";
+      let stretchLabel = "None";
       if (stretchSelect && stretchSelect.options && stretchSelect.selectedIndex >= 0) {
         const opt = stretchSelect.options[stretchSelect.selectedIndex];
         if (opt) {
@@ -7999,6 +9380,15 @@
         }
       }
       dbgStretch.textContent = stretchLabel;
+    }
+
+    if (dbgTemperament) {
+      const tempId = currentSettings?.temperament || "equal";
+      if (tempId === "equal") {
+        dbgTemperament.textContent = "Equal Temperament";
+      } else {
+        dbgTemperament.textContent = `${getTemperamentLabel()} (center ${getPitchCenterLabel()})`;
+      }
     }
 
     let histLabel = "Short (1 second)";
@@ -8204,6 +9594,45 @@
     }
   }
 
+  // Column widths track the temperament so that a cent is the same number of
+  // pixels everywhere: the needle then crosses every cell at one steady speed and
+  // reaches the edge exactly where the note changes.
+  //
+  // Widths come from the temperament ALONE, never stretch. Temperament repeats
+  // every octave so all rows share one set of widths and the columns stay aligned;
+  // stretch is register-dependent and would skew each octave differently. Stretch
+  // moves a semitone by at most 2.33c against the temperament's 33c, so letting it
+  // ride inside the cell costs about 2% of needle speed - invisible.
+  function getGridColumnWidths(rowStartMidi) {
+    const degrees = getActiveTemperamentDegrees();
+    const centerPc = getPitchCenterPc();
+    const offsetAt = i => {
+      const pc = (((rowStartMidi + i) % 12) + 12) % 12;
+      return degrees[(((pc - centerPc) % 12) + 12) % 12] ?? 0;
+    };
+    const step = new Array(12);
+    for (let i = 0; i < 12; i++) {
+      // For i = 11 this wraps to the row's own pitch class an octave up, which
+      // carries the same offset -- so the twelve steps sum to exactly 1200c.
+      step[i] = 100 + offsetAt((i + 1) % 12) - offsetAt(i);
+    }
+    const widths = new Array(12);
+    for (let i = 0; i < 12; i++) {
+      // A cell owns half the step below it and half the step above.
+      const w = (step[(i + 11) % 12] + step[i]) / 2;
+      widths[i] = w > 0 ? w : 1;
+    }
+    return widths;
+  }
+
+  // Cheap enough to re-apply on any tuning change: it restyles the container
+  // without rebuilding cells, so stain and history survive untouched.
+  function applyGridColumnWidths() {
+    if (!noteGrid) return;
+    const widths = getGridColumnWidths(gridLowestMidiC ?? 0);
+    noteGrid.style.gridTemplateColumns = widths.map(w => `${w.toFixed(4)}fr`).join(" ");
+  }
+
   function buildGrid({ preserveStain = true } = {}) {
     const lowNoteName = lowNoteSelect.value;
     const numOct      = parseInt(rangeSelect.value, 10);
@@ -8238,7 +9667,7 @@
     const nextCellState = {};
 
     noteGrid.style.height = "100%";
-    noteGrid.style.gridTemplateColumns = `repeat(12, 1fr)`;
+    applyGridColumnWidths();
     noteGrid.style.gridTemplateRows    = `repeat(${rows.length}, 1fr)`;
 
     const rowsReversed = [...rows].reverse();
@@ -8564,9 +9993,43 @@
     }
   }
 
+  function biasHard(avgErrRatio) {
+    const base = currentPalette.center;
+    const sharpCol = currentPalette.sharp;
+    const flatCol  = currentPalette.flat;
+
+    const dz = HARD_DEADZONE_RATIO;
+    const scaledErr = avgErrRatio * HARD_ERR_SCALE;
+    const absErr = Math.abs(scaledErr);
+
+    if (absErr <= dz) {
+      return base;
+    } else {
+      const span = 8 * dz;
+      let t = span > 0 ? (absErr - dz) / span : 1;
+      if (t<0) t=0;
+      if (t>1) t=1;
+
+      if (scaledErr > 0) {
+        return {
+          r: lerp(base.r, sharpCol.r, t),
+          g: lerp(base.g, sharpCol.g, t),
+          b: lerp(base.b, sharpCol.b, t),
+        };
+      } else {
+        return {
+          r: lerp(base.r, flatCol.r, t),
+          g: lerp(base.g, flatCol.g, t),
+          b: lerp(base.b, flatCol.b, t),
+        };
+      }
+    }
+  }
+
   function computeColorBiasFromErr(avgErrRatio) {
     const mode = resolveMode(sensitivitySelect?.value || "medium");
     if (mode === "relaxed") return biasRelaxed(avgErrRatio);
+    if (mode === "hard") return biasHard(avgErrRatio);
     return biasMedium(avgErrRatio);
   }
 
@@ -8664,24 +10127,25 @@
     return finalColor;
   }
 
-  function beginActiveNote(midi, stretchCents = getStretchCents(midi), minHoldMs = 0, latched = false) {
+  function beginActiveNote(midi, targetOffsetCents = getTargetOffsetCents(midi), minHoldMs = 0, latched = false) {
     activeNoteInfo.midi = midi;
     activeNoteInfo.startTime = nowMs();
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
-    activeNoteInfo.stretchCents = stretchCents ?? 0;
+    activeNoteInfo.targetOffsetCents = targetOffsetCents ?? 0;
     activeNoteInfo.minHoldMs = Math.max(0, Number.isFinite(minHoldMs) ? minHoldMs : 0);
     activeNoteInfo.latched = !!latched;
   }
 
-  function accumulateActiveNoteFrame(errRatio, stretchCents, dtMs) {
+  function accumulateActiveNoteFrame(errRatio, targetOffsetCents, dtMs) {
     activeNoteInfo.accumTimeMs += dtMs;
     activeNoteInfo.accumErrWeighted += errRatio * dtMs;
-    activeNoteInfo.stretchCents = stretchCents ?? activeNoteInfo.stretchCents ?? 0;
+    activeNoteInfo.targetOffsetCents = targetOffsetCents ?? activeNoteInfo.targetOffsetCents ?? 0;
   }
 
   function resolveMode(modeRaw) {
     if (modeRaw === "relaxed") return "relaxed";
+    if (modeRaw === "hard") return "hard";
     return "medium";
   }
 
@@ -8710,6 +10174,7 @@
   function getCurrentDeadzoneRatio() {
     const mode = resolveMode(sensitivitySelect ? sensitivitySelect.value : currentSettings?.sensitivity ?? "medium");
     if (mode === "relaxed") return RELAXED_DEADZONE_RATIO;
+    if (mode === "hard") return HARD_DEADZONE_RATIO;
     return MEDIUM_DEADZONE_RATIO;
   }
 
@@ -8763,8 +10228,8 @@
     return 0;
   }
 
-  function rebaseErrRatio(errRatio, fromStretchCents, toStretchCents) {
-    const diffFactor = Math.pow(2, (fromStretchCents - toStretchCents) / 1200);
+  function rebaseErrRatio(errRatio, fromOffsetCents, toOffsetCents) {
+    const diffFactor = Math.pow(2, (fromOffsetCents - toOffsetCents) / 1200);
     return diffFactor * (1 + (errRatio || 0)) - 1;
   }
 
@@ -8813,14 +10278,14 @@
     let remaining = windowMs;
     let totalDur = 0;
     let weightedErrSum = 0;
-    const targetStretch = getStretchCents(midi);
+    const targetOffset = getTargetOffsetCents(midi);
 
     for (let i = segments.length - 1; i >= 0 && remaining > 0; i--) {
       const seg = segments[i];
       const take = Math.min(seg.durMs, remaining);
       if (take > 0) {
-        const segStretch = seg.stretchCents ?? 0;
-        const rebasedErr = rebaseErrRatio(seg.avgErrRatio, segStretch, targetStretch);
+        const segOffset = seg.targetOffsetCents ?? 0;
+        const rebasedErr = rebaseErrRatio(seg.avgErrRatio, segOffset, targetOffset);
         weightedErrSum += rebasedErr * take;
         totalDur += take;
         remaining -= take;
@@ -8834,14 +10299,14 @@
   }
 
   function finalizeActiveSegment(minHoldMs = 0) {
-    const { midi, accumTimeMs, accumErrWeighted, stretchCents } = activeNoteInfo;
+    const { midi, accumTimeMs, accumErrWeighted, targetOffsetCents } = activeNoteInfo;
     if (midi == null) return;
     if (accumTimeMs <= 0) return;
     if (minHoldMs > 0 && accumTimeMs < minHoldMs) return;
     // Store ALL detected notes in masterCellState, even if outside visible grid range
     const st = getMasterCellState(midi);
     const avgErr = accumErrWeighted / accumTimeMs;
-    const segStretch = stretchCents ?? getStretchCents(midi);
+    const segOffset = targetOffsetCents ?? getTargetOffsetCents(midi);
 
     const startMs = (activeNoteInfo.startTime != null)
       ? activeNoteInfo.startTime
@@ -8854,7 +10319,7 @@
       startActiveMs: Math.max(0, noteViewActiveClockMs - accumTimeMs),
       durActiveMs: accumTimeMs,
       avgErrRatio: avgErr,
-      stretchCents: segStretch
+      targetOffsetCents: segOffset
     });
     pruneCellSegments(st, getSegmentRetentionMs());
     noteViewHasPaintedNote = true;
@@ -8885,7 +10350,7 @@
     activeNoteInfo.startTime = 0;
     activeNoteInfo.accumTimeMs = 0;
     activeNoteInfo.accumErrWeighted = 0;
-    activeNoteInfo.stretchCents = 0;
+    activeNoteInfo.targetOffsetCents = 0;
     activeNoteInfo.minHoldMs = 0;
     activeNoteInfo.latched = false;
     relaxedNeedleCents = NaN;
@@ -9257,8 +10722,8 @@
           const naturalBandWidth = segDurMs / 20;
           const bandWidth = naturalBandWidth * segmentScale * horizontalInsetScale;
 
-          const targetStretch = getStretchCents(midi);
-          const rebasedErr = rebaseErrRatio(seg.avgErrRatio ?? 0, seg.stretchCents ?? 0, targetStretch);
+          const targetOffset = getTargetOffsetCents(midi);
+          const rebasedErr = rebaseErrRatio(seg.avgErrRatio ?? 0, seg.targetOffsetCents ?? 0, targetOffset);
           const biasColor = computeColorBiasFromErr(rebasedErr);
           const colorStr = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
 
@@ -9271,8 +10736,8 @@
 
         // Add final color stop
         const lastSeg = relevantSegments[relevantSegments.length - 1];
-        const targetStretch = getStretchCents(midi);
-        const rebasedErr = rebaseErrRatio(lastSeg.avgErrRatio ?? 0, lastSeg.stretchCents ?? 0, targetStretch);
+        const targetOffset = getTargetOffsetCents(midi);
+        const rebasedErr = rebaseErrRatio(lastSeg.avgErrRatio ?? 0, lastSeg.targetOffsetCents ?? 0, targetOffset);
         const biasColor = computeColorBiasFromErr(rebasedErr);
         const colorStr = `rgb(${Math.round(biasColor.r)}, ${Math.round(biasColor.g)}, ${Math.round(biasColor.b)})`;
         gradient.addColorStop(1.0, colorStr);
@@ -9294,8 +10759,8 @@
           const naturalBandWidth = segDurMs / 20;
           const bandWidth = naturalBandWidth * segmentScale * horizontalInsetScale;
 
-          const targetStretch = getStretchCents(midi);
-          const rebasedErr = rebaseErrRatio(seg.avgErrRatio ?? 0, seg.stretchCents ?? 0, targetStretch);
+          const targetOffset = getTargetOffsetCents(midi);
+          const rebasedErr = rebaseErrRatio(seg.avgErrRatio ?? 0, seg.targetOffsetCents ?? 0, targetOffset);
           const biasColor = computeColorBiasFromErr(rebasedErr);
 
           // Round to pixel boundaries to avoid sub-pixel rendering artifacts in Chrome
@@ -9560,13 +11025,13 @@
         const seg = drawSegments[i];
         if (seg.xRight < windowStart || seg.xLeft > windowEnd) continue;
 
-        const { midi, avgErrRatio, stretchCents, durMs, xCenter, horizontalRadius } = seg;
+        const { midi, avgErrRatio, targetOffsetCents, durMs, xCenter, horizontalRadius } = seg;
         const yPos = containerHeight - ((midi - lowestMidi) * verticalSpacing + verticalSpacing / 2);
         const verticalRadius = balloonRadius;
         const xPos = xCenter - scrollLeft;
 
-        const targetStretch = getStretchCents(midi);
-        const rebasedErr = rebaseErrRatio(avgErrRatio, stretchCents ?? 0, targetStretch);
+        const targetOffset = getTargetOffsetCents(midi);
+        const rebasedErr = rebaseErrRatio(avgErrRatio, targetOffsetCents ?? 0, targetOffset);
         const biasColor = computeColorBiasFromErr(rebasedErr);
 
         ctx.beginPath();
@@ -10062,6 +11527,7 @@
       if (prevCell) {
         prevCell.classList.remove("active");
         prevCell.classList.remove("vertical-needle");
+        prevCell.style.removeProperty("--needle-target-pos");
         const indPrev = prevCell.querySelector(".tune-indicator");
         if (indPrev) {
           indPrev.style.display = "none";
@@ -10080,21 +11546,49 @@
       if (ind) {
         ind.style.display = "block";
         const isVertical = currentSettings.needleDirection === "vertical";
+
+        // Under a temperament a cell's two neighbours are rarely equidistant, so
+        // the target does not sit at the geometric centre. Two ways to handle it:
+        //
+        //   even     one scale across the whole cell, so a cent is worth the same
+        //            travel everywhere and vibrato swings symmetrically, exactly
+        //            as in equal temperament. The target moves off centre, and the
+        //            black reference line moves with it to mark the real pitch.
+        //
+        //   centered the target is pinned mid-cell, so in tune always reads centre.
+        //            Each half is scaled to its own boundary, which means a cent is
+        //            worth more travel on the narrow side.
+        //
+        // Equal temperament is identical either way (both halves are 50c), so this
+        // only does anything once a temperament is active.
+        const { halfBelow, halfAbove } = getCellCentSpan(activeMidi);
+        const span = halfBelow + halfAbove;
+        const raw = cents || 0;
+        const centered = currentSettings.needleBehavior === "centered";
+
+        let pct;      // 0 = flat edge of the cell, 1 = sharp edge
+        let targetPct; // where the reference line belongs, same scale
+        if (centered || span <= 0) {
+          const t = raw >= 0
+            ? (halfAbove > 0 ? Math.min(1, raw / halfAbove) : 0)
+            : (halfBelow > 0 ? Math.max(-1, raw / halfBelow) : 0);
+          pct = 0.5 + 0.5 * t;
+          targetPct = 0.5;
+        } else {
+          const clamped = Math.max(-halfBelow, Math.min(halfAbove, raw));
+          pct = (clamped + halfBelow) / span;
+          targetPct = halfBelow / span;
+        }
+
         if (isVertical) {
           cell.classList.add("vertical-needle");
-          const maxCents = 50;
-          let clamped = Math.max(-maxCents, Math.min(maxCents, cents || 0));
-          const pct = (clamped + maxCents) / (2 * maxCents); // 0..1
-          const xPercent = 10 + (pct * 80); // map to 10..90%
-          ind.style.left = xPercent + "%";
+          ind.style.left = (10 + pct * 80) + "%";
           ind.style.top = "50%";
+          cell.style.setProperty("--needle-target-pos", (10 + targetPct * 80) + "%");
         } else {
-          const maxCents = 50;
-          let clamped = Math.max(-maxCents, Math.min(maxCents, cents || 0));
-          const pctUp = (clamped + maxCents) / (2 * maxCents); // 0..1
-          const yPercent = 90 - (pctUp * 80); // map to 10..90%
-          ind.style.top = yPercent + "%";
+          ind.style.top = (90 - pct * 80) + "%";
           ind.style.left = "50%";
+          cell.style.setProperty("--needle-target-pos", (90 - targetPct * 80) + "%");
         }
       }
     }
@@ -10413,7 +11907,7 @@
       const transposeFactor = Math.pow(2, -transposeOffset / 12);
     const adjustedPitch = pitch * transposeFactor;
       const nd = freqToNoteData(adjustedPitch, A4);
-      const { cents, midi, errRatio, stretchCents } = nd;
+      const { cents, midi, errRatio, targetOffsetCents } = nd;
       noteDetectedThisFrame = true;
       if (dtMs > 0) {
         noteViewActiveClockMs += dtMs;
@@ -10423,7 +11917,9 @@
       let displayCents = cents;
       const tauMs = mode === "relaxed"
         ? RELAXED_NEEDLE_TAU_MS
-        : MEDIUM_NEEDLE_TAU_MS;
+        : mode === "hard"
+          ? HARD_NEEDLE_TAU_MS
+          : MEDIUM_NEEDLE_TAU_MS;
       if (tauMs > 0) {
         if (!relaxedSmoothingActive) {
           relaxedNeedleCents = cents;
@@ -10458,17 +11954,17 @@
 
         currentMidiHeld = midi;
         currentMidiHoldStart = nowT;
-        beginActiveNote(midi, stretchCents, noteHoldMs, false);
+        beginActiveNote(midi, targetOffsetCents, noteHoldMs, false);
         // keep previous held display until new note meets attack-speed gate
       } else {
-        accumulateActiveNoteFrame(errRatio, stretchCents, dtMs);
+        accumulateActiveNoteFrame(errRatio, targetOffsetCents, dtMs);
       }
 
       const heldForMs = nowT - currentMidiHoldStart;
       const gatingHoldMs = activeNoteInfo.latched ? 0 : noteHoldMs;
       if (heldForMs >= gatingHoldMs) {
         finalizeActiveSegment(gatingHoldMs);
-        beginActiveNote(midi, stretchCents, 0, true);
+        beginActiveNote(midi, targetOffsetCents, 0, true);
         currentMidiHoldStart = nowT;
         capturingNow = true;
         relaxedSmoothingActive = (mode === "relaxed");
@@ -11639,6 +13135,9 @@
     if (event.key === "Escape" && proUpgradeModal?.getAttribute("aria-hidden") === "false") {
       closeProModal();
     }
+    if (event.key === "Escape" && isTemperamentEditorOpen()) {
+      cancelTemperamentEditor();
+    }
   });
 
   if (aRefSelect) {
@@ -11661,6 +13160,8 @@
 
   if (aRefInput) {
     aRefInput.addEventListener("input", handleARefInputChange);
+    aRefInput.addEventListener("change", handleARefInputCommit);
+    aRefInput.addEventListener("blur", handleARefInputCommit);
   }
 
   volThreshEl.addEventListener("input", () => {
@@ -11828,14 +13329,154 @@
     stretchSelect.addEventListener("change", () => {
       currentSettings.stretch = stretchSelect.value;
       persistSettings(currentSettings);
-      finalizeActiveSegment();
-      clearActiveNote();
-      currentMidiHeld = null;
-      currentMidiHoldStart = nowMs();
-      highlightGridCell(null, 0);
-      recomputeAllCellColorsAndRender();
-      updateDebugPanel({});
-      updateQuickState();
+      refreshAfterTuningChange();
+    });
+  }
+
+  if (temperamentSelect) {
+    // Choosing a preset is also how you leave Custom; the edited table is kept.
+    temperamentSelect.addEventListener("change", () => {
+      if (temperamentSelect.value === TEMPERAMENT_CUSTOM_ID) {
+        enterCustomTemperament();
+        return;
+      }
+      currentSettings.temperament = temperamentSelect.value;
+      persistSettings(currentSettings);
+      refreshAfterTuningChange();
+    });
+  }
+
+  if (temperamentCustomBtn) {
+    // Always reopens the editor, whether or not Custom is already active. The
+    // pulldown cannot do that on its own -- re-picking the selected option fires
+    // no change event -- so this button is the way back in.
+    temperamentCustomBtn.addEventListener("click", enterCustomTemperament);
+  }
+
+  if (pitchCenterSelect) {
+    pitchCenterSelect.addEventListener("change", () => setPitchCenterValue(pitchCenterSelect.value));
+  }
+
+  if (bannerTemperamentSelect) {
+    // Unlike the Options pulldown, picking Custom here just activates whatever
+    // table is already saved -- the gear icon beside it is the way into the editor.
+    bannerTemperamentSelect.addEventListener("change", () => {
+      currentSettings.temperament = bannerTemperamentSelect.value;
+      persistSettings(currentSettings);
+      refreshAfterTuningChange();
+    });
+  }
+
+  if (bannerPitchCenterSelect) {
+    bannerPitchCenterSelect.addEventListener("change", () => {
+      // "" is the "--" placeholder shown under Equal; never save it as a center.
+      if (bannerPitchCenterSelect.value === "") return;
+      setPitchCenterValue(bannerPitchCenterSelect.value);
+    });
+  }
+
+  if (bannerCustomGearBtn) {
+    bannerCustomGearBtn.addEventListener("click", enterCustomTemperament);
+  }
+
+  if (temperamentBannerDismissBtn) {
+    // Session-only: does not touch the Show Temperament Bar setting, so the
+    // bar is back the next time this temperament is (re)selected or the app
+    // is reloaded.
+    temperamentBannerDismissBtn.addEventListener("click", () => {
+      temperamentBarSessionDismissed = true;
+      updateTemperamentUiState();
+    });
+  }
+
+  // Both "change" and "click": while the bar is dismissed for the session the
+  // radio already reads Off, so choosing Off to make that permanent fires no
+  // change event. setShowTemperamentBar is idempotent, so the double bind is safe.
+  if (showTemperamentBarOnEl) {
+    const pickOn = () => {
+      if (showTemperamentBarOnEl.checked) setShowTemperamentBar(true);
+    };
+    showTemperamentBarOnEl.addEventListener("change", pickOn);
+    showTemperamentBarOnEl.addEventListener("click", pickOn);
+  }
+
+  if (showTemperamentBarOffEl) {
+    const pickOff = () => {
+      if (showTemperamentBarOffEl.checked) setShowTemperamentBar(false);
+    };
+    showTemperamentBarOffEl.addEventListener("change", pickOff);
+    showTemperamentBarOffEl.addEventListener("click", pickOff);
+  }
+
+  for (const input of needleModeInputs) {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      currentSettings.needleBehavior = input.value === "centered" ? "centered" : "even";
+      persistSettings(currentSettings);
+      syncSegmentedOptionControls();
+      // Redraw the needle and its reference line in place.
+      highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
+    });
+  }
+
+  if (tempEditorCenterSelect) {
+    tempEditorCenterSelect.addEventListener("change", () => setPitchCenterValue(tempEditorCenterSelect.value));
+  }
+
+  if (tempEditorLoadSelect) {
+    // Identical to the main Temperament list, Custom included -- so an edited
+    // table has an honest value to display rather than falling back to blank.
+    TEMPERAMENTS.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = t.name;
+      tempEditorLoadSelect.appendChild(opt);
+    });
+    const customOpt = document.createElement("option");
+    customOpt.value = TEMPERAMENT_CUSTOM_ID;
+    customOpt.textContent = "Custom";
+    tempEditorLoadSelect.appendChild(customOpt);
+
+    tempEditorLoadSelect.addEventListener("change", () => {
+      // Picking "Custom" here means nothing -- these already are the custom values.
+      const t = getTemperamentById(tempEditorLoadSelect.value);
+      if (!t) {
+        updateTemperamentUiState();
+        return;
+      }
+      renderTemperamentEditorRows(t.degrees);
+      // commitCustomTemperament() renames the selection from the values, so both
+      // this list and the one behind it settle on the preset just loaded.
+      commitCustomTemperament();
+    });
+  }
+
+  if (tempEditorRows) {
+    // Typing commits immediately (clamped), so the sound always tracks the field.
+    tempEditorRows.addEventListener("input", event => {
+      if (event.target?.matches?.('input[data-degree]')) commitCustomTemperament();
+    });
+    // Leaving the field (blur or Enter) snaps what you see to what is in force.
+    tempEditorRows.addEventListener("change", event => {
+      if (!event.target?.matches?.('input[data-degree]')) return;
+      normalizeTemperamentField(event.target);
+      commitCustomTemperament();
+    });
+  }
+
+  if (tempEditorApply) {
+    tempEditorApply.addEventListener("click", applyTemperamentEditor);
+  }
+
+  // Cancel, Escape and a backdrop click are all "dismiss", and dismissing a dialog
+  // discards. Apply is the only way to keep the edits.
+  if (tempEditorCancel) {
+    tempEditorCancel.addEventListener("click", cancelTemperamentEditor);
+  }
+
+  if (temperamentEditor) {
+    temperamentEditor.addEventListener("click", event => {
+      if (event.target === temperamentEditor) cancelTemperamentEditor();
     });
   }
 
@@ -11934,6 +13575,8 @@
       const newVal = transpositionSelect.value;
       currentSettings.transposition = newVal;
       persistSettings(currentSettings);
+      rebuildPitchCenterSelectOptions();
+      updateTemperamentUiState();
       finalizeActiveSegment();
       const newOffset = parseInt(newVal, 10) || 0;
       const deltaSemis = oldOffset - newOffset;
