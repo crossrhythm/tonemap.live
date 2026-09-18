@@ -33,7 +33,7 @@ Custom is not a special code path — just a temperament whose array is user-edi
 
 ## Reference convention (approved September 14, 2026)
 
-Implemented in `beta.html` only. Performance Pitch is the **concert A4 reference for the underlying equal-tempered scale**, not a promise that the tempered A4 target has that frequency. The selected pitch center keeps its frequency from that ET scale before stretch; all other degrees use their offsets directly, with no normalization to A.
+Implemented in `beta.html`, `index.html` and `beta-451.html` (identical engines, proven by `tests/fixture-parity.test.cjs`); the iOS port is pending. Performance Pitch is the **concert A4 reference for the underlying equal-tempered scale**, not a promise that the tempered A4 target has that frequency. The selected pitch center keeps its frequency from that ET scale before stretch; all other degrees use their offsets directly, with no normalization to A.
 
 For reference 441 Hz, concert C center, Just major and stretch off:
 
@@ -87,7 +87,7 @@ History segments retain their captured target offsets and errors. Remapping thei
 
 ### Verification
 
-Run `node --test tests/temperament.test.cjs` from the repository root. This uses Node's built-in test runner and extracts the actual calculations from the single-file app; no npm installation, bundler or application build step is required. Coverage includes the reference example, all presets and centers, A4 references 100/415/440/441/1000, four stretch modes, nearest-target boundaries, all available transpositions, Custom normalization and history rescoring/remapping.
+Run `node --test tests/temperament.test.cjs` from the repository root. This uses Node's built-in test runner and extracts the actual calculations from the single-file app; no npm installation, bundler or application build step is required. Coverage includes the reference example, all presets and centers, A4 references 100/415/440/441/1000, four stretch modes, nearest-target boundaries, all available transpositions, Custom normalization and history rescoring/remapping. The suite runs against every build (`TONEMAP_TARGETS` to narrow it) and `tests/fixture-parity.test.cjs` checks each against the frozen vectors in `tests/fixtures/`.
 
 Needle rendering and direction handling are deliberately deferred to a separate change.
 

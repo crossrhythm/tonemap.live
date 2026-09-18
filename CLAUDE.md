@@ -12,7 +12,7 @@ Tonemap.live is a browser-based real-time pitch and intonation visualizer for mu
 |---|---|
 | `beta.html` | **Active development file (free-tier beta).** A fork of `index.html`, **not** of `beta-451.html` — it has no recorder. Ahead of prod with: temperaments + pitch center + Custom editor, decimal A4 (0.1 Hz), double-tap-zoom suppression, and Hard Mode **unlocked for the beta only**. `tests/temperament.test.cjs` reads this file. |
 | `index.html` | **Production (free-tier public app).** Hard Mode implemented but Pro-gated, no recorder. Same code as beta.html as of 2026-09 apart from the gate and page metadata. Receives finished, tested features from `beta.html`. Do not add half-finished features here. |
-| `beta-451.html` | **Pro app source.** The file uploaded to Cloudflare KV as `pro-app.html` (see Common Tasks). Has the full recorder, spectrum visualizer, slow-motion playback, deactivation flow, license-info, and Hard Mode with no gates. Does **not** yet have temperaments or the decimal-A4 fix. Also the **reference file for the iOS port** — iOS parity bugs are resolved by reading this file first. |
+| `beta-451.html` | **Pro app source.** The file uploaded to Cloudflare KV as `pro-app.html` (see Common Tasks). Has the full recorder, spectrum visualizer, slow-motion playback, deactivation flow, license-info, and Hard Mode with no gates. Also the **reference file for the iOS port** — iOS parity bugs are resolved by reading this file first. |
 | `worker/index.js` | Cloudflare Worker handling `/activate`, `/pro`, `/deactivate`, `/license-info`. |
 | `worker/wrangler.toml` | Worker routing config. Routes are live for `tonemap.live` and `www.tonemap.live`. |
 | `mictest.html` | Standalone mic/audio diagnostic page. Unrelated to main app. |
@@ -135,9 +135,9 @@ Four divergent builds share one lineage. Check this table before assuming a feat
 
 | Feature | `index.html` (free prod) | `beta.html` (free beta) | `beta-451.html` (Pro / KV) | iOS |
 |---|---|---|---|---|
-| Temperaments, Pitch Center, Custom editor, banner pill | ✓ | ✓ | ✗ | ✗ (only the word, in a stretch label) |
-| Decimal A4 — 0.1 Hz; input not clobbered while typing | ✓ | ✓ | ✗ bug present | ✓ `Double`; field re-formats only when unfocused |
-| Double-tap-zoom suppression (`touch-action: manipulation`) | ✓ | ✓ | ✗ | n/a |
+| Temperaments, Pitch Center, Custom editor, banner pill | ✓ | ✓ | ✓ | ✗ (only the word, in a stretch label) |
+| Decimal A4 — 0.1 Hz; input not clobbered while typing | ✓ | ✓ | ✓ | ✓ `Double`; field re-formats only when unfocused |
+| Double-tap-zoom suppression (`touch-action: manipulation`) | ✓ | ✓ | ✓ | n/a |
 | Hard Mode — implemented (`HARD_DEADZONE_RATIO`, `biasHard`) | ✓ present, gated | ✓ | ✓ | ✓ |
 | Hard Mode — gated to Pro | ✓ | ✗ **beta unlock** | n/a (Pro build) | ✓ `pro.isPro` |
 | Quick Recorder + spectrum visualizer | ✗ | ✗ | ✓ | ✓ recorder, Pro-gated |
@@ -146,7 +146,7 @@ Four divergent builds share one lineage. Check this table before assuming a feat
 | Release notes / what's new UI | ✓ | ✓ | ✓ | ✗ as of 2026-07-08 (unverified since) |
 | Pro upgrade modal | ✓ | ✓ | ✗ (nothing to upsell) | ✓ `ProUpgradeSheet` |
 
-**Planned port (Sept 2026):** temperaments + decimal-A4 fix + touch-action → `index.html` → `beta-451.html` → iOS, in that order so `beta-451.html` remains the iOS reference. Plan lives in `docs/superpowers/plans/`.
+**Ported 2026-09 (web):** temperaments + decimal-A4 fix + touch-action are in all three web builds; `node --test tests/*.test.cjs` proves they compute identical targets. iOS port pending — its oracle is `tests/fixtures/temperament-vectors.json`.
 
 **Docs folder:**
 - `docs/temperments.md` — temperament domain reference (data model, reference convention, verified cent tables). Durable; not a task list.
