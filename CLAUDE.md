@@ -10,7 +10,7 @@ Tonemap.live is a browser-based real-time pitch and intonation visualizer for mu
 
 | File | Role |
 |---|---|
-| `beta.html` | **Active development file (free-tier beta).** A fork of `index.html`, **not** of `beta-451.html` — it has no recorder. Ahead of prod with: temperaments + pitch center + Custom editor, decimal A4 (0.1 Hz), double-tap-zoom suppression, and Hard Mode **unlocked for the beta only**. `tests/temperament.test.cjs` reads this file. |
+| `beta.html` | **Active development file (free-tier beta).** A fork of `index.html`, **not** of `beta-451.html` — it has no recorder. Ahead of prod with: temperaments + pitch center + Custom editor, decimal A4 (0.1 Hz), double-tap-zoom suppression, and Hard Mode **unlocked for the beta only**. The test suite runs against all three builds (`node --test tests/*.test.cjs`); the frozen fixture in `tests/fixtures/` was generated from this file. |
 | `index.html` | **Production (free-tier public app).** Hard Mode implemented but Pro-gated, no recorder. Same code as beta.html as of 2026-09 apart from the gate and page metadata. Receives finished, tested features from `beta.html`. Do not add half-finished features here. |
 | `beta-451.html` | **Pro app source.** The file uploaded to Cloudflare KV as `pro-app.html` (see Common Tasks). Has the full recorder, spectrum visualizer, slow-motion playback, deactivation flow, license-info, and Hard Mode with no gates. Also the **reference file for the iOS port** — iOS parity bugs are resolved by reading this file first. |
 | `worker/index.js` | Cloudflare Worker handling `/activate`, `/pro`, `/deactivate`, `/license-info`. |
@@ -152,7 +152,7 @@ Four divergent builds share one lineage. Check this table before assuming a feat
 - `docs/temperments.md` — temperament domain reference (data model, reference convention, verified cent tables). Durable; not a task list.
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` — design specs and implementation plans. May be partially or fully complete; verify against actual files before acting on them.
 - `docs/plans/` — older implementation plans, same caveat.
-- `tests/temperament.test.cjs` — run `node --test tests/temperament.test.cjs`. Extracts the real functions out of `beta.html` by regex and runs them in a `vm` context; no npm, no build.
+- `tests/` — run `node --test tests/*.test.cjs` (~40 s; no npm). `tuning-harness.cjs` regex-extracts the real tuning engine out of a build and runs it in a `vm`; `temperament.test.cjs` and `fixture-parity.test.cjs` run against every build (`TONEMAP_TARGETS=beta.html` to narrow); `pro-gate.test.cjs` proves Hard Mode is locked in `index.html` and unlocked in `beta.html`; `generate-temperament-vectors.cjs` regenerates `fixtures/temperament-vectors.json`, the parity oracle the iOS port is tested against.
 
 ---
 

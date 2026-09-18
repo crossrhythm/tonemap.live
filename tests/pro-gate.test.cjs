@@ -1,4 +1,3 @@
-
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -68,6 +67,7 @@ for (const target of TARGETS) {
       assert.equal((source.match(/name="robots"/g) || []).length, 0, 'noindex must not ship to production');
       assert.equal((source.match(/rel="canonical"/g) || []).length, 1);
       assert.doesNotMatch(source, /This is a beta build/);
+      assert.doesNotMatch(source, /STATUS: Beta/, 'stale beta status comment must not ship');
     });
   }
 }
