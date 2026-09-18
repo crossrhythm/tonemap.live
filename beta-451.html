@@ -298,6 +298,261 @@
     grid-template-columns: 1fr var(--edge-col-width);
   }
 
+  /* ---- Temperament control: preset list + Custom button ---- */
+  .temperament-control {
+    width: 100%;
+    gap: 0.4rem;
+  }
+
+  .temperament-control select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .temperament-custom-btn {
+    flex: 0 0 auto;
+    appearance: none;
+    background: var(--bg-panel);
+    color: var(--text-lite);
+    border: 1px solid var(--border-dim);
+    /* Same pill shape, padding and type scale as .theme-mode-label (Accidentals,
+       Needle Direction) so it matches the other buttons in height and form. */
+    border-radius: 999px;
+    padding: clamp(0.34rem, 0.95vw, 0.42rem) clamp(0.7rem, 1.5vw, 0.95rem);
+    font: inherit;
+    font-size: clamp(0.62rem, 1.35vw, 0.75rem);
+    font-weight: 600;
+    line-height: 1.1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .temperament-custom-btn:hover {
+    border-color: color-mix(in srgb, var(--accent-green) 60%, var(--border-dim));
+  }
+
+  .temperament-custom-btn[aria-pressed="true"] {
+    background-color: rgba(34,197,94,0.12);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+  }
+
+  /* ---- Custom temperament editor ---- */
+  .temp-editor-card { width: min(500px, 100%); }
+
+  .temp-editor-load {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.5rem 0.6rem;
+    padding-bottom: 0.85rem;
+    margin-bottom: 0.15rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-dim) 42%, transparent);
+  }
+
+  .temp-editor-load-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-lite);
+  }
+
+  .temp-editor-load select { width: 100%; min-width: 0; }
+
+  /* The pitch center row has no box to type in -- it is 0 by definition. */
+  .temp-row-center {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--text-dim);
+    text-align: right;
+    padding: 0.28rem 0.4rem;
+    border: 1px solid transparent;
+  }
+
+  .temp-editor-note {
+    margin: 0.7rem 0 0.85rem !important;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text-dim);
+  }
+
+  /* Column-major: degrees 0-5 run down the first column, 6-11 down the second,
+     so reading downward follows the chromatic scale. */
+  .temp-editor-rows {
+    display: grid;
+    grid-template-rows: repeat(6, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0.4rem 1rem;
+  }
+
+  .temp-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+  }
+
+  .temp-row-note {
+    flex: 0 0 2.3rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-lite);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .temp-row-degree {
+    flex: 0 0 1.9rem;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+
+  .temp-row input[type="number"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    padding: 0.28rem 0.4rem;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--text-lite);
+    background: color-mix(in srgb, var(--bg-main) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-dim) 65%, transparent);
+    border-radius: 0.35rem;
+  }
+
+  .temp-row input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent-green);
+  }
+
+  .temp-row-unit {
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+
+  /* The inputs already carry min/max, so out-of-range values are flagged live by
+     the browser's own constraint validation -- no JS needed. The readonly pitch
+     center row is barred from validation, so it never lights up. */
+  .temp-row input[type="number"]:invalid {
+    border-color: var(--warn-color);
+    box-shadow: 0 0 0 0.15rem color-mix(in srgb, var(--warn-color) 22%, transparent);
+  }
+
+  /* Cancel / Apply sit in the header, as they do in Options and Colors. They use
+     the shared .overlay-action-btn styling rather than a private copy, so the
+     green hover and the box model can never drift apart. */
+  .temp-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+  }
+
+  /* No footer any more, so the body carries the bottom padding itself. */
+  .temp-editor-card .pro-modal-body { padding-bottom: 1.1rem; }
+
+  .temp-editor-hint {
+    margin: 0.7rem 0 0;
+    min-height: 0.95rem;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    color: var(--warn-color);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+
+  .temp-editor-hint.is-visible { opacity: 1; }
+
+  .option-field.is-disabled { opacity: 0.45; }
+  .option-field.is-disabled select { cursor: not-allowed; }
+
+  @media (max-width: 560px) {
+    .temp-editor-load { grid-template-columns: auto minmax(0, 1fr); }
+  }
+
+  @media (max-width: 460px) {
+    .temp-editor-rows {
+      grid-auto-flow: row;
+      grid-template-rows: none;
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .pro-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: var(--veil-bg);
+    backdrop-filter: blur(4px);
+  }
+
+  .pro-modal-overlay[aria-hidden="false"] {
+    display: flex;
+  }
+
+  .pro-modal-card {
+    --pro-modal-surface: color-mix(in srgb, var(--bg-panel) 94%, var(--bg-main));
+    width: min(560px, 100%);
+    max-height: 88vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--pro-modal-surface);
+    color: var(--text-lite);
+    border: 1px solid color-mix(in srgb, var(--border-dim) 58%, transparent);
+    border-radius: 1rem;
+    box-shadow: 0 24px 48px color-mix(in srgb, var(--bg-main) 45%, black);
+  }
+
+  .pro-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-dim) 42%, transparent);
+    color: var(--text-lite);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .pro-modal-header .options-close-btn {
+    order: 0;
+    flex: 0 0 auto;
+    border-color: color-mix(in srgb, var(--border-dim) 80%, transparent);
+    color: var(--text-lite);
+    background: color-mix(in srgb, var(--bg-main) 10%, transparent);
+  }
+
+  .pro-modal-body {
+    overflow-y: auto;
+    padding: 1rem 1.2rem 0.4rem;
+    color: var(--text-dim);
+  }
+
+  /* Suppress the generic scroll-fade-y bottom pseudo; handled by pro-modal-footer::before */
+  .pro-modal-body.scroll-fade-y::before {
+    top: -1rem;
+  }
+
+  .pro-modal-body::after {
+    display: none;
+  }
+
+  .pro-modal-body p {
+    margin: 0 0 0.8rem;
+    line-height: 1.55;
+  }
+
   .recording-launcher-shell {
     position: absolute;
     left: 0;

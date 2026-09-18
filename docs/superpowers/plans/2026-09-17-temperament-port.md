@@ -35,6 +35,7 @@ Facts established by rehearsal on 2026-09-17. An executor does not need to re-de
 5. **A4 anchoring subtlety (matters for iOS):** `getTargetOffsetCents(midi)` already includes the A4 calibration as `1200·log2(a4/440)` measured from the fixed `A4_REFERENCE_HZ = 440` anchor. A target frequency is therefore `equalHz(midi, 440) · 2^(offset/1200)` — anchoring at the user's A4 applies it twice (every 441-Hz row read 3.93 ¢ sharp in the first draft of the generator).
 6. **`index.html` has no changes `beta.html` lacks:** its last commit (2026-08-22, App Store badge) is present in `beta.html`; the diff is entirely explained by the features above.
 7. **iOS today:** no temperaments (the word appears only in a stretch label); A4 is a `Double` whose text field only re-formats when unfocused (no clobber bug) but the stored value is not rounded to 0.1 Hz (`formatA4` only rounds for display); Hard Mode and Quick Record are gated on `pro.isPro`.
+8. **Corrected during execution (Task 4 fix round 1):** the plan's CSS slice ended at `.recording-launcher-shell {`, which precedes the block in beta.html, so it was empty; and beta-451.html has no `.pro-modal-*` rules, which the Custom editor's markup depends on — both blocks are now ported and asserted by selector count.
 
 ---
 
@@ -761,8 +762,19 @@ c = c.replace(m[0], "  .a-ref-preset #aRefSelect {\n    width: 6rem;\n    min-wi
 print("ok: #aRefSelect width")
 
 a = "  .recording-launcher-shell {"; once(a, "temperament CSS anchor")
-c = c.replace(a, beta[beta.index("  /* ---- Temperament control: preset list + Custom button ---- */\n"):beta.index(a)] + a)
+# Block A (temperament + Custom-editor CSS) and Block B (Pro-modal structural CSS the
+# editor's markup is built on: .pro-modal-overlay/-card/-header/-body) are contiguous
+# in beta.html, so one slice captures both -- ending just before .pro-modal-footer,
+# which is upgrade-modal-only and not used by the editor. (A slice ending at the
+# .recording-launcher-shell anchor instead, as an earlier draft of this script did,
+# is empty: that selector precedes the block in beta.html, so start > end.)
+block_a_b = beta[beta.index("  /* ---- Temperament control: preset list + Custom button ---- */\n"):beta.index("  .pro-modal-footer {")]
+# .temp-editor-note is a <p> inside .pro-modal-body; only this rule (outside Block B)
+# gives it its line-height, so it travels separately, placed right after Block B.
+extra = "  .pro-modal-body p {\n    margin: 0 0 0.8rem;\n    line-height: 1.55;\n  }\n\n"
+c = c.replace(a, block_a_b + extra + a)
 print("ok: temperament + Custom editor CSS")
+print("ok: Pro-modal structural CSS")
 
 i = beta.index('<div id="temperamentEditor"'); j = beta.index("\n</div>\n", i) + len("\n</div>\n")
 a = '\n<script type="module">\n'; once(a, "editor markup anchor (after #paletteOverlay)")
@@ -804,6 +816,15 @@ if c.count('if (modeRaw === "hard") return "hard";') != 1: bad.append("resolveMo
 if c.count("stretchCents") != 0: bad.append(f"stale stretchCents refs: {c.count('stretchCents')}")
 if c.count("recorderState") < 200: bad.append("recorder damaged")
 if re.search(r'APP_VERSION = "2\.2"', c) or c.count('name="robots"') or c.count('rel="canonical"') != 1: bad.append("beta-only metadata leaked")
+# Block A/B CSS selectors landed. .temp-editor-load and .pro-modal-body legitimately
+# occur twice each in beta.html itself (a 560px media-query override and the
+# .temp-editor-card .pro-modal-body compound-selector override, respectively), so
+# beta-451.html should match those counts, not 1.
+for sel, want in [(".temperament-control {", 1), (".temperament-custom-btn {", 1), (".temp-editor-card {", 1),
+                   (".temp-editor-load {", 2), (".temp-row {", 1), (".temp-editor-hint {", 1),
+                   (".option-field.is-disabled {", 1), (".pro-modal-overlay {", 1), (".pro-modal-card {", 1),
+                   (".pro-modal-header {", 1), (".pro-modal-body {", 2), (".temp-editor-rows {", 2)]:
+    if c.count(sel) != want: bad.append(f"{sel} x{c.count(sel)} (want {want})")
 print("structural checks:", "ALL OK" if not bad else bad)
 assert not bad
 ```
@@ -824,6 +845,7 @@ ok: debug-panel stretch label
 ok: stored A4 rounded to 0.1 Hz on load
 ok: #aRefSelect width
 ok: temperament + Custom editor CSS
+ok: Pro-modal structural CSS
 ok: #temperamentEditor markup
 ok: resolveMode de-duplicated
 ok: getStretchCents fallback
