@@ -10,14 +10,15 @@ Tonemap.live is a browser-based real-time pitch and intonation visualizer for mu
 
 | File | Role |
 |---|---|
-| `beta-451.html` | **Active development file.** All new features go here first. Currently ahead of `index.html` — has the full recorder, spectrum visualizer, slow-motion playback, deactivation flow, and more. |
-| `index.html` | **Production (free-tier public app).** Gets updated by merging finished, tested features from `beta-451.html`. Currently ~1200 lines shorter — missing the full recorder. Do not add half-finished features here. |
+| `beta.html` | **Active development file (free-tier beta).** A fork of `index.html`, **not** of `beta-451.html` — it has no recorder. Ahead of prod with: temperaments + pitch center + Custom editor, decimal A4 (0.1 Hz), double-tap-zoom suppression, and Hard Mode **unlocked for the beta only**. `tests/temperament.test.cjs` reads this file. |
+| `index.html` | **Production (free-tier public app).** Hard Mode gated to Pro, no recorder. Receives finished, tested features from `beta.html`. Do not add half-finished features here. |
+| `beta-451.html` | **Pro app source.** The file uploaded to Cloudflare KV as `pro-app.html` (see Common Tasks). Has the full recorder, spectrum visualizer, slow-motion playback, deactivation flow, license-info, and Hard Mode with no gates. Does **not** yet have temperaments or the decimal-A4 fix. Also the **reference file for the iOS port** — iOS parity bugs are resolved by reading this file first. |
 | `worker/index.js` | Cloudflare Worker handling `/activate`, `/pro`, `/deactivate`, `/license-info`. |
 | `worker/wrangler.toml` | Worker routing config. Routes are live for `tonemap.live` and `www.tonemap.live`. |
 | `mictest.html` | Standalone mic/audio diagnostic page. Unrelated to main app. |
 | `terms.html` | Terms of service page. |
 
-**The Pro app** is served from Cloudflare KV key `pro-app.html` (namespace ID `25916307ce9d4005b0998afe806127e2`) — it is not a file in the repo.
+**The Pro app** at `/pro` is served from Cloudflare KV key `pro-app.html` (namespace ID `25916307ce9d4005b0998afe806127e2`). The KV value is a copy of `beta-451.html` uploaded with the command under Common Tasks; the repo file is the source of truth.
 
 ---
 
@@ -40,11 +41,11 @@ The split was intentionally simplified post-launch to give free users a better e
 
 | Feature | Free | Pro |
 |---|---|---|
-| Mode (sensitivity) | Relaxed, Medium | + Hard |
+| Mode (sensitivity) | Relaxed, Medium — **`beta.html` only: + Hard, unlocked for the beta** | + Hard |
 | History | All options | Same |
 | Color Hold | All options | Same |
 | Performance Pitch (A4) | Full 100–1000 Hz range + custom | Same |
-| Quick Recorder | ✗ (not yet in index.html) | ✓ (in beta-451.html) |
+| Quick Recorder | ✗ (not in `index.html` or `beta.html`) | ✓ (`beta-451.html`) |
 
 **Free for everyone (not gated):** Performance Pitch (A4), History, Color Hold, Transposition (all keys), Stretch Tuning (None / Minimal / Medium / Full Railsback), "Rows start with" (any note), accidentals, palette colors, Note View, mic gain / noise reduction, all other UI options.
 
@@ -68,6 +69,7 @@ const FREE_ALLOWED = Object.freeze({
 function isProLockedValue(type, value) { ... }
 function openProModal(featureKey) { ... }
 ```
+That table is `index.html`'s. In `beta.html` it is `Object.freeze({})` — Hard Mode is deliberately unlocked there for the beta. **When porting `beta.html` features to `index.html`, keep `index.html`'s gate; the unlock does not travel.** `beta-451.html` has no `FREE_ALLOWED` at all (Pro build). `isProLockedValue()` returns `false` for any type absent from the table, so the listeners that call it need no changes in either direction.
 
 ### Recorder Spectrum (beta-451.html only)
 - Constants: `RECORDER_SPECTRUM_POINTS = 48`, `RECORDER_SPECTRUM_MIN_HZ = 80`, `RECORDER_SPECTRUM_MAX_HZ = 8000`, `RECORDER_SPECTRUM_EMA_ALPHA = 0.15`
@@ -104,13 +106,13 @@ for fname in ['worker/index.js', 'worker/wrangler.toml']:
 print('xattr cleared')
 "
 ```
-Static files (`index.html`, `beta-451.html`, etc.) served by Cloudflare Pages are **not affected** — edit those freely.
+Static files (`index.html`, `beta.html`, `beta-451.html`, etc.) served by Cloudflare Pages are **not affected** — edit those freely.
 
 ### Single-File Constraint
 Do not propose splitting into separate JS/CSS files, introducing a build step, or adding npm dependencies. The single-file, no-build architecture is intentional and must be preserved.
 
 ### Never touch `index.html` with in-progress features
-`index.html` is production. Only merge from `beta-451.html` when a feature is finished and tested.
+`index.html` is production. Only merge from `beta.html` when a feature is finished and tested, and keep Hard Mode gated when you do. `beta-451.html` is a separate Pro build — features must be ported to it explicitly; nothing flows there automatically.
 
 ---
 
@@ -127,26 +129,30 @@ Cookie: `tm_pro` (HMAC-signed, 365-day max-age). Revalidation against Polar ever
 
 ---
 
-## Current Status (as of 2026-05-06)
+## Feature Parity Matrix (as of 2026-09-17)
 
-**In `beta-451.html` (dev), not yet in `index.html` (prod):**
-- Full Quick Recorder (record, slow-motion playback, WAV download)
-- Live spectrum visualizer during recording
-- Deactivation flow (`/deactivate` endpoint + UI)
-- License info endpoint (`/license-info`)
-- Various mobile layout and mic fixes from recent commits
+Four divergent builds share one lineage. Check this table before assuming a feature exists in the file you're editing. iOS column verified against `../tonemap-ios` on 2026-09-17 except where marked.
 
-**Done and live in both files:**
-- Simplified Free/Pro split with Polar.sh checkout (see matrix above)
-- Pro modal with feature highlight animations
-- Worker auth (HMAC cookie, KV delivery)
-- Railsback stretch tuning (free for all)
-- All transposition options (free for all)
-- Release notes / what's new UI
+| Feature | `index.html` (free prod) | `beta.html` (free beta) | `beta-451.html` (Pro / KV) | iOS |
+|---|---|---|---|---|
+| Temperaments, Pitch Center, Custom editor, banner pill | ✗ | ✓ | ✗ | ✗ (only the word, in a stretch label) |
+| Decimal A4 — 0.1 Hz; input not clobbered while typing | ✗ bug present | ✓ | ✗ bug present | ✓ `Double`; field re-formats only when unfocused |
+| Double-tap-zoom suppression (`touch-action: manipulation`) | ✗ | ✓ | ✗ | n/a |
+| Hard Mode — implemented (`HARD_DEADZONE_RATIO`, `biasHard`) | ✗ gated; `resolveMode` folds it to medium | ✓ | ✓ | ✓ |
+| Hard Mode — gated to Pro | ✓ | ✗ **beta unlock** | n/a (Pro build) | ✓ `pro.isPro` |
+| Quick Recorder + spectrum visualizer | ✗ | ✗ | ✓ | ✓ recorder, Pro-gated |
+| Deactivation flow, `/license-info` | ✗ | ✗ | ✓ | n/a (Polar key + StoreKit) |
+| Railsback stretch, transposition, Note View | ✓ | ✓ | ✓ | ✓ |
+| Release notes / what's new UI | ✓ | ✓ | ✓ | ✗ as of 2026-07-08 (unverified since) |
+| Pro upgrade modal | ✓ | ✓ | ✗ (nothing to upsell) | ✓ `ProUpgradeSheet` |
+
+**Planned port (Sept 2026):** temperaments + decimal-A4 fix + touch-action → `index.html` → `beta-451.html` → iOS, in that order so `beta-451.html` remains the iOS reference. Plan lives in `docs/superpowers/plans/`.
 
 **Docs folder:**
-- `docs/plans/` — detailed implementation plans (may be partially or fully complete; verify against actual files before acting on them)
-- `docs/superpowers/` — spec for the spectrum visualizer (implemented in beta-451.html)
+- `docs/temperments.md` — temperament domain reference (data model, reference convention, verified cent tables). Durable; not a task list.
+- `docs/superpowers/specs/` and `docs/superpowers/plans/` — design specs and implementation plans. May be partially or fully complete; verify against actual files before acting on them.
+- `docs/plans/` — older implementation plans, same caveat.
+- `tests/temperament.test.cjs` — run `node --test tests/temperament.test.cjs`. Extracts the real functions out of `beta.html` by regex and runs them in a `vm` context; no npm, no build.
 
 ---
 
@@ -155,7 +161,7 @@ Cookie: `tm_pro` (HMAC-signed, 365-day max-age). Revalidation against Polar ever
 ### Adding a new control
 1. Add HTML in the options panel (`right-scroll` section)
 2. Update `updateDebugPanel()` if needed
-3. Add DOM ref near other `getElementById` calls (~line 4248 in beta)
+3. Add DOM ref near the other `getElementById` calls (search for `getElementById("aRefInput")` — line numbers drift)
 4. Wire event listener in init section
 5. Add to `currentSettings` default and `applySettingsToUI()` normalization
 
