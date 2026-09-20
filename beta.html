@@ -1846,8 +1846,6 @@
      in the FIRST row of each section -- Core Tuning, Visual, Advanced. #optNoteViewStyle
      used to be here from an older field order; it sits in row 2 of Visual, so the
      pull-up was shortening a gap between two ordinary rows instead. */
-  .options-grid #optTemperament,
-  .options-grid #optPitchCenter,
   .options-grid #optRowsStart,
   .options-grid #optAccidentals,
   .options-grid #optAgc,
@@ -1861,8 +1859,7 @@
 
   #optSectionCore { order: 0; }
   #optSectionVisual { order: 5; }
-  #optSectionTemperament { order: 10; }
-  #optSectionAdvanced { order: 15; }
+    #optSectionAdvanced { order: 15; }
 
   #optMode { order: 1; }
   #optPerformancePitch { order: 2; }
@@ -1874,10 +1871,9 @@
   #optNoteViewStyle { order: 8; }
   #optNeedleDirection { order: 9; }
 
-  #optTemperament { order: 11; }
-  #optPitchCenter { order: 12; }
-  #optShowTemperamentBar { order: 13; }
-  #optNeedleBehavior { order: 14; }
+  /* Last row of Core Tuning. Same order as Stretch Tuning; equal orders keep
+     document order, and this field comes after Stretch in the markup. */
+  #optShowTemperamentBar { order: 4; }
 
   #optAgc { order: 16; }
   #optLevelsMonitorField { order: 17; }
@@ -2422,8 +2418,10 @@
     gap: 0.4rem;
   }
 
-  .temperament-control select {
+  /* The On/Off pair shares the row with the Customize button. */
+  .temperament-control .theme-mode-wrap {
     flex: 1 1 auto;
+    width: auto;
     min-width: 0;
   }
 
@@ -2461,7 +2459,7 @@
 
   .temp-editor-load {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: 0.5rem 0.6rem;
     padding-bottom: 0.85rem;
@@ -2470,9 +2468,33 @@
   }
 
   .temp-editor-load-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--text-lite);
+  }
+
+  /* Anchor and Needle Behavior change nothing under Equal; dim them as Options did. */
+  .temp-editor-load .is-disabled { opacity: 0.45; }
+
+  /* Live Hz readouts under the note. */
+  .temp-editor-hz {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: start;
+    gap: 0.2rem 0.9rem;
+    margin: 0.2rem 0 0.8rem;
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+  .temp-editor-hz dt { color: var(--text-dim); }
+  .temp-editor-hz dd {
+    margin: 0;
+    color: var(--text-lite);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
   }
 
   .temp-editor-load select { width: 100%; min-width: 0; }
@@ -2794,7 +2816,7 @@
     padding: 1.25rem;
     background: var(--ui-overlay-backdrop);
     backdrop-filter: blur(6px);
-    z-index: 1400;
+    z-index: 1600; /* above the Customize Temperaments dialog (1500) */
   }
 
   .option-info-overlay.open {
@@ -4013,7 +4035,7 @@
           <span id="bannerPitchCenterLabel" class="temperament-banner-label">Pitch Center:</span>
           <select id="bannerPitchCenterSelect" class="temperament-banner-select" aria-label="Pitch Center"></select>
           <button id="bannerCustomGearBtn" class="temperament-banner-gear" type="button"
-            aria-label="Edit Custom Temperament" title="Edit Custom Temperament">&#9881;</button>
+            aria-label="Customize Temperaments" title="Customize Temperaments">&#9881;</button>
           <button id="temperamentBannerDismissBtn" class="temperament-banner-gear temperament-banner-dismiss" type="button"
             aria-label="Hide temperament bar for this session" title="Hide for this session">&times;</button>
         </div>
@@ -4358,13 +4380,12 @@
           </div>
         </div>
 
-        <p id="optSectionTemperament" class="options-section-label">Temperament</p>
         <div class="option-field" id="optShowTemperamentBar">
           <div class="opt-label-row">
             <label class="opt-label" for="showTemperamentBarOn">Show Temperament Bar</label>
             <button class="info-btn" type="button" data-info-key="showTemperamentBar" aria-label="Learn about Show Temperament Bar">i</button>
           </div>
-          <div class="opt-control">
+          <div class="opt-control temperament-control">
             <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Show Temperament Bar">
               <div class="theme-mode-item">
                 <input id="showTemperamentBarOn" class="theme-mode-radio" type="radio" name="showTemperamentBarMode" value="on" />
@@ -4375,51 +4396,15 @@
                 <label class="theme-mode-label" for="showTemperamentBarOff">Off</label>
               </div>
             </div>
+            <!-- The one always-available way into Customize Temperaments; the
+                 banner gear only exists while the bar is showing. -->
+            <button id="temperamentCustomBtn" class="temperament-custom-btn" type="button"
+                    aria-pressed="false" aria-haspopup="dialog" title="Customize Temperaments">Customize&hellip;</button>
           </div>
           <p id="showTemperamentBarSessionNote" class="opt-session-note" hidden>
             Hidden for this session &mdash; it comes back on reload. Select Off to keep it hidden.
           </p>
         </div>
-        <div class="option-field" id="optTemperament">
-          <div class="opt-label-row">
-            <label class="opt-label" for="temperamentSelect">Temperament</label>
-            <button class="info-btn" type="button" data-info-key="temperament" aria-label="Learn about Temperament">i</button>
-          </div>
-          <div class="opt-control temperament-control">
-            <select id="temperamentSelect"></select>
-            <button id="temperamentCustomBtn" class="temperament-custom-btn" type="button"
-                    aria-pressed="false" aria-haspopup="dialog">Custom</button>
-          </div>
-        </div>
-
-        <div class="option-field" id="optPitchCenter">
-          <div class="opt-label-row">
-            <label class="opt-label" for="pitchCenterSelect">Pitch Center</label>
-            <button class="info-btn" type="button" data-info-key="pitchCenter" aria-label="Learn about Pitch Center">i</button>
-          </div>
-          <div class="opt-control">
-            <select id="pitchCenterSelect"></select>
-          </div>
-        </div>
-        <div class="option-field" id="optNeedleBehavior">
-          <div class="opt-label-row">
-            <label class="opt-label" for="needleModeEven">Needle Behavior</label>
-            <button class="info-btn" type="button" data-info-key="needleBehavior" aria-label="Learn about Needle Behavior">i</button>
-          </div>
-          <div class="opt-control">
-            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Needle Behavior">
-              <div class="theme-mode-item">
-                <input id="needleModeEven" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="even" />
-                <label class="theme-mode-label" for="needleModeEven">Even needle travel</label>
-              </div>
-              <div class="theme-mode-item">
-                <input id="needleModeCentered" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="centered" />
-                <label class="theme-mode-label" for="needleModeCentered">Centered target pitch</label>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="option-field" id="optNeedleDirection">
           <div class="opt-label-row">
             <label class="opt-label" for="needleDirVertical">Needle Direction</label>
@@ -4790,7 +4775,7 @@
 <div id="temperamentEditor" class="pro-modal-overlay" aria-hidden="true">
   <div class="pro-modal-card temp-editor-card" role="dialog" aria-modal="true" aria-labelledby="tempEditorTitle">
     <div class="pro-modal-header">
-      <span id="tempEditorTitle">Custom Temperament</span>
+      <span id="tempEditorTitle">Customize Temperaments</span>
       <div class="temp-editor-actions">
         <button id="tempEditorCancel" class="overlay-action-btn" type="button">Cancel</button>
         <button id="tempEditorApply" class="overlay-action-btn options-apply-btn" type="button">Apply</button>
@@ -4798,18 +4783,45 @@
     </div>
     <div class="pro-modal-body scroll-fade-y">
       <div class="temp-editor-load">
-        <label class="temp-editor-load-label" for="tempEditorLoadSelect">Temperament</label>
+        <span class="temp-editor-load-label"><label for="tempEditorLoadSelect">Temperament</label>
+          <button class="info-btn" type="button" data-info-key="temperament" aria-label="Learn about Temperament">i</button></span>
         <select id="tempEditorLoadSelect"></select>
-        <label class="temp-editor-load-label" for="tempEditorCenterSelect">Pitch Center</label>
+        <span class="temp-editor-load-label"><label for="tempEditorCenterSelect">Pitch Center</label>
+          <button class="info-btn" type="button" data-info-key="pitchCenter" aria-label="Learn about Pitch Center">i</button></span>
         <select id="tempEditorCenterSelect"></select>
+        <span class="temp-editor-load-label" id="tempEditorAnchorLabel"><label for="anchorModeA4">Anchor</label>
+          <button class="info-btn" type="button" data-info-key="temperamentAnchor" aria-label="Learn about Anchor">i</button></span>
+        <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Anchor" id="tempEditorAnchorField">
+          <div class="theme-mode-item">
+            <input id="anchorModeA4" class="theme-mode-radio" type="radio" name="temperamentAnchorMode" value="a4" />
+            <label class="theme-mode-label" for="anchorModeA4" title="A4 stays on your Performance Pitch; the pitch center moves">Anchor: A4</label>
+          </div>
+          <div class="theme-mode-item">
+            <input id="anchorModeCenter" class="theme-mode-radio" type="radio" name="temperamentAnchorMode" value="center" />
+            <label class="theme-mode-label" for="anchorModeCenter" title="The pitch center keeps its equal-tempered frequency; A4 moves">Anchor: Pitch Center</label>
+          </div>
+        </div>
+        <span class="temp-editor-load-label" id="tempEditorNeedleLabel"><label for="needleModeEven">Needle Behavior</label>
+          <button class="info-btn" type="button" data-info-key="needleBehavior" aria-label="Learn about Needle Behavior">i</button></span>
+        <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Needle Behavior" id="tempEditorNeedleField">
+          <div class="theme-mode-item">
+            <input id="needleModeEven" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="even" />
+            <label class="theme-mode-label" for="needleModeEven">Even needle travel</label>
+          </div>
+          <div class="theme-mode-item">
+            <input id="needleModeCentered" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="centered" />
+            <label class="theme-mode-label" for="needleModeCentered">Centered target pitch</label>
+          </div>
+        </div>
       </div>
       <p class="temp-editor-note">
         Cents from equal temperament, relative to the pitch center
         (<span id="tempEditorCenterName">C</span>). Each note can be adjusted up to
-        &plusmn;45&cent;. The pitch center keeps its equal-tempered frequency from
+        &plusmn;45&cent;. The anchored note keeps its equal-tempered frequency from
         the Performance Pitch reference (<span id="tempEditorA4">A4=440</span>),
-        before stretch. Other notes, including A, follow the temperament offsets.
+        before stretch; every other note follows the temperament offsets.
       </p>
+      <dl class="temp-editor-hz" id="tempEditorHz" aria-live="polite"></dl>
       <div id="tempEditorRows" class="temp-editor-rows"></div>
       <p id="tempEditorHint" class="temp-editor-hint" role="status" aria-live="polite"></p>
     </div>
@@ -4925,7 +4937,6 @@
   const historySelect     = document.getElementById("historySelect");
   const stainHoldSelect   = document.getElementById("stainHoldSelect");
   const stretchSelect     = document.getElementById("stretchSelect");
-  const temperamentSelect = document.getElementById("temperamentSelect");
   const temperamentCustomBtn = document.getElementById("temperamentCustomBtn");
   const temperamentBanner = document.getElementById("temperamentBanner");
   const temperamentBannerPill = temperamentBanner?.querySelector(".temperament-banner-pill") || null;
@@ -4937,9 +4948,7 @@
   const showTemperamentBarOnEl = document.getElementById("showTemperamentBarOn");
   const showTemperamentBarOffEl = document.getElementById("showTemperamentBarOff");
   const showTemperamentBarSessionNote = document.getElementById("showTemperamentBarSessionNote");
-  const pitchCenterSelect = document.getElementById("pitchCenterSelect");
   const optTemperamentField = document.getElementById("optTemperament");
-  const optPitchCenterField = document.getElementById("optPitchCenter");
   const temperamentEditor      = document.getElementById("temperamentEditor");
   const tempEditorApply        = document.getElementById("tempEditorApply");
   const tempEditorCancel       = document.getElementById("tempEditorCancel");
@@ -4954,7 +4963,12 @@
   const attackSpeedValueEl = document.getElementById("attackSpeedValue");
   const needleDirSelect   = document.getElementById("needleDirSelect");
   const needleModeInputs = Array.from(document.querySelectorAll('input[name="needleBehaviorMode"]'));
-  const optNeedleBehaviorField = document.getElementById("optNeedleBehavior");
+  const tempEditorNeedleField  = document.getElementById("tempEditorNeedleField");
+  const tempEditorNeedleLabel  = document.getElementById("tempEditorNeedleLabel");
+  const tempEditorAnchorField  = document.getElementById("tempEditorAnchorField");
+  const tempEditorAnchorLabel  = document.getElementById("tempEditorAnchorLabel");
+  const tempEditorHz           = document.getElementById("tempEditorHz");
+  const anchorModeInputs = Array.from(document.querySelectorAll('input[name="temperamentAnchorMode"]'));
   const resetSettingsBtn  = document.getElementById("resetSettingsBtn");
 
   const noteGrid      = document.getElementById("noteGrid");
@@ -6956,6 +6970,7 @@
     temperament: "equal",
     pitchCenter: "0",
     customTemperament: null,   // 12 cent offsets, tonic-relative; null until first edited
+    temperamentAnchor: "center", // "center" | "a4" -- see getTemperamentCents()
     accidentalMode: "sharps",
     noteViewStyle: NOTE_VIEW_STYLE_DEFAULT,
     transposition: "0",
@@ -7093,7 +7108,7 @@
     },
     showTemperamentBar: {
       title: "Show Temperament Bar",
-      summary: "Shows a bar over the grid with quick Temperament and Pitch Center controls, plus a shortcut to the Custom editor.",
+      summary: "Shows a bar over the grid with quick Temperament and Pitch Center controls, plus a shortcut to Customize Temperaments.",
       detail: [
         "Off by default; turns on automatically the first time you pick a temperament other than Equal, from here or from the bar itself.",
         "The bar's own (\u00d7) hides it for the rest of this session only \u2014 it comes back next time you reload or pick a new temperament. This setting then reads Off, with a note saying so; select Off yourself to stop it reappearing altogether.",
@@ -7115,14 +7130,24 @@
     },
     pitchCenter: {
       title: "Pitch Center",
-      summary: "The note the temperament is built from. It keeps its equal-tempered frequency from your Performance Pitch reference, before stretch.",
+      summary: "The note the temperament is built from. With the anchor on Pitch Center (the default) it keeps its equal-tempered frequency from your Performance Pitch reference, before stretch.",
       detail: [
         "Set it to the key you are playing in. It stays put when you switch temperaments, so you can compare them in the same key.",
         "For Pythagorean and meantone this is the important control: it decides where the unusable \u201cwolf\u201d fifth lands. Put it on your tonic and the wolf falls in a distant key.",
         "For the well temperaments (Vallotti, Werckmeister III) it is optional \u2014 they were designed around C, where the common keys sound calm and remote keys sound spicier. Leave it on C unless you know you want that pattern moved.",
-        "It has no effect under Equal Temperament, so it is disabled there.",
+        "It has no tuning effect under Equal Temperament, but it still chooses which note each row of the editor is labelled with.",
         "Pitch Center uses written note names for your instrument. For B-flat trumpet, written C means concert B-flat; the concert name is shown when transposition is active.",
         "Every note reads zero cents at its own temperament target. A zero temperament offset means unchanged from equal temperament, not the only note that can be in tune."
+      ]
+    },
+    temperamentAnchor: {
+      title: "Anchor",
+      summary: "Which note keeps its equal-tempered frequency from your Performance Pitch reference. The other notes follow the temperament from there.",
+      detail: [
+        "\u2022 Anchor: Pitch Center (default): the pitch center sits exactly on its equal-tempered frequency and A drifts by its own offset. With Just major centered on C and A4 set to 441, A4 lands near 437.03 Hz.",
+        "\u2022 Anchor: A4: A4 sits exactly on your Performance Pitch and the pitch center drifts instead. Same intervals, whole scale slid by A's offset.",
+        "Cell widths and which note is nearest do not change; only where the whole scale sits. Existing colors on the map are rescored, as they are for a Performance Pitch change.",
+        "The two anchors coincide when the pitch center is A (the readouts then agree) and under Equal Temperament, where the choice is dimmed. The Hz readouts below show the frequencies each anchor produces."
       ]
     },
     needleBehavior: {
@@ -7928,6 +7953,11 @@
       input.checked = input.value === behaviorValue;
     }
 
+    const anchorValue = currentSettings.temperamentAnchor === "a4" ? "a4" : "center";
+    for (const input of anchorModeInputs) {
+      input.checked = input.value === anchorValue;
+    }
+
     updateAccidentalToggleUI();
   }
 
@@ -8336,7 +8366,10 @@
         needsPersist = true;
       }
     }
-    if (temperamentSelect) temperamentSelect.value = currentSettings.temperament;
+    const originalAnchor = settings.temperamentAnchor;
+    const anchorVal = originalAnchor === "a4" ? "a4" : "center";
+    currentSettings.temperamentAnchor = anchorVal;
+    if (originalAnchor !== anchorVal) needsPersist = true;
 
     // Default off; a saved non-Equal temperament from before this setting existed
     // counts as "temperaments are used", so it migrates on instead of hiding a bar
@@ -8809,12 +8842,23 @@
   }
 
   // Cent offset the temperament asks for at this midi note. Pitch class 0 = C.
+  //
+  // Anchor: which note keeps its equal-tempered frequency from the A4 reference.
+  // "center" (the default): the pitch center does, so A drifts by its own degree
+  // -- Just major on C with A4=441 puts A4 near 437.03 Hz. "a4": A stays on the
+  // reference and every note, the center included, is shifted by A's degree
+  // instead. The shift is one constant per temperament and center, so cell
+  // widths and note assignment are unchanged; only where the lattice sits moves.
+  // Read inline (not via a helper) so the test harness extracts this function
+  // unchanged.
   function getTemperamentCents(midi) {
     if (!Number.isFinite(midi)) return 0;
     const degrees = getActiveTemperamentDegrees();
     const centerPc = getPitchCenterPc();
     const pc = ((midi % 12) + 12) % 12;
-    return degrees[((pc - centerPc) % 12 + 12) % 12] ?? 0;
+    const own = degrees[((pc - centerPc) % 12 + 12) % 12] ?? 0;
+    if (currentSettings?.temperamentAnchor !== "a4") return own;
+    return own - (degrees[((9 - centerPc) % 12 + 12) % 12] ?? 0);
   }
 
   // Total offset from the fixed A4 anchor for this note. Cents are logarithmic,
@@ -8880,7 +8924,7 @@
 
   function rebuildTemperamentSelectOptions() {
     const prev = currentSettings?.temperament || "equal";
-    for (const select of [temperamentSelect, bannerTemperamentSelect]) {
+    for (const select of [bannerTemperamentSelect]) {
       if (!select) continue;
       select.innerHTML = "";
       TEMPERAMENTS.forEach(t => {
@@ -8891,7 +8935,7 @@
       });
       // Custom lives in the list too, so the control can just say "Custom" rather
       // than greying out a preset that is not what you are hearing. Re-picking an
-      // already-selected option fires no change event, so the button beside it
+      // already-selected option fires no change event, so the gear beside it
       // stays the way back into the editor.
       const customOpt = document.createElement("option");
       customOpt.value = TEMPERAMENT_CUSTOM_ID;
@@ -8912,7 +8956,7 @@
 
   function rebuildPitchCenterSelectOptions(selectedPc = getPitchCenterPc()) {
     const value = String(((selectedPc % 12) + 12) % 12);
-    for (const sel of [pitchCenterSelect, tempEditorCenterSelect, bannerPitchCenterSelect]) {
+    for (const sel of [tempEditorCenterSelect, bannerPitchCenterSelect]) {
       if (!sel) continue;
       sel.innerHTML = "";
       for (let pc = 0; pc < 12; pc++) {
@@ -8951,8 +8995,8 @@
     if (bannerPitchCenterLabel) bannerPitchCenterLabel.classList.toggle("is-disabled", isEqual);
   }
 
-  // Shared by both pitch-center controls: the one in Options and the one in the
-  // editor. Rotating the centre changes which absolute note each degree lands on,
+  // Shared by both pitch-center controls: the one in the banner and the one in
+  // the editor. Rotating the centre changes which absolute note each degree lands on,
   // so the editor's row labels are rebuilt as well.
   function setPitchCenterValue(value) {
     currentSettings.pitchCenter = String(value);
@@ -8979,9 +9023,6 @@
     const isCustom = isCustomTemperamentActive();
 
     const activeId = currentSettings?.temperament || "equal";
-    if (temperamentSelect) {
-      temperamentSelect.value = activeId;
-    }
     if (bannerTemperamentSelect) {
       bannerTemperamentSelect.value = activeId;
     }
@@ -9034,26 +9075,59 @@
 
     // Both pitch-center controls are kept in step, whichever one was used.
     const centerPc = String(getPitchCenterPc());
-    if (pitchCenterSelect) {
-      pitchCenterSelect.disabled = isEqual;
-      if (pitchCenterSelect.options.length) pitchCenterSelect.value = centerPc;
-    }
     syncBannerPitchCenterPlaceholder();
-    // Under equal temperament both halves of every cell are 50c, so the two
-    // needle modes render identically. Dim the choice, as Pitch Center is.
+    // Under equal temperament every offset is 0, so the two needle modes render
+    // identically and the anchor changes nothing. Dim both choices there.
     for (const input of needleModeInputs) input.disabled = isEqual;
-    if (optNeedleBehaviorField) optNeedleBehaviorField.classList.toggle("is-disabled", isEqual);
-    // The editor's copy is never disabled: besides tuning, it decides which note
-    // each row is labelled with, so it does real work even when every offset is 0.
+    for (const input of anchorModeInputs) input.disabled = isEqual;
+    for (const el of [tempEditorNeedleField, tempEditorNeedleLabel, tempEditorAnchorField, tempEditorAnchorLabel]) {
+      if (el) el.classList.toggle("is-disabled", isEqual);
+    }
+    const anchorValue = currentSettings?.temperamentAnchor === "a4" ? "a4" : "center";
+    for (const input of anchorModeInputs) input.checked = input.value === anchorValue;
+    // The editor's pitch center is never disabled: besides tuning, it decides
+    // which note each row is labelled with, so it does real work even when every
+    // offset is 0.
     if (tempEditorCenterSelect && tempEditorCenterSelect.options.length) {
       tempEditorCenterSelect.value = centerPc;
     }
-    if (optPitchCenterField) optPitchCenterField.classList.toggle("is-disabled", isEqual);
     if (tempEditorCenterName) {
       tempEditorCenterName.textContent = getPitchCenterLabel();
     }
     if (tempEditorA4) {
       tempEditorA4.textContent = `A4=${currentSettings?.a4 ?? A4 ?? 440}`;
+    }
+    renderTemperamentEditorHz();
+  }
+
+  // The three frequencies the anchor decides between, in octave 4 so that a
+  // pitch center of A reads as A4 and the lines agree by construction. These are
+  // the unstretched targets: stretch is register-dependent and added on top.
+  function renderTemperamentEditorHz() {
+    if (!tempEditorHz) return;
+    const a4Hz = Number(currentSettings?.a4 ?? A4 ?? 440);
+    const centerPc = getPitchCenterPc();
+    const degrees = getActiveTemperamentDegrees();
+    const aDegreeCents = degrees[((9 - centerPc) % 12 + 12) % 12] ?? 0;
+    const centerName = `${(getNoteNamesForMode(accidentalMode)[centerPc] ?? "")}4`;
+    const centerEqualHz = a4Hz * Math.pow(2, (60 + centerPc - 69) / 12);
+    const hz = v => `${v.toFixed(2)} Hz`;
+    const rows = currentSettings?.temperamentAnchor === "a4"
+      ? [
+          ["A4 setting", hz(a4Hz)],
+          [`Pitch Center ${centerName} (equal temperament)`, hz(centerEqualHz)],
+          [`Tempered Pitch Center ${centerName}`, hz(centerEqualHz * Math.pow(2, -aDegreeCents / 1200))]
+        ]
+      : [
+          ["A4 setting", hz(a4Hz)],
+          ["Tempered A4", hz(a4Hz * Math.pow(2, aDegreeCents / 1200))],
+          [`Pitch Center ${centerName}`, hz(centerEqualHz)]
+        ];
+    tempEditorHz.innerHTML = "";
+    for (const [label, value] of rows) {
+      const dt = document.createElement("dt"); dt.textContent = label;
+      const dd = document.createElement("dd"); dd.textContent = value;
+      tempEditorHz.append(dt, dd);
     }
   }
 
@@ -9208,7 +9282,10 @@
       pitchCenter: currentSettings.pitchCenter ?? "0",
       customTemperament: Array.isArray(currentSettings.customTemperament)
         ? currentSettings.customTemperament.slice()
-        : null
+        : null,
+      // Everything in the dialog is one transaction, display settings included.
+      temperamentAnchor: currentSettings.temperamentAnchor === "a4" ? "a4" : "center",
+      needleBehavior: currentSettings.needleBehavior === "centered" ? "centered" : "even"
     };
     // Reseed unless there is real work to preserve. A saved table that merely
     // reproduces a preset carries no edits of yours, so it must not follow you
@@ -9242,9 +9319,14 @@
       currentSettings.temperament = temperamentSnapshot.temperament;
       currentSettings.pitchCenter = temperamentSnapshot.pitchCenter;
       currentSettings.customTemperament = temperamentSnapshot.customTemperament;
+      currentSettings.temperamentAnchor = temperamentSnapshot.temperamentAnchor;
+      currentSettings.needleBehavior = temperamentSnapshot.needleBehavior;
       persistSettings(currentSettings);
       rebuildPitchCenterSelectOptions();
+      syncSegmentedOptionControls();
       refreshAfterTuningChange();
+      // Needle behavior is drawn, not computed: redraw the needle in place.
+      highlightGridCell(lastHighlightedMidi, lastHighlightedCents);
     }
     temperamentSnapshot = null;
     closeTemperamentEditor();
@@ -13338,28 +13420,21 @@
     });
   }
 
-  if (temperamentSelect) {
-    // Choosing a preset is also how you leave Custom; the edited table is kept.
-    temperamentSelect.addEventListener("change", () => {
-      if (temperamentSelect.value === TEMPERAMENT_CUSTOM_ID) {
-        enterCustomTemperament();
-        return;
-      }
-      currentSettings.temperament = temperamentSelect.value;
-      persistSettings(currentSettings);
-      refreshAfterTuningChange();
-    });
-  }
-
   if (temperamentCustomBtn) {
-    // Always reopens the editor, whether or not Custom is already active. The
-    // pulldown cannot do that on its own -- re-picking the selected option fires
-    // no change event -- so this button is the way back in.
+    // The Options way into Customize Temperaments. Opens the editor whether or
+    // not a custom table is active; the editor is also where presets are chosen.
     temperamentCustomBtn.addEventListener("click", enterCustomTemperament);
   }
 
-  if (pitchCenterSelect) {
-    pitchCenterSelect.addEventListener("change", () => setPitchCenterValue(pitchCenterSelect.value));
+  for (const input of anchorModeInputs) {
+    input.addEventListener("change", () => {
+      if (!input.checked) return;
+      currentSettings.temperamentAnchor = input.value === "a4" ? "a4" : "center";
+      persistSettings(currentSettings);
+      syncSegmentedOptionControls();
+      // Slides the whole lattice, so the history is rescored like an A4 change.
+      refreshAfterTuningChange();
+    });
   }
 
   if (bannerTemperamentSelect) {

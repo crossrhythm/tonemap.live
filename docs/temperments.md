@@ -35,6 +35,8 @@ Custom is not a special code path — just a temperament whose array is user-edi
 
 Implemented in `beta.html`, `index.html` and `beta-451.html` (identical engines, proven by `tests/fixture-parity.test.cjs`); the iOS port is pending. Performance Pitch is the **concert A4 reference for the underlying equal-tempered scale**, not a promise that the tempered A4 target has that frequency. The selected pitch center keeps its frequency from that ET scale before stretch; all other degrees use their offsets directly, with no normalization to A.
 
+**Anchor (added September 2026, `beta.html` only so far).** The convention above is the default, `temperamentAnchor: "center"`. The alternative, `"a4"`, holds A4 on the reference instead: every degree is shifted by A's own offset (`degrees[(9 − center) mod 12]`), so A4 = reference exactly and the pitch center drifts by that amount. The shift is one constant per temperament and center, so cell widths and nearest-note assignment are unchanged; only where the lattice sits moves, and history is rescored as for an A4 change. The two anchors coincide when the center is A or under Equal. For reference 441, concert C center, Just major: anchor Pitch Center gives C4 = 262.220 Hz, A4 = 437.034 Hz; anchor A4 gives A4 = 441 Hz, C4 = 264.601 Hz. The Customize Temperaments dialog shows these three frequencies live.
+
 For reference 441 Hz, concert C center, Just major and stretch off:
 
 - C4 = `441 * 2^(-9/12)` = **262.220169 Hz**.
@@ -139,7 +141,7 @@ Deferred to Custom or a "More historical temperaments…" submenu: Werckmeister 
 ## UI notes for the "Advanced Tuning" menu
 
 - Showing the 12 live cent values is the strongest part of the design — self-documenting, teaches what a temperament *is*, and makes Custom a natural in-place edit. TE hides these behind an ⓘ button.
-- Gray out Key Center for Equal, where it has no effect.
+- Gray out Key Center for Equal, where it has no effect. (As of September 2026 in `beta.html`, Temperament, Pitch Center, Anchor and Needle Behavior live only in the **Customize Temperaments** dialog — reached from the Show Temperament Bar row in Options or the banner gear — plus the banner pill's quick pulldowns. The dialog's Pitch Center is never disabled, since it also labels the rows; Anchor and Needle Behavior dim under Equal.)
 - Decide whether the list displays tonic-relative degrees or absolute pitch names. Absolute is more immediately useful when practicing; tonic-relative is portable across keys and matches the data model. Both columns is defensible.
 - Store Custom edits tonic-relative, consistent with everything else.
 - Keep per-instrument calibration off this screen. "My G# always reads 12¢ high on this instrument" belongs on the stretch/calibration axis, not the temperament array — mixing them produces baffling results the moment the user changes key.

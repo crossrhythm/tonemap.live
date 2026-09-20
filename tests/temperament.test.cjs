@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const { describe, test } = require('node:test');
-const { loadTuning, equalHz, analyseConcert } = require('./tuning-harness.cjs');
+const fs = require('node:fs');
+const { loadTuning, resolveTarget, equalHz, analyseConcert } = require('./tuning-harness.cjs');
 
 // Every build that ships the temperament engine. Each gets the same suite,
 // run against the code actually in that file. To run one:
@@ -141,6 +142,42 @@ for (const target of TARGETS) {
       assert.equal(tuning.masterCellState[71].segments[0], segment);
       near(tuning.getRecentWeightedErr(tuning.masterCellState[71].segments, 1, 71).avgErrRatio,
         analyseConcert(tuning, originalFrequency).errRatio);
+    });
+
+    test('anchoring to A4 keeps A4 on the reference and slides the rest of the lattice', (t) => {
+      // Builds that predate the anchor setting skip visibly rather than fail:
+      // the engine there is still correct, it just has no second anchor.
+      if (!fs.readFileSync(resolveTarget(target), 'utf8').includes('temperamentAnchor')) {
+        return t.skip('this build has no temperament anchor setting');
+      }
+      // Default anchor ("center"): the pitch center keeps its equal-tempered
+      // frequency and A drifts by its own degree. "a4": A stays on the reference
+      // and every note, the center included, moves by that same amount instead.
+      const centered = createTuning({ temperament: 'just-major', pitchCenter: '0' }, 441);
+      const anchored = createTuning({ temperament: 'just-major', pitchCenter: '0', temperamentAnchor: 'a4' }, 441);
+      near(centered.getTemperamentCents(60), 0);
+      near(centered.getTemperamentCents(69), -15.64);
+      near(anchored.getTemperamentCents(69), 0);
+      near(anchored.getTemperamentCents(60), 15.64);
+      const a4 = analyseConcert(anchored, 441);
+      assert.equal(a4.midi, 69);
+      near(a4.cents, 0);
+      near(a4.targetFreq, 441);
+      // Every preset and center: A4 lands on the reference, the shift is the
+      // same for every note, and the two anchors coincide when A is the center
+      // or under Equal.
+      for (const temperament of anchored.temperaments) {
+        for (let center = 0; center < 12; center++) {
+          const a = createTuning({ temperament: temperament.id, pitchCenter: String(center), temperamentAnchor: 'a4' });
+          const c = createTuning({ temperament: temperament.id, pitchCenter: String(center) });
+          near(a.getTemperamentCents(69), 0);
+          const shift = c.getTemperamentCents(69);
+          for (let midi = 48; midi < 84; midi++) near(a.getTemperamentCents(midi), c.getTemperamentCents(midi) - shift);
+          if (center === 9 || temperament.id === 'equal') near(shift, 0);
+        }
+      }
+      // An unknown value behaves as the default.
+      near(createTuning({ temperament: 'just-major', pitchCenter: '0', temperamentAnchor: 'wat' }, 441).getTemperamentCents(60), 0);
     });
   });
 }
