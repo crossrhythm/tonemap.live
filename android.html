@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tonemap for Android — Privacy Policy</title>
+  <meta name="description" content="Tonemap for Android: a native Android phone and tablet tuner app. Privacy policy and data handling details." />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #475569;
+      --accent: rgb(34,197,94);
+      --accent-dim: rgba(34,197,94,0.15);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(34,197,94,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,197,94,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      padding: 48px 0 48px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 48px;
+    }
+
+    .logo-link { display: block; margin-bottom: 32px; }
+    .logo-img { width: 100%; max-width: 300px; height: auto; display: block; border-radius: 6px; }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle { color: var(--muted); font-size: 1rem; margin-bottom: 12px; }
+
+    .updated {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .badge-live {
+      display: inline-block;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 2px 9px;
+      font-size: 0.72rem;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+
+    section { margin-bottom: 44px; scroll-margin-top: 24px; }
+
+    h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.35rem;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 24px 0 8px;
+    }
+
+    p { color: var(--text); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .appstore-badge {
+      display: inline-block;
+      line-height: 0;
+      margin: 4px 0;
+    }
+    .appstore-badge:hover { text-decoration: none; opacity: 0.85; }
+    .appstore-badge img {
+      height: 40px;
+      width: auto;
+      display: block;
+      border-radius: 0;
+    }
+
+
+    .callout {
+      background: var(--surface);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .callout strong { color: var(--text); }
+
+    code {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85em;
+      background: var(--surface);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
+
+    ul { margin: 0 0 12px 20px; color: var(--text); }
+    li { margin-bottom: 6px; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0 48px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    footer a { color: var(--muted); text-decoration: underline; }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <a href="/" class="logo-link">
+        <img src="tonemaplogo-ui.jpg" alt="Tonemap" class="logo-img">
+      </a>
+      <h1>Tonemap for Android</h1>
+      <p class="subtitle">A native Android phone &amp; tablet tuner app.<span class="badge-live">Coming soon</span></p>
+      <div class="updated">Privacy policy last updated: September 2026</div>
+    </header>
+
+    <section id="about">
+      <h2>About the Android app</h2>
+      <p>Tonemap for Android brings the same real-time pitch and intonation visualization from <a href="/">tonemap.live</a> to a native Android app, built in Kotlin with no web view and no third-party frameworks. Pitch detection, rendering, and audio handling all happen on your device.</p>
+      <p>The app will be available on Google Play as <strong>Tonemap Tuner</strong>, published by East End Violin Studio. This page explains how Tonemap for Android handles your data.</p>
+    </section>
+
+    <section id="privacy">
+      <h2>Privacy Policy</h2>
+
+      <h3>No accounts, no ads, no data collection</h3>
+      <p>Tonemap for Android has no sign-up and no account. It contains no advertising SDKs and no analytics or tracking frameworks, and it shows no ads. It collects no personal data, sells no data, and shares no data with third parties. The only permission it asks for is the microphone.</p>
+
+      <h3>Microphone access</h3>
+      <p>The app asks for microphone permission the first time it's opened, to power real-time pitch detection. Audio is analyzed on your device with Android's audio APIs and is never transmitted. Tonemap listens only while it is open on your screen; it stops using the microphone as soon as you leave it. If permission is denied, the tuner cannot work, but you can grant access at any time in your device's Settings.</p>
+      <p>You can choose a different microphone, such as a USB microphone or a headset, from the microphone menu in the app. Your choice and each microphone's gain setting are stored on your device only.</p>
+
+      <h3>Quick Record</h3>
+      <p>Quick Record (part of Tonemap Pro) saves the take you record as an audio file in the app's private storage on your device, so you can play it back. Each new take replaces the previous one, and the file is also removed if you clear the app's storage or uninstall the app. A take leaves your device only if you choose <strong>Share</strong>, and then only to the app or person you pick.</p>
+
+      <h3>Tonemap Pro &amp; subscriptions</h3>
+      <p>Tonemap Pro is unlocked in the app by subscribing through Google Play. Google handles the entire transaction — Tonemap's servers are not involved and never receive your name, email, or payment details. Your purchase is recorded by Google Play and tied to your Google Account; see <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's privacy policy</a> for how Google handles that information.</p>
+      <div class="callout">
+        <strong>Note:</strong> Tonemap Pro on Android, on iOS, and on tonemap.live are separate subscriptions — a Google Play subscription unlocks Pro in the Android app. See the <a href="/help.html#free-vs-pro">Help &amp; FAQ page</a> for details.
+      </div>
+
+      <h3>Third-party services</h3>
+      <p>Tonemap's Android app relies on one outside service: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Play</a>, for purchases, and only if you choose to subscribe. The app itself embeds no advertising SDKs, analytics SDKs, or other third-party frameworks.</p>
+
+      <h3>Data retention &amp; deletion</h3>
+      <p>Tonemap's servers retain no data about your use of the Android app. Your settings and any Quick Record take are stored only on your device and are deleted when you uninstall the app. Subscription records are held by Google Play. Data handling for the tonemap.live website is described in the <a href="/terms.html#privacy">web Terms &amp; Privacy section</a>. Questions about any record we hold can be sent to <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
+
+      <h3>Children's privacy</h3>
+      <p>Tonemap is made for musicians of all ages, including young students. The app does not collect personal information from anyone, including children under 13: it has no accounts, no ads, and no analytics, and audio never leaves the device unless a user chooses to share a recording. The app follows Google Play's Families policy and applicable laws, including the US Children's Online Privacy Protection Act (COPPA).</p>
+
+      <h3>Changes to this policy</h3>
+      <p>We may update this policy as the Android app evolves. The date at the top of this page reflects the most recent update.</p>
+
+      <h3>Contact</h3>
+      <p>Questions about this policy can be directed to <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
+    </section>
+
+    <footer>
+      <p>
+        &copy; 2026 Tonemap&#8482; &nbsp;·&nbsp;
+        <a href="/help.html">Help</a> &nbsp;·&nbsp;
+        <a href="/terms.html">Terms</a> &nbsp;·&nbsp;
+        <a href="/ios.html">iOS app</a> &nbsp;·&nbsp;
+        <a href="/">Back to Tonemap</a>
+      </p>
+    </footer>
+
+  </div>
+
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-X-Sn7Z904imPZY1JcRi2W.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+</body>
+</html>
