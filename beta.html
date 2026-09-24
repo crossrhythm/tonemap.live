@@ -402,33 +402,54 @@
 
   .temperament-banner-select:disabled { cursor: not-allowed; }
 
+  /* Both icons are inline SVG rather than the \2699 / \00D7 glyphs: glyph
+     metrics differ per font and browser, and Safari set them visibly below the
+     pill's centre. An SVG box in a flex-centred button centres exactly. */
   .temperament-banner-gear {
     appearance: none;
-    border: none;
+    border: 1px solid transparent;
     background: transparent;
     color: inherit;
-    font-size: 1.1em;
-    line-height: 1;
-    padding: 0.1em 0.35em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15em;
     margin-left: 0.15em;
     cursor: pointer;
     border-radius: 999px;
-    opacity: 0.8;
+    opacity: 0.85;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .temperament-banner-gear svg {
+    display: block;
+    width: 1.6em;
+    height: 1.6em;
   }
 
   .temperament-banner-gear:hover,
   .temperament-banner-gear:focus-visible {
     opacity: 1;
+    outline: none;
     background: color-mix(in srgb, var(--accent-green) 22%, transparent);
   }
 
+  /* The (x) gets the outlined pill of the Options / Colors buttons: transparent
+     fill, dim rim. Its box is sized to match the gear's so the two line up. */
   .temperament-banner-dismiss {
-    font-size: 1.3em;
-    font-weight: 700;
+    border-color: var(--border-dim);
+    padding: 0.45em;
+    margin-left: 0.1em;
+  }
+
+  .temperament-banner-dismiss svg {
+    width: 0.9em;
+    height: 0.9em;
   }
 
   .temperament-banner-dismiss:hover,
   .temperament-banner-dismiss:focus-visible {
+    border-color: var(--err-color);
     background: color-mix(in srgb, var(--err-color) 25%, transparent);
   }
 
@@ -2455,26 +2476,23 @@
   }
 
   /* ---- Custom temperament editor ---- */
-  .temp-editor-card { width: min(500px, 100%); }
+  /* Compound selector: .pro-modal-card's own width comes later in the file and
+     would otherwise win. 600px gives the two-up toggles room for their labels. */
+  .pro-modal-card.temp-editor-card { width: min(600px, 100%); }
 
+  /* Two columns of Options-style fields, collapsing to one on narrow screens
+     (see the max-width: 620px rule below). */
   .temp-editor-load {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0.5rem 0.6rem;
-    padding-bottom: 0.85rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.25rem;
+    padding-bottom: 1rem;
     margin-bottom: 0.15rem;
     border-bottom: 1px solid color-mix(in srgb, var(--border-dim) 42%, transparent);
   }
 
-  .temp-editor-load-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text-lite);
-  }
+  .temp-editor-load .option-field { min-width: 0; }
+  .temp-editor-load .opt-label { color: var(--text-lite); }
 
   /* Anchor and Needle Behavior change nothing under Equal; dim them as Options did. */
   .temp-editor-load .is-disabled { opacity: 0.45; }
@@ -2611,8 +2629,8 @@
   .option-field.is-disabled { opacity: 0.45; }
   .option-field.is-disabled select { cursor: not-allowed; }
 
-  @media (max-width: 560px) {
-    .temp-editor-load { grid-template-columns: auto minmax(0, 1fr); }
+  @media (max-width: 620px) {
+    .temp-editor-load { grid-template-columns: minmax(0, 1fr); }
   }
 
   @media (max-width: 460px) {
@@ -4035,9 +4053,11 @@
           <span id="bannerPitchCenterLabel" class="temperament-banner-label">Pitch Center:</span>
           <select id="bannerPitchCenterSelect" class="temperament-banner-select" aria-label="Pitch Center"></select>
           <button id="bannerCustomGearBtn" class="temperament-banner-gear" type="button"
-            aria-label="Customize Temperaments" title="Customize Temperaments">&#9881;</button>
+            aria-label="Customize Temperaments" title="Customize Temperaments">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94 0 .31.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
           <button id="temperamentBannerDismissBtn" class="temperament-banner-gear temperament-banner-dismiss" type="button"
-            aria-label="Hide temperament bar for this session" title="Hide for this session">&times;</button>
+            aria-label="Hide temperament bar for this session" title="Hide for this session">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
         </div>
       </div>
       <div class="edge-controls" aria-label="Range controls">
@@ -4782,35 +4802,57 @@
       </div>
     </div>
     <div class="pro-modal-body scroll-fade-y">
+      <!-- Same field anatomy as the Options overlay (.option-field: label row with
+           its (i) on the right, full-width control below), two per row. -->
       <div class="temp-editor-load">
-        <span class="temp-editor-load-label"><label for="tempEditorLoadSelect">Temperament</label>
-          <button class="info-btn" type="button" data-info-key="temperament" aria-label="Learn about Temperament">i</button></span>
-        <select id="tempEditorLoadSelect"></select>
-        <span class="temp-editor-load-label"><label for="tempEditorCenterSelect">Pitch Center</label>
-          <button class="info-btn" type="button" data-info-key="pitchCenter" aria-label="Learn about Pitch Center">i</button></span>
-        <select id="tempEditorCenterSelect"></select>
-        <span class="temp-editor-load-label" id="tempEditorAnchorLabel"><label for="anchorModeA4">Anchor</label>
-          <button class="info-btn" type="button" data-info-key="temperamentAnchor" aria-label="Learn about Anchor">i</button></span>
-        <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Anchor" id="tempEditorAnchorField">
-          <div class="theme-mode-item">
-            <input id="anchorModeA4" class="theme-mode-radio" type="radio" name="temperamentAnchorMode" value="a4" />
-            <label class="theme-mode-label" for="anchorModeA4" title="A4 stays on your Performance Pitch; the pitch center moves">Anchor: A4</label>
+        <div class="option-field">
+          <div class="opt-label-row">
+            <label class="opt-label" for="tempEditorLoadSelect">Temperament</label>
+            <button class="info-btn" type="button" data-info-key="temperament" aria-label="Learn about Temperament">i</button>
           </div>
-          <div class="theme-mode-item">
-            <input id="anchorModeCenter" class="theme-mode-radio" type="radio" name="temperamentAnchorMode" value="center" />
-            <label class="theme-mode-label" for="anchorModeCenter" title="The pitch center keeps its equal-tempered frequency; A4 moves">Anchor: Pitch Center</label>
+          <div class="opt-control"><select id="tempEditorLoadSelect"></select></div>
+        </div>
+        <div class="option-field">
+          <div class="opt-label-row">
+            <label class="opt-label" for="tempEditorCenterSelect">Pitch Center</label>
+            <button class="info-btn" type="button" data-info-key="pitchCenter" aria-label="Learn about Pitch Center">i</button>
+          </div>
+          <div class="opt-control"><select id="tempEditorCenterSelect"></select></div>
+        </div>
+        <div class="option-field">
+          <div class="opt-label-row" id="tempEditorAnchorLabel">
+            <label class="opt-label" for="anchorModeA4">Anchor</label>
+            <button class="info-btn" type="button" data-info-key="temperamentAnchor" aria-label="Learn about Anchor">i</button>
+          </div>
+          <div class="opt-control">
+            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Anchor" id="tempEditorAnchorField">
+              <div class="theme-mode-item">
+                <input id="anchorModeA4" class="theme-mode-radio" type="radio" name="temperamentAnchorMode" value="a4" />
+                <label class="theme-mode-label" for="anchorModeA4" title="A4 stays on your Performance Pitch; the pitch center moves">A4</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="anchorModeCenter" class="theme-mode-radio" type="radio" name="temperamentAnchorMode" value="center" />
+                <label class="theme-mode-label" for="anchorModeCenter" title="The pitch center keeps its equal-tempered frequency; A4 moves">Pitch Center</label>
+              </div>
+            </div>
           </div>
         </div>
-        <span class="temp-editor-load-label" id="tempEditorNeedleLabel"><label for="needleModeEven">Needle Behavior</label>
-          <button class="info-btn" type="button" data-info-key="needleBehavior" aria-label="Learn about Needle Behavior">i</button></span>
-        <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Needle Behavior" id="tempEditorNeedleField">
-          <div class="theme-mode-item">
-            <input id="needleModeEven" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="even" />
-            <label class="theme-mode-label" for="needleModeEven">Even needle travel</label>
+        <div class="option-field">
+          <div class="opt-label-row" id="tempEditorNeedleLabel">
+            <label class="opt-label" for="needleModeEven">Needle Behavior</label>
+            <button class="info-btn" type="button" data-info-key="needleBehavior" aria-label="Learn about Needle Behavior">i</button>
           </div>
-          <div class="theme-mode-item">
-            <input id="needleModeCentered" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="centered" />
-            <label class="theme-mode-label" for="needleModeCentered">Centered target pitch</label>
+          <div class="opt-control">
+            <div class="theme-mode-wrap two-up" role="radiogroup" aria-label="Needle Behavior" id="tempEditorNeedleField">
+              <div class="theme-mode-item">
+                <input id="needleModeEven" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="even" />
+                <label class="theme-mode-label" for="needleModeEven" title="Even needle travel">Even travel</label>
+              </div>
+              <div class="theme-mode-item">
+                <input id="needleModeCentered" class="theme-mode-radio" type="radio" name="needleBehaviorMode" value="centered" />
+                <label class="theme-mode-label" for="needleModeCentered" title="Centered target pitch">Centered target</label>
+              </div>
+            </div>
           </div>
         </div>
       </div>
