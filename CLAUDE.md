@@ -136,6 +136,7 @@ Four divergent builds share one lineage. Check this table before assuming a feat
 | Feature | `index.html` (free prod) | `beta.html` (free beta) | `beta-451.html` (Pro / KV) | iOS |
 |---|---|---|---|---|
 | Temperaments, Pitch Center, Custom editor, banner pill | ✓ | ✓ | ✓ | ✗ (only the word, in a stretch label) |
+| Customize Temperaments dialog (Temperament, Pitch Center, Anchor, Needle Behavior); `temperamentAnchor` setting; self-stacking banner pill | ✓ | ✓ | ✓ | ✗ |
 | Decimal A4 — 0.1 Hz; input not clobbered while typing | ✓ | ✓ | ✓ | ✓ `Double`; field re-formats only when unfocused |
 | Double-tap-zoom suppression (`touch-action: manipulation`) | ✓ | ✓ | ✓ | n/a |
 | Hard Mode — implemented (`HARD_DEADZONE_RATIO`, `biasHard`) | ✓ present, gated | ✓ | ✓ | ✓ |
@@ -146,7 +147,7 @@ Four divergent builds share one lineage. Check this table before assuming a feat
 | Release notes / what's new UI | ✓ | ✓ | ✓ | ✗ as of 2026-07-08 (unverified since) |
 | Pro upgrade modal | ✓ | ✓ | ✗ (nothing to upsell) | ✓ `ProUpgradeSheet` |
 
-**Ported 2026-09 (web):** temperaments + decimal-A4 fix + touch-action are in all three web builds; `node --test tests/*.test.cjs` proves they compute identical targets. iOS port pending — its oracle is `tests/fixtures/temperament-vectors.json`.
+**Ported 2026-09 (web):** temperaments + decimal-A4 fix + touch-action are in all three web builds, and on 2026-09-24 the Customize Temperaments dialog, Anchor setting and banner-pill redesign followed; `node --test tests/*.test.cjs` proves they compute identical targets. iOS port pending — its oracle is `tests/fixtures/temperament-vectors.json`.
 
 **Docs folder:**
 - `docs/temperments.md` — temperament domain reference (data model, reference convention, verified cent tables). Durable; not a task list.

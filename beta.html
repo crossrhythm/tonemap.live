@@ -327,16 +327,17 @@
        reusing them pinned this at its smallest size on every real display.
        Padding is in em so it tracks the type. */
     padding: 0.34em 1.05em;
-    border-radius: 999px;
+    border-radius: 0.8em;
     /* The accent carries the emphasis instead of bold text: a green rim and a
        soft glow read as "something is deliberately not default" without the
        weight fighting the note labels behind it. */
     --temperament-banner-bg: color-mix(in srgb, var(--bg-panel) 93%, var(--accent-green));
     border: 1px solid color-mix(in srgb, var(--accent-green) 50%, transparent);
-    /* 75% transparent at every size; the blur behind it and the green rim keep
-       the text legible over grid lines. */
-    background: color-mix(in srgb, var(--temperament-banner-bg) 25%, transparent);
-    backdrop-filter: blur(10px);
+    /* 50% transparent at every size. The blur is kept light so the grid still
+       reads through -- a heavy one smears it flat and the pill looks opaque. */
+    background: color-mix(in srgb, var(--temperament-banner-bg) 50%, transparent);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
     box-shadow:
       0 0 0.85rem color-mix(in srgb, var(--accent-green) 20%, transparent),
       0 6px 18px rgba(2, 6, 23, 0.38);
@@ -345,20 +346,49 @@
     font-weight: 400;
     line-height: 1.25;
     letter-spacing: 0.01em;
-    /* Real controls live inside now, so the pill can no longer ellipsis a single
-       text run -- let it wrap onto a second line on narrow screens instead. */
+    /* Three columns: the controls, then the gear and (x), both centred on
+       however many lines the controls take. The controls sit on one line when
+       they fit and stack otherwise (.is-stacked, set by layoutTemperamentBannerPill);
+       stacking, not flex-wrap, so the pill shrinks to its contents -- a wrapped
+       flex line keeps the full available width. */
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    row-gap: 0.2em;
     column-gap: 0.4em;
     /* Overrides the ancestor's pointer-events:none (set so the floated banner
        never blocks grid taps); only the pill itself needs to be clickable. */
     pointer-events: auto;
   }
 
+  .temperament-banner-controls {
+    display: flex;
+    align-items: center;
+    column-gap: 0.4em;
+    min-width: 0;
+  }
+
+  .temperament-banner-pill.is-stacked .temperament-banner-controls {
+    flex-direction: column;
+    row-gap: 0.3em;
+  }
+
+  /* Out of the flow when stacked, but still measurable, so the one-line width
+     can be worked out in either state. */
+  .temperament-banner-pill.is-stacked .temperament-banner-sep {
+    position: absolute;
+    visibility: hidden;
+  }
+
+  /* "Pitch Center:" and its pulldown wrap as one unit, never apart. */
+  .temperament-banner-center {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 0.4em;
+    white-space: nowrap;
+  }
+
+  /* Same size as the pulldowns' text (.temperament-banner-select). */
   .temperament-banner-label {
+    font-size: 0.9em;
     opacity: 0.85;
     white-space: nowrap;
   }
@@ -375,7 +405,7 @@
     background-color: color-mix(in srgb, var(--bg-panel) 55%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent-green) 45%, transparent);
     border-radius: 999px;
-    padding: 0.05em 1.5em 0.05em 0.6em;
+    padding: 0.2em 1.6em 0.2em 0.75em;
     cursor: pointer;
     max-width: 12rem;
     background-image:
@@ -385,12 +415,11 @@
     background-position: right 0.55em center;
   }
 
+  /* --bg-panel is white in the light theme, so the pill goes light there and
+     the arrow needs the dark text colour (--text-lite, #0f172a) to show. */
   :root[data-ui-theme="light"] .temperament-banner-select {
-    /* The pill's own background stays dark-tinted in both themes (see
-       --temperament-banner-bg above), so the light-theme arrow keeps the dark
-       stroke it already had rather than switching to the app-wide light one. */
     background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23f8fafc' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%230f172a' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   }
 
   /* Pitch Center does nothing under Equal: dim the label and select to match
@@ -414,8 +443,8 @@
     align-items: center;
     justify-content: center;
     padding: 0.15em;
-    margin-left: 0.15em;
     cursor: pointer;
+    flex: none;
     border-radius: 999px;
     opacity: 0.85;
     transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
@@ -423,8 +452,8 @@
 
   .temperament-banner-gear svg {
     display: block;
-    width: 1.6em;
-    height: 1.6em;
+    width: 2em;
+    height: 2em;
   }
 
   .temperament-banner-gear:hover,
@@ -434,12 +463,12 @@
     background: color-mix(in srgb, var(--accent-green) 22%, transparent);
   }
 
-  /* The (x) gets the outlined pill of the Options / Colors buttons: transparent
-     fill, dim rim. Its box is sized to match the gear's so the two line up. */
+  /* The (x) gets the outlined rim of the Options / Colors buttons (transparent
+     fill, dim border) but as a rounded square rather than a circle. */
   .temperament-banner-dismiss {
     border-color: var(--border-dim);
+    border-radius: 0.35em;
     padding: 0.45em;
-    margin-left: 0.1em;
   }
 
   .temperament-banner-dismiss svg {
@@ -2611,7 +2640,9 @@
   }
 
   /* No footer any more, so the body carries the bottom padding itself. */
-  .temp-editor-card .pro-modal-body { padding-bottom: 1.1rem; }
+  /* Full padding, and specific enough to beat .scroll-fade-y (padding 0 1.5rem
+     1.5rem) wherever the two rules sit: beta-451.html has this block before it. */
+  .temp-editor-card .pro-modal-body.scroll-fade-y { padding: 1rem 1.2rem 1.1rem; }
 
   .temp-editor-hint {
     margin: 0.7rem 0 0;
@@ -4048,10 +4079,14 @@
       </div>
       <div id="temperamentBanner" class="temperament-banner" role="status" aria-live="polite" hidden>
         <div class="temperament-banner-pill">
-          <select id="bannerTemperamentSelect" class="temperament-banner-select" aria-label="Temperament"></select>
-          <span class="temperament-banner-sep">&bull;</span>
-          <span id="bannerPitchCenterLabel" class="temperament-banner-label">Pitch Center:</span>
-          <select id="bannerPitchCenterSelect" class="temperament-banner-select" aria-label="Pitch Center"></select>
+          <div class="temperament-banner-controls">
+            <select id="bannerTemperamentSelect" class="temperament-banner-select" aria-label="Temperament"></select>
+            <span class="temperament-banner-sep">&bull;</span>
+            <span class="temperament-banner-center">
+              <span id="bannerPitchCenterLabel" class="temperament-banner-label">Pitch Center:</span>
+              <select id="bannerPitchCenterSelect" class="temperament-banner-select" aria-label="Pitch Center"></select>
+            </span>
+          </div>
           <button id="bannerCustomGearBtn" class="temperament-banner-gear" type="button"
             aria-label="Customize Temperaments" title="Customize Temperaments">
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94 0 .31.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
@@ -5634,31 +5669,30 @@
       version: APP_VERSION,
       sections: [
         {
-          title: "Temperaments",
+          title: "New Features",
           items: [
-            "Play in something other than equal temperament: Pythagorean, 1/4- and 1/6-comma meantone, Vallotti, Werckmeister III, and just intonation in major, minor and 7-limit.",
-            "Pitch Center keeps its equal-tempered frequency from your A4 reference, before stretch. Other notes follow the temperament offsets. With Just major centered on concert C and A4 reference 441, the A4 target is about 437.03 Hz without stretch.",
-            "Build your own with the Custom editor: adjust all twelve notes in cents, load any preset as a starting point, and Cancel puts everything back if you are only auditioning. Your custom table is saved with the rest of your settings.",
-            "A banner above the grid shows the active temperament and pitch center, so a non-equal tuning is never a surprise between pieces."
-          ]
-        },
-        {
-          title: "Tuning accuracy",
-          items: [
-            "Notes are now matched to the nearest tempered target rather than the nearest equal-tempered one. Under a strong temperament this used to name the wrong note near the edge of a cell.",
-            "Grid columns are spaced to match the temperament, so the needle moves at one steady rate and reaches the edge of a cell exactly where the note changes.",
-            "Changing Performance Pitch (A4) now rescores the colors already on your map against the new reference, the way stretch and temperament do."
+            "Temperaments: Pythagorean, 1/4- and 1/6-comma meantone, Vallotti, Werckmeister III and just intonation (major, minor, 7-limit), or build your own in cents.",
+            "Customize Temperaments: pick the pitch center, anchor tuning to A4 or the pitch center, and choose how the needle moves. Open it from the gear on the temperament bar or from Options.",
+            "Performance Pitch (A4) now accepts decimals, such as 440.5."
           ]
         },
         {
           title: "Interface",
           items: [
-            "Buttons across Options and Colors now share one size and style, every pulldown shows a dropdown arrow, and spacing under each section heading is consistent.",
-            "Assorted layout and behavior fixes throughout the Options panel."
+            "A bar above the grid shows the active temperament and lets you change it on the spot. Hide it with \u00d7 or in Options.",
+            "Buttons and pulldowns in Options and Colors now share one consistent style."
+          ]
+        },
+        {
+          title: "Bug Fixes",
+          items: [
+            "Under strong temperaments, notes near the edge of a cell are now named correctly.",
+            "Changing Performance Pitch now rescores the colors already on your map.",
+            "Double-tapping no longer zooms the page on phones and tablets."
           ]
         }
       ],
-      note: "This is a beta build for testing. If anything looks wrong or behaves oddly \u2014 especially the new temperaments \u2014 please tell me at support@tonemap.live."
+      note: "This is a beta build for testing, and Hard Mode is unlocked so you can try it. If anything looks wrong or behaves oddly, please tell me at support@tonemap.live."
     }
   ];
 
@@ -13499,6 +13533,44 @@
 
   if (bannerCustomGearBtn) {
     bannerCustomGearBtn.addEventListener("click", enterCustomTemperament);
+  }
+
+  // One line when it fits, otherwise stack Temperament over Pitch Center. The
+  // one-line width is summed from the parts, which measure the same in either
+  // state, so toggling .is-stacked can never flip the answer back and forth.
+  function layoutTemperamentBannerPill() {
+    const pill = temperamentBannerPill;
+    const controls = pill?.querySelector(".temperament-banner-controls");
+    if (!pill || !controls || temperamentBanner.hidden) return;
+    const px = (style, prop) => parseFloat(style[prop]) || 0;
+    const outer = el => {
+      const cs = getComputedStyle(el);
+      return el.getBoundingClientRect().width + px(cs, "marginLeft") + px(cs, "marginRight");
+    };
+    const pillStyle = getComputedStyle(pill);
+    const pillGap = px(pillStyle, "columnGap");
+    const controlsGap = px(getComputedStyle(controls), "columnGap");
+    const parts = Array.from(controls.children);
+    const oneLine =
+      px(pillStyle, "paddingLeft") + px(pillStyle, "paddingRight") +
+      px(pillStyle, "borderLeftWidth") + px(pillStyle, "borderRightWidth") +
+      parts.reduce((sum, el) => sum + outer(el), 0) + controlsGap * (parts.length - 1) +
+      Array.from(pill.children).filter(el => el !== controls)
+        .reduce((sum, el) => sum + outer(el) + pillGap, 0);
+    // Mirrors the pill's max-width: calc(100% - 1.5rem) in the CSS.
+    const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const available = temperamentBanner.clientWidth - 1.5 * rootPx;
+    pill.classList.toggle("is-stacked", oneLine > available + 0.5);
+  }
+
+  if (temperamentBannerPill && typeof ResizeObserver !== "undefined") {
+    // The banner tracks the grid's width; the selects change width with the
+    // chosen option.
+    const bannerLayoutObserver = new ResizeObserver(layoutTemperamentBannerPill);
+    bannerLayoutObserver.observe(temperamentBanner);
+    for (const el of [bannerTemperamentSelect, bannerPitchCenterSelect]) {
+      if (el) bannerLayoutObserver.observe(el);
+    }
   }
 
   if (temperamentBannerDismissBtn) {
