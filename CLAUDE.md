@@ -142,7 +142,7 @@ Four divergent builds share one lineage. Check this table before assuming a feat
 | Hard Mode — implemented (`HARD_DEADZONE_RATIO`, `biasHard`) | ✓ present, gated | ✓ | ✓ | ✓ |
 | Hard Mode — gated to Pro | ✓ | ✗ **beta unlock** | n/a (Pro build) | ✓ `pro.isPro` |
 | Quick Recorder + spectrum visualizer | ✗ | ✗ | ✓ | ✓ recorder, Pro-gated |
-| Deactivation flow, `/license-info` | ✗ | ✗ | ✓ | n/a (Polar key + StoreKit) |
+| Deactivation flow, `/license-info` | ✗ | ✗ | ✓ | n/a — iOS Pro is the App Store subscription only; Polar key entry removed after App Review 3.1.1 rejection (July 2026), so a web license does not unlock iOS |
 | Railsback stretch, transposition, Note View | ✓ | ✓ | ✓ | ✓ |
 | Release notes / what's new UI | ✓ | ✓ | ✓ | ✗ as of 2026-07-08 (unverified since) |
 | Pro upgrade modal | ✓ | ✓ | ✗ (nothing to upsell) | ✓ `ProUpgradeSheet` |
