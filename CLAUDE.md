@@ -10,7 +10,7 @@ Tonemap.live is a browser-based real-time pitch and intonation visualizer for mu
 
 | File | Role |
 |---|---|
-| `beta.html` | **Active development file (free-tier beta).** A fork of `index.html`, **not** of `beta-451.html` — it has no recorder. Ahead of prod with: temperaments + pitch center + Custom editor, decimal A4 (0.1 Hz), double-tap-zoom suppression, and Hard Mode **unlocked for the beta only**. The test suite runs against all three builds (`node --test tests/*.test.cjs`); the frozen fixture in `tests/fixtures/` was generated from this file. |
+| `beta.html` | **Free-tier beta, being retired by the end of October 2026.** A fork of `index.html`, **not** of `beta-451.html` — it has no recorder. Since the 2026-09 port it has the same features as `index.html`; it differs only in Hard Mode being **unlocked for the beta**, its page metadata, and (from 2026-10-02) a farewell What's New notice shown on every launch that points testers to tonemap.live. The test suite runs against all three builds (`node --test tests/*.test.cjs`); the frozen fixture in `tests/fixtures/` was generated from this file. |
 | `index.html` | **Production (free-tier public app).** Hard Mode implemented but Pro-gated, no recorder. Same code as beta.html as of 2026-09 apart from the gate and page metadata. Receives finished, tested features from `beta.html`. Do not add half-finished features here. |
 | `beta-451.html` | **Pro app source.** The file uploaded to Cloudflare KV as `pro-app.html` (see Common Tasks). Has the full recorder, spectrum visualizer, slow-motion playback, deactivation flow, license-info, and Hard Mode with no gates. Also the **reference file for the iOS port** — iOS parity bugs are resolved by reading this file first. |
 | `worker/index.js` | Cloudflare Worker handling `/activate`, `/pro`, `/deactivate`, `/license-info`. |
@@ -129,9 +129,9 @@ Cookie: `tm_pro` (HMAC-signed, 365-day max-age). Revalidation against Polar ever
 
 ---
 
-## Feature Parity Matrix (as of 2026-09-17)
+## Feature Parity Matrix (as of 2026-09-17; temperament rows rechecked 2026-10-02)
 
-Four divergent builds share one lineage. Check this table before assuming a feature exists in the file you're editing. iOS column verified against `../tonemap-ios` on 2026-09-17 except where marked.
+Four divergent builds share one lineage, plus an Android port (`~/AndroidStudioProjects/TonemapTuner`) that ports from the iOS Swift first and the web second — see its own `CLAUDE.md` for its parity. As of 2026-10-02 neither native app has any temperament code. Check this table before assuming a feature exists in the file you're editing. iOS column verified against `../tonemap-ios` on 2026-09-17 except where marked.
 
 | Feature | `index.html` (free prod) | `beta.html` (free beta) | `beta-451.html` (Pro / KV) | iOS |
 |---|---|---|---|---|
@@ -144,16 +144,18 @@ Four divergent builds share one lineage. Check this table before assuming a feat
 | Quick Recorder + spectrum visualizer | ✗ | ✗ | ✓ | ✓ recorder, Pro-gated |
 | Deactivation flow, `/license-info` | ✗ | ✗ | ✓ | n/a — iOS Pro is the App Store subscription only; Polar key entry removed after App Review 3.1.1 rejection (July 2026), so a web license does not unlock iOS |
 | Railsback stretch, transposition, Note View | ✓ | ✓ | ✓ | ✓ |
-| Release notes / what's new UI | ✓ | ✓ | ✓ | ✗ as of 2026-07-08 (unverified since) |
+| Release notes / what's new UI | ✓ | ✓ | ✓ | ✓ from 1.2 — opens by itself only after a major update; always in Options → About |
 | Pro upgrade modal | ✓ | ✓ | ✗ (nothing to upsell) | ✓ `ProUpgradeSheet` |
 
-**Ported 2026-09 (web):** temperaments + decimal-A4 fix + touch-action are in all three web builds, and on 2026-09-24 the Customize Temperaments dialog, Anchor setting and banner-pill redesign followed; `node --test tests/*.test.cjs` proves they compute identical targets. iOS port pending — its oracle is `tests/fixtures/temperament-vectors.json`.
+**Ported 2026-09 (web):** temperaments + decimal-A4 fix + touch-action are in all three web builds, and on 2026-09-24 the Customize Temperaments dialog, Anchor setting and banner-pill redesign followed; `node --test tests/*.test.cjs` proves they compute identical targets. iOS and Android ports pending — their oracle is `tests/fixtures/temperament-vectors.json`, which covers both anchors, Custom (including normalization), transposition, all four stretch modes, cell edges and both Needle Behavior modes. `docs/temperments.md` lists the settings keys and shipped tables.
+
+**Stale reference copy:** the iOS and Android `CLAUDE.md` files point to `tonemap-ios/web_reference_tonemap.live/beta-451.html`. That clone was last updated 2026-05-22 and has no temperaments. Read `beta-451.html` in this repo, or `git pull` that clone first.
 
 **Docs folder:**
 - `docs/temperments.md` — temperament domain reference (data model, reference convention, verified cent tables). Durable; not a task list.
 - `docs/superpowers/specs/` and `docs/superpowers/plans/` — design specs and implementation plans. May be partially or fully complete; verify against actual files before acting on them.
 - `docs/plans/` — older implementation plans, same caveat.
-- `tests/` — run `node --test tests/*.test.cjs` (~40 s; no npm). `tuning-harness.cjs` regex-extracts the real tuning engine out of a build and runs it in a `vm`; `temperament.test.cjs` and `fixture-parity.test.cjs` run against every build (`TONEMAP_TARGETS=beta.html` to narrow); `pro-gate.test.cjs` proves Hard Mode is locked in `index.html` and unlocked in `beta.html`; `generate-temperament-vectors.cjs` regenerates `fixtures/temperament-vectors.json`, the parity oracle the iOS port is tested against.
+- `tests/` — run `node --test tests/*.test.cjs` (~40 s; no npm). `tuning-harness.cjs` regex-extracts the real tuning engine out of a build and runs it in a `vm`; `temperament.test.cjs` and `fixture-parity.test.cjs` run against every build (`TONEMAP_TARGETS=beta.html` to narrow); `pro-gate.test.cjs` proves Hard Mode is locked in `index.html` and unlocked in `beta.html`; `generate-temperament-vectors.cjs` regenerates `fixtures/temperament-vectors.json`, the parity oracle for the native ports. Regenerate it only after a deliberate engine change, and check the diff.
 
 ---
 
