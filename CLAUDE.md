@@ -131,12 +131,12 @@ Cookie: `tm_pro` (HMAC-signed, 365-day max-age). Revalidation against Polar ever
 
 ## Feature Parity Matrix (as of 2026-09-17; temperament rows rechecked 2026-10-02)
 
-Four divergent builds share one lineage, plus an Android port (`~/AndroidStudioProjects/TonemapTuner`) that ports from the iOS Swift first and the web second — see its own `CLAUDE.md` for its parity. As of 2026-10-02 neither native app has any temperament code. Check this table before assuming a feature exists in the file you're editing. iOS column verified against `../tonemap-ios` on 2026-09-17 except where marked.
+Four divergent builds share one lineage, plus an Android port (`~/AndroidStudioProjects/TonemapTuner`) that ports from the iOS Swift first and the web second — see its own `CLAUDE.md` for its parity. As of 2026-10-05 iOS has full temperament parity for 1.2 (fixture-proven; branch `temperaments-1.2`, unreleased); Android has none. Check this table before assuming a feature exists in the file you're editing. iOS column verified against `../tonemap-ios` on 2026-09-17 except where marked.
 
 | Feature | `index.html` (free prod) | `beta.html` (free beta) | `beta-451.html` (Pro / KV) | iOS |
 |---|---|---|---|---|
-| Temperaments, Pitch Center, Custom editor, banner pill | ✓ | ✓ | ✓ | ✗ (only the word, in a stretch label) |
-| Customize Temperaments dialog (Temperament, Pitch Center, Anchor, Needle Behavior); `temperamentAnchor` setting; self-stacking banner pill | ✓ | ✓ | ✓ | ✗ |
+| Temperaments, Pitch Center, Custom editor, banner pill | ✓ | ✓ | ✓ | ✓ 1.2 (unreleased) — bar over the grid; all 5,192 fixture rows match |
+| Customize Temperaments dialog (Temperament, Pitch Center, Anchor, Needle Behavior); `temperamentAnchor` setting; self-stacking banner pill | ✓ | ✓ | ✓ | ✓ 1.2 (unreleased) — Customize sheet; same six settings keys |
 | Decimal A4 — 0.1 Hz; input not clobbered while typing | ✓ | ✓ | ✓ | ✓ `Double`; field re-formats only when unfocused |
 | Double-tap-zoom suppression (`touch-action: manipulation`) | ✓ | ✓ | ✓ | n/a |
 | Hard Mode — implemented (`HARD_DEADZONE_RATIO`, `biasHard`) | ✓ present, gated | ✓ | ✓ | ✓ |
@@ -147,7 +147,7 @@ Four divergent builds share one lineage, plus an Android port (`~/AndroidStudioP
 | Release notes / what's new UI | ✓ | ✓ | ✓ | ✓ from 1.2 — opens by itself only after a major update; always in Options → About |
 | Pro upgrade modal | ✓ | ✓ | ✗ (nothing to upsell) | ✓ `ProUpgradeSheet` |
 
-**Ported 2026-09 (web):** temperaments + decimal-A4 fix + touch-action are in all three web builds, and on 2026-09-24 the Customize Temperaments dialog, Anchor setting and banner-pill redesign followed; `node --test tests/*.test.cjs` proves they compute identical targets. iOS and Android ports pending — their oracle is `tests/fixtures/temperament-vectors.json`, which covers both anchors, Custom (including normalization), transposition, all four stretch modes, cell edges and both Needle Behavior modes. `docs/temperments.md` lists the settings keys and shipped tables.
+**Ported 2026-09 (web):** temperaments + decimal-A4 fix + touch-action are in all three web builds, and on 2026-09-24 the Customize Temperaments dialog, Anchor setting and banner-pill redesign followed; `node --test tests/*.test.cjs` proves they compute identical targets. iOS port done for 1.2 (2026-10-05; also adopted the web's cubic Railsback curve — iOS had been linear); Android pending — its oracle is `tests/fixtures/temperament-vectors.json`, which covers both anchors, Custom (including normalization), transposition, all four stretch modes, cell edges and both Needle Behavior modes. `docs/temperments.md` lists the settings keys and shipped tables.
 
 **Stale reference copy:** the iOS and Android `CLAUDE.md` files point to `tonemap-ios/web_reference_tonemap.live/beta-451.html`. That clone was last updated 2026-05-22 and has no temperaments. Read `beta-451.html` in this repo, or `git pull` that clone first.
 
