@@ -12,7 +12,8 @@ const functionNames = [
   'normalizeDegrees', 'getActiveTemperamentDegrees', 'getPitchCenterPc',
   'getTemperamentCents', 'getTargetOffsetCents', 'getLatticeOffsetCents',
   'freqToNoteData', 'rebaseErrRatio', 'getRecentWeightedErr',
-  'shiftCellStateBySemitones', 'getPitchCenterLabel'
+  'shiftCellStateBySemitones', 'getPitchCenterLabel',
+  'getCellCentSpan', 'getNeedleCellPosition'
 ];
 const tableNames = ['TEMPERAMENTS', 'RAILSBACK_ANCHORS'];
 const constantNames = [

@@ -10412,6 +10412,45 @@
     };
   }
 
+  // Needle placement. Under a temperament a cell's two neighbours are rarely
+  // equidistant, so the target does not sit at the geometric centre. Two ways to handle it:
+  //
+  //   even     one scale across the whole cell, so a cent is worth the same
+  //            travel everywhere and vibrato swings symmetrically, exactly
+  //            as in equal temperament. The target moves off centre, and the
+  //            black reference line moves with it to mark the real pitch.
+  //
+  //   centered the target is pinned mid-cell, so in tune always reads centre.
+  //            Each half is scaled to its own boundary, which means a cent is
+  //            worth more travel on the narrow side.
+  //
+  // Equal temperament is identical either way (both halves are 50c), so this
+  // only does anything once a temperament is active.
+  //
+  // Returns where the needle (pct) and the black target line (targetPct) sit,
+  // 0 = flat edge of the cell, 1 = sharp edge. Pure, so the tests can reach it.
+  function getNeedleCellPosition(midi, cents) {
+    const { halfBelow, halfAbove } = getCellCentSpan(midi);
+    const span = halfBelow + halfAbove;
+    const raw = cents || 0;
+    const centered = currentSettings.needleBehavior === "centered";
+
+    let pct;      // 0 = flat edge of the cell, 1 = sharp edge
+    let targetPct; // where the reference line belongs, same scale
+    if (centered || span <= 0) {
+      const t = raw >= 0
+        ? (halfAbove > 0 ? Math.min(1, raw / halfAbove) : 0)
+        : (halfBelow > 0 ? Math.max(-1, raw / halfBelow) : 0);
+      pct = 0.5 + 0.5 * t;
+      targetPct = 0.5;
+    } else {
+      const clamped = Math.max(-halfBelow, Math.min(halfAbove, raw));
+      pct = (clamped + halfBelow) / span;
+      targetPct = halfBelow / span;
+    }
+    return { pct, targetPct };
+  }
+
   // ---- Temperament UI -------------------------------------------------------
 
   // The preset the custom table was last seeded from or loaded with. Custom is not
@@ -13132,38 +13171,7 @@
         ind.style.display = "block";
         const isVertical = currentSettings.needleDirection === "vertical";
 
-        // Under a temperament a cell's two neighbours are rarely equidistant, so
-        // the target does not sit at the geometric centre. Two ways to handle it:
-        //
-        //   even     one scale across the whole cell, so a cent is worth the same
-        //            travel everywhere and vibrato swings symmetrically, exactly
-        //            as in equal temperament. The target moves off centre, and the
-        //            black reference line moves with it to mark the real pitch.
-        //
-        //   centered the target is pinned mid-cell, so in tune always reads centre.
-        //            Each half is scaled to its own boundary, which means a cent is
-        //            worth more travel on the narrow side.
-        //
-        // Equal temperament is identical either way (both halves are 50c), so this
-        // only does anything once a temperament is active.
-        const { halfBelow, halfAbove } = getCellCentSpan(activeMidi);
-        const span = halfBelow + halfAbove;
-        const raw = cents || 0;
-        const centered = currentSettings.needleBehavior === "centered";
-
-        let pct;      // 0 = flat edge of the cell, 1 = sharp edge
-        let targetPct; // where the reference line belongs, same scale
-        if (centered || span <= 0) {
-          const t = raw >= 0
-            ? (halfAbove > 0 ? Math.min(1, raw / halfAbove) : 0)
-            : (halfBelow > 0 ? Math.max(-1, raw / halfBelow) : 0);
-          pct = 0.5 + 0.5 * t;
-          targetPct = 0.5;
-        } else {
-          const clamped = Math.max(-halfBelow, Math.min(halfAbove, raw));
-          pct = (clamped + halfBelow) / span;
-          targetPct = halfBelow / span;
-        }
+        const { pct, targetPct } = getNeedleCellPosition(activeMidi, cents);
 
         if (isVertical) {
           cell.classList.add("vertical-needle");

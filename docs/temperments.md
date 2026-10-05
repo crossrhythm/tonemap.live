@@ -2,6 +2,16 @@
 
 _Compiled September 2026, in response to user requests for Pythagorean, meantone (1/4, 1/3, 1/6-comma), and well temperaments (Werckmeister, Kirnberger, Vallotti, Young, Kellner, Barnes), modeled loosely on TonalEnergy (TE) Tuner's implementation. Scope note: Tonemap's audience has broadened past violinists to other instrument families, so transposition is a first-class concern — see the transposition section._
 
+## Status and source of truth (updated 2026-10-02)
+
+Shipped in all three web builds (`index.html`, `beta.html`, `beta-451.html`) with identical engines. **Not yet in iOS or Android** — neither native app has any temperament code as of 2026-10-02.
+
+For a port, trust these in this order:
+
+1. **The web code** — `beta-451.html` in *this* repo (not the stale copy under `tonemap-ios/web_reference_tonemap.live/`, which predates temperaments). Start at `const TEMPERAMENTS` and `getTemperamentCents()`.
+2. **`tests/fixtures/temperament-vectors.json`** — the shipped degree tables, Custom normalization cases and 5,192 end-to-end input→output rows. See *Verification* below for what they cover.
+3. **This document** — background, conventions and rationale. Its *Starter cent tables* section is pre-implementation research; the *Shipped presets* table is what the code uses.
+
 ## The families of "temperament"
 
 **1. Open/regular systems (have a wolf interval): Pythagorean, meantone 1/4-, 1/3-, 1/6-comma.**
@@ -33,9 +43,9 @@ Custom is not a special code path — just a temperament whose array is user-edi
 
 ## Reference convention (approved September 14, 2026)
 
-Implemented in `beta.html`, `index.html` and `beta-451.html` (identical engines, proven by `tests/fixture-parity.test.cjs`); the iOS port is pending. Performance Pitch is the **concert A4 reference for the underlying equal-tempered scale**, not a promise that the tempered A4 target has that frequency. The selected pitch center keeps its frequency from that ET scale before stretch; all other degrees use their offsets directly, with no normalization to A.
+Implemented in `beta.html`, `index.html` and `beta-451.html` (identical engines, proven by `tests/fixture-parity.test.cjs`); the iOS and Android ports are pending. Performance Pitch is the **concert A4 reference for the underlying equal-tempered scale**, not a promise that the tempered A4 target has that frequency. The selected pitch center keeps its frequency from that ET scale before stretch; all other degrees use their offsets directly, with no normalization to A.
 
-**Anchor (added September 2026, `beta.html` only so far).** The convention above is the default, `temperamentAnchor: "center"`. The alternative, `"a4"`, holds A4 on the reference instead: every degree is shifted by A's own offset (`degrees[(9 − center) mod 12]`), so A4 = reference exactly and the pitch center drifts by that amount. The shift is one constant per temperament and center, so cell widths and nearest-note assignment are unchanged; only where the lattice sits moves, and history is rescored as for an A4 change. The two anchors coincide when the center is A or under Equal. For reference 441, concert C center, Just major: anchor Pitch Center gives C4 = 262.220 Hz, A4 = 437.034 Hz; anchor A4 gives A4 = 441 Hz, C4 = 264.601 Hz. The Customize Temperaments dialog shows these three frequencies live.
+**Anchor (added September 2026; in all three web builds since 2026-09-24).** The convention above is the default, `temperamentAnchor: "center"`. The alternative, `"a4"`, holds A4 on the reference instead: every degree is shifted by A's own offset (`degrees[(9 − center) mod 12]`), so A4 = reference exactly and the pitch center drifts by that amount. The shift is one constant per temperament and center, so cell widths and nearest-note assignment are unchanged; only where the lattice sits moves, and history is rescored as for an A4 change. The two anchors coincide when the center is A or under Equal. For reference 441, concert C center, Just major: anchor Pitch Center gives C4 = 262.220 Hz, A4 = 437.034 Hz; anchor A4 gives A4 = 441 Hz, C4 = 264.601 Hz. The Customize Temperaments dialog shows these three frequencies live.
 
 For reference 441 Hz, concert C center, Just major and stretch off:
 
@@ -69,9 +79,9 @@ Concrete consequences:
 - **Key Center is a pitch class (mod 12); transposition is a signed semitone offset.** Different types — don't collapse them into one variable.
 - **Key Center should be expressed in the same terms as the displayed note names.** If a trumpeter sees their written C, then selecting "C" as key center should mean written C, with the app converting internally. Consistency of labeling domain is what prevents confusion.
 - **Show both when a transposition is active:** `Key: C (concert B♭)`. Small UI touch, removes an entire class of user confusion.
-- **Preferred long-term model: store grid history in sounding pitch and relabel at render time.** The existing beta instead stores written MIDI keys and remaps them by `oldOffset - newOffset` on transposition changes. This implementation retains that model rather than introducing a history-storage migration.
+- **Preferred long-term model: store grid history in sounding pitch and relabel at render time.** The web builds instead store written MIDI keys and remaps them by `oldOffset - newOffset` on transposition changes. This implementation retains that model rather than introducing a history-storage migration.
 
-### Current beta implementation
+### Current web implementation
 
 The existing analysis operates on a frequency transposed into written pitch. This is algebraically equivalent to concert-domain temperament calculation when both the note and its pitch center are transformed together:
 
@@ -89,9 +99,31 @@ History segments retain their captured target offsets and errors. Remapping thei
 
 ### Verification
 
-Run `node --test tests/temperament.test.cjs` from the repository root. This uses Node's built-in test runner and extracts the actual calculations from the single-file app; no npm installation, bundler or application build step is required. Coverage includes the reference example, all presets and centers, A4 references 100/415/440/441/1000, four stretch modes, nearest-target boundaries, all available transpositions, Custom normalization and history rescoring/remapping. The suite runs against every build (`TONEMAP_TARGETS` to narrow it) and `tests/fixture-parity.test.cjs` checks each against the frozen vectors in `tests/fixtures/`.
+Run `node --test tests/*.test.cjs` from the repository root (or just `tests/temperament.test.cjs`). This uses Node's built-in test runner and extracts the actual calculations from the single-file app; no npm installation, bundler or application build step is required. Coverage includes the reference example, all presets and centers, A4 references 100/415/440/441/1000, four stretch modes, nearest-target boundaries, all available transpositions, Custom normalization and history rescoring/remapping. The suite runs against every build (`TONEMAP_TARGETS` to narrow it) and `tests/fixture-parity.test.cjs` checks each against the frozen vectors in `tests/fixtures/`.
 
-Needle rendering and direction handling are deliberately deferred to a separate change.
+**What the frozen fixture covers.** 5,192 rows, each tagged with a `block`: `core` (every preset, centers C/D/A, A4 440/441, stretch none/full), `anchor` (the same with `temperamentAnchor: "a4"`), `stretch` (Minimal and Medium), `transposition` (−9, −2, +3, +11, concert input → written note), `custom-extreme` / `custom-mixed` / `custom-invalid` (raw Custom tables the port must normalize, including one it must reject and fall back to Equal), and `boundary` (0.01 ¢ inside and outside each cell edge). Every row also checks the cell span and both Needle Behavior positions, and `customNormalization` lists raw Custom inputs with the normalizer's output. The field meanings are in the fixture's own `note`. Not covered: rescoring history after a settings change, and labels such as `C (concert Bb)`; `temperament.test.cjs` tests those against the web code only.
+
+## Needle Behavior and cell boundaries
+
+Under a temperament, the cell boundaries move: each boundary sits halfway between adjacent *tempered* targets, not at ±50¢ from ET (`getCellCentSpan()`), so a note's two halves usually differ in width. `needleBehavior` (`"even"` default, or `"centered"`) chooses how the needle maps cents onto the cell:
+
+- **even:** one linear scale across the whole cell; the target sits off-centre and the black reference line moves to mark it.
+- **centered:** the target is pinned mid-cell and each half is scaled to its own boundary, so a cent is worth more travel on the narrow side.
+
+Both are identical under Equal. The mapping is `getNeedleCellPosition(midi, cents)`, which returns `{ pct, targetPct }` (0 = flat edge, 1 = sharp edge); the renderer maps that onto the cell's 10–90 % band.
+
+## Settings keys (for porters)
+
+| Key | Default | Values |
+|---|---|---|
+| `temperament` | `"equal"` | a preset `id` from the table below, or `"custom"` |
+| `pitchCenter` | `"0"` | `"0"`–`"11"`, pitch class in **written** note names (0 = C) |
+| `customTemperament` | `null` | 12 cents, tonic-relative; degree 0 forced to 0, others clamped to ±45 (`TEMPERAMENT_CENT_LIMIT`) |
+| `temperamentAnchor` | `"center"` | `"center"` or `"a4"` |
+| `needleBehavior` | `"even"` | `"even"` or `"centered"` |
+| `showTemperamentBar` | `false` | shows the temperament bar (pill) above the grid |
+
+UI: Temperament, Pitch Center, Anchor and Needle Behavior live in the **Customize Temperaments** dialog (opened from the Show Temperament Bar row in Options or the gear on the bar), plus quick pulldowns on the bar itself. Help text for each control is in the `pitchCenter` / `temperamentAnchor` / `needleBehavior` entries of the options-info table.
 
 ## Static Just intonation — values and limits
 
@@ -124,7 +156,29 @@ Needle rendering and direction handling are deliberately deferred to a separate 
 
 Cents are logarithmic and additive, so as long as stretch is a function of register rather than pitch class, it sums with the temperament offset (see the transposition formula above). No structural conflict: "which pitch class is sharp/flat" and "how much wider than ET should octaves be" are independent dimensions. The one integration point: whatever decides "in tune" for grid coloring and the needle must compare against the *combined* target, not pure ET.
 
-## Shipping set — ~6 primary + Custom
+## Shipped presets
+
+Tonic-relative cents from ET, exactly as in the code's `TEMPERAMENTS` table and the fixture. Just major and minor shipped as **two list entries**, not the toggle the next section suggested.
+
+| id | Name in app | U | m2 | M2 | m3 | M3 | P4 | T | P5 | m6 | M6 | m7 | M7 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| `equal` | Equal Temperament | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| `just-major` | Just — major | 0 | 11.73 | 3.91 | 15.64 | −13.69 | −1.96 | −9.78 | 1.96 | 13.69 | −15.64 | −3.91 | −11.73 |
+| `just-minor` | Just — minor | 0 | 33.24 | 3.91 | 15.64 | −13.69 | −1.96 | 31.28 | 1.96 | 13.69 | −15.64 | 17.60 | −11.73 |
+| `septimal` | Septimal Just (7-limit) | 0 | 11.73 | 3.91 | 15.64 | −13.69 | −1.96 | −17.49 | 1.96 | 13.69 | −15.64 | −31.17 | −11.73 |
+| `pythagorean` | Pythagorean (Pythagorean Just) | 0 | −9.78 | 3.91 | −5.87 | 7.82 | −1.96 | 11.73 | 1.96 | −7.82 | 5.87 | −3.91 | 9.78 |
+| `meantone-quarter` | 1/4-comma meantone | 0 | −23.95 | −6.84 | 10.26 | −13.69 | 3.42 | −20.53 | −3.42 | −27.37 | −10.26 | 6.84 | −17.11 |
+| `meantone-sixth` | 1/6-comma meantone | 0 | −11.41 | −3.26 | 4.89 | −6.52 | 1.63 | −9.78 | −1.63 | −13.04 | −4.89 | 3.26 | −8.15 |
+| `vallotti` | Vallotti | 0 | −5.87 | −3.91 | −1.96 | −7.82 | 1.96 | −7.82 | −1.96 | −3.91 | −5.87 | 0 | −9.78 |
+| `werckmeister3` | Werckmeister III | 0 | −9.78 | −7.82 | −5.87 | −9.78 | −1.96 | −11.73 | −3.91 | −7.82 | −11.73 | −3.91 | −7.82 |
+
+Plus **Custom** (`"custom"`): opening the editor seeds it from whatever temperament is in force, so opening it never changes the sound.
+
+Note that Just minor's m2, tritone and m7 (27/25, 36/25, 9/5) differ from Just major's, so it is not just a rotation of the major table.
+
+## Shipping set — decision record
+
+_Historical: the planning notes below are kept for rationale. The list that actually shipped is the table above — 1/6-comma meantone made the cut; Werckmeister IV/V, Kirnberger III, Kellner, Barnes and 1/3-comma meantone did not._
 
 **Decision (Sept 2026): ship roughly six, plus Custom, and add more on request.** Marginal engineering cost per temperament is essentially zero — twelve numbers in an array — so the real cost is UI weight and decision friction, not code. Expanding later is a data change, not an architecture change.
 
@@ -141,12 +195,14 @@ Deferred to Custom or a "More historical temperaments…" submenu: Werckmeister 
 ## UI notes for the "Advanced Tuning" menu
 
 - Showing the 12 live cent values is the strongest part of the design — self-documenting, teaches what a temperament *is*, and makes Custom a natural in-place edit. TE hides these behind an ⓘ button.
-- Gray out Key Center for Equal, where it has no effect. (As of September 2026 in `beta.html`, Temperament, Pitch Center, Anchor and Needle Behavior live only in the **Customize Temperaments** dialog — reached from the Show Temperament Bar row in Options or the banner gear — plus the banner pill's quick pulldowns. The dialog's Pitch Center is never disabled, since it also labels the rows; Anchor and Needle Behavior dim under Equal.)
+- Gray out Key Center for Equal, where it has no effect. (As shipped in all three web builds, Temperament, Pitch Center, Anchor and Needle Behavior live only in the **Customize Temperaments** dialog — reached from the Show Temperament Bar row in Options or the banner gear — plus the banner pill's quick pulldowns. The dialog's Pitch Center is never disabled, since it also labels the rows; Anchor and Needle Behavior dim under Equal.)
 - Decide whether the list displays tonic-relative degrees or absolute pitch names. Absolute is more immediately useful when practicing; tonic-relative is portable across keys and matches the data model. Both columns is defensible.
 - Store Custom edits tonic-relative, consistent with everything else.
 - Keep per-instrument calibration off this screen. "My G# always reads 12¢ high on this instrument" belongs on the stretch/calibration axis, not the temperament array — mixing them produces baffling results the moment the user changes key.
 
-## Starter cent tables (sourced — verify before hardcoding)
+## Starter cent tables (pre-implementation research)
+
+_Do not port from these. They use mixed anchors (A = 0, C = 0, some absolute cents) and some are rounded to 0.1¢. The shipped values are in **Shipped presets** above._
 
 Sources anchor differently (C=0 vs A=0), noted per table. Werckmeister III/IV/V numbering isn't standardized across publishers — pull final values from one canonical source per temperament rather than mixing.
 

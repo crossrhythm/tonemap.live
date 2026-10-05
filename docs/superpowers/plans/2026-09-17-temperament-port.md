@@ -1,5 +1,7 @@
 # Temperament Port Implementation Plan
 
+> **Status (2026-10-02): complete.** Executed in commits c8f3bf9 (production), 9ac5b04 and 0f1f2a4 (Pro build) and 8485eb6 (final review); the checkboxes below were never ticked. Kept as a record. The native (iOS/Android) temperament port is separate and not covered here.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship the temperament engine, the decimal-A4 fix and the other `beta.html` improvements to the free production app (`index.html`) and the Pro build (`beta-451.html`), keeping Hard Mode Pro-gated in production, with a test suite that proves all three builds compute identical tuning targets — and produce the fixture the iOS port will be tested against.
