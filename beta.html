@@ -5667,34 +5667,43 @@
   const WHATS_NEW_RELEASES = [
     {
       version: APP_VERSION,
+      // Beta farewell: show on every launch, not just once per version.
+      showEveryLaunch: true,
       sections: [
         {
-          title: "New Features",
+          title: "Temperaments Are Now Live",
           items: [
-            "Temperaments: Pythagorean, 1/4- and 1/6-comma meantone, Vallotti, Werckmeister III and just intonation (major, minor, 7-limit), or build your own in cents.",
-            "Customize Temperaments: pick the pitch center, anchor tuning to A4 or the pitch center, and choose how the needle moves. Open it from the gear on the temperament bar or from Options.",
-            "Performance Pitch (A4) now accepts decimals, such as 440.5."
+            "Everything you've been testing here (temperaments, Customize Temperaments, decimal A4 and the new temperament bar) is now part of the main app at https://tonemap.live.",
+            "In the main app, Hard Mode is part of Tonemap Pro."
           ]
         },
         {
-          title: "Interface",
+          title: "This Beta Is Ending",
           items: [
-            "A bar above the grid shows the active temperament and lets you change it on the spot. Hide it with \u00d7 or in Options.",
-            "Buttons and pulldowns in Options and Colors now share one consistent style."
-          ]
-        },
-        {
-          title: "Bug Fixes",
-          items: [
-            "Under strong temperaments, notes near the edge of a cell are now named correctly.",
-            "Changing Performance Pitch now rescores the colors already on your map.",
-            "Double-tapping no longer zooms the page on phones and tablets."
+            "This beta will be removed by the end of October. Please switch to https://tonemap.live and update your bookmarks."
           ]
         }
       ],
-      note: "This is a beta build for testing, and Hard Mode is unlocked so you can try it. If anything looks wrong or behaves oddly, please tell me at support@tonemap.live."
+      note: "Thank you for helping test temperaments! Your reports made this release better. If you have more feedback, I'd still love to hear it at support@tonemap.live."
     }
   ];
+
+  // Turns emails and https:// URLs in plain text into links. Everything else
+  // stays a text node, so release-note strings are never parsed as HTML.
+  function appendLinkifiedText(parentEl, text) {
+    const linkRe = /(https:\/\/[^\s]+[^\s.,;:!?)])|([\w.+-]+@[\w-]+(?:\.[\w-]+)+)/g;
+    let last = 0, match;
+    while ((match = linkRe.exec(text)) !== null) {
+      parentEl.appendChild(document.createTextNode(text.slice(last, match.index)));
+      const a = document.createElement("a");
+      a.href = match[1] ? match[1] : "mailto:" + match[2];
+      a.textContent = match[1] ? match[1].replace(/^https:\/\//, "") : match[2];
+      a.style.cssText = "color:var(--accent-green);text-decoration:underline;";
+      parentEl.appendChild(a);
+      last = match.index + match[0].length;
+    }
+    parentEl.appendChild(document.createTextNode(text.slice(last)));
+  }
 
   function renderWhatsNewBody() {
     if (!whatsNewBodyEl) return;
@@ -5717,7 +5726,7 @@
       (section.items || []).forEach(item => {
         const li = document.createElement("li");
         li.style.cssText = "font-size:0.9rem;color:var(--text-lite);line-height:1.5;";
-        li.textContent = item;
+        appendLinkifiedText(li, item);
         ul.appendChild(li);
       });
       whatsNewBodyEl.appendChild(ul);
@@ -5725,20 +5734,7 @@
     if (latestRelease.note) {
       const note = document.createElement("p");
       note.style.cssText = "margin:0 1.5rem 1.5rem;font-size:0.9rem;color:var(--text-lite);line-height:1.6;";
-      const emailRe = /([\w.+-]+@[\w-]+\.[\w.]+)/g;
-      const noteText = latestRelease.note;
-      let last = 0, match;
-      emailRe.lastIndex = 0;
-      while ((match = emailRe.exec(noteText)) !== null) {
-        note.appendChild(document.createTextNode(noteText.slice(last, match.index)));
-        const a = document.createElement("a");
-        a.href = "mailto:" + match[1];
-        a.textContent = match[1];
-        a.style.cssText = "color:var(--accent-green);text-decoration:underline;";
-        note.appendChild(a);
-        last = match.index + match[0].length;
-      }
-      note.appendChild(document.createTextNode(noteText.slice(last)));
+      appendLinkifiedText(note, latestRelease.note);
       whatsNewBodyEl.appendChild(note);
     }
     if (whatsNewVersionEl) whatsNewVersionEl.textContent = `V${latestRelease.version}`;
@@ -5766,11 +5762,16 @@
     if (event.key === "Escape") closeWhatsNewOverlay();
   }
 
+  let whatsNewShownThisLoad = false;
+
   function showWhatsNewIfNeeded() {
     const latestRelease = WHATS_NEW_RELEASES[0];
     if (!latestRelease) return;
+    // Called on every mic start; only ever auto-open once per page load.
+    if (whatsNewShownThisLoad) return;
     const seen = localStorage.getItem(WHATS_NEW_SEEN_KEY);
-    if (seen === latestRelease.version) return;
+    if (seen === latestRelease.version && !latestRelease.showEveryLaunch) return;
+    whatsNewShownThisLoad = true;
     localStorage.setItem(WHATS_NEW_SEEN_KEY, latestRelease.version);
     // Small delay so the mic overlay has fully cleared
     setTimeout(openWhatsNewOverlay, 400);
