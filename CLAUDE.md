@@ -131,7 +131,7 @@ Cookie: `tm_pro` (HMAC-signed, 365-day max-age). Revalidation against Polar ever
 
 ## Feature Parity Matrix (as of 2026-09-17; temperament rows rechecked 2026-10-02)
 
-Four divergent builds share one lineage, plus an Android port (`~/AndroidStudioProjects/TonemapTuner`) that ports from the iOS Swift first and the web second — see its own `CLAUDE.md` for its parity. As of 2026-10-05 iOS has full temperament parity for 1.2 (fixture-proven; branch `temperaments-1.2`, unreleased); Android has none. Check this table before assuming a feature exists in the file you're editing. iOS column verified against `../tonemap-ios` on 2026-09-17 except where marked.
+Four divergent builds share one lineage, plus an Android port (`~/AndroidStudioProjects/TonemapTuner`) that ports from the iOS Swift first and the web second — see its own `CLAUDE.md` for its parity. As of 2026-10-05 iOS has full temperament parity for 1.2 (fixture-proven; merged to iOS `main` 2026-10-05, unreleased); Android has none. Check this table before assuming a feature exists in the file you're editing. iOS column verified against `../tonemap-ios` on 2026-09-17 except where marked.
 
 | Feature | `index.html` (free prod) | `beta.html` (free beta) | `beta-451.html` (Pro / KV) | iOS |
 |---|---|---|---|---|
