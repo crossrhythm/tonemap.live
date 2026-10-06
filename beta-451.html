@@ -7389,7 +7389,7 @@
     temperament: "equal",
     pitchCenter: "0",
     customTemperament: null,   // 12 cent offsets, tonic-relative; null until first edited
-    temperamentAnchor: "center", // "center" | "a4" -- see getTemperamentCents()
+    temperamentAnchor: "a4", // "center" | "a4" -- see getTemperamentCents(); A4 by default since 2026-10-06
     accidentalMode: "sharps",
     noteViewStyle: NOTE_VIEW_STYLE_DEFAULT,
     transposition: "0",
@@ -7500,7 +7500,7 @@
     },
     pitchCenter: {
       title: "Pitch Center",
-      summary: "The note the temperament is built from. With the anchor on Pitch Center (the default) it keeps its equal-tempered frequency from your Performance Pitch reference, before stretch.",
+      summary: "The note the temperament is built from. With the anchor on Pitch Center it keeps its equal-tempered frequency from your Performance Pitch reference, before stretch; with the anchor on A4 (the default) it moves by A's offset.",
       detail: [
         "Set it to the key you are playing in. It stays put when you switch temperaments, so you can compare them in the same key.",
         "For Pythagorean and meantone this is the important control: it decides where the unusable \u201cwolf\u201d fifth lands. Put it on your tonic and the wolf falls in a distant key.",
@@ -7514,8 +7514,8 @@
       title: "Anchor",
       summary: "Which note keeps its equal-tempered frequency from your Performance Pitch reference. The other notes follow the temperament from there.",
       detail: [
-        "\u2022 Anchor: Pitch Center (default): the pitch center sits exactly on its equal-tempered frequency and A drifts by its own offset. With Just major centered on C and A4 set to 441, A4 lands near 437.03 Hz.",
-        "\u2022 Anchor: A4: A4 sits exactly on your Performance Pitch and the pitch center drifts instead. Same intervals, whole scale slid by A's offset.",
+        "\u2022 Anchor: A4 (default): A4 sits exactly on your Performance Pitch and the pitch center drifts instead. Same intervals, whole scale slid by A's offset.",
+        "\u2022 Anchor: Pitch Center: the pitch center sits exactly on its equal-tempered frequency and A drifts by its own offset. With Just major centered on C and A4 set to 441, A4 lands near 437.03 Hz.",
         "Cell widths and which note is nearest do not change; only where the whole scale sits. Existing colors on the map are rescored, as they are for a Performance Pitch change.",
         "The two anchors coincide when the pitch center is A (the readouts then agree) and under Equal Temperament, where the choice is dimmed. The Hz readouts below show the frequencies each anchor produces."
       ]
@@ -8337,7 +8337,7 @@
       input.checked = input.value === behaviorValue;
     }
 
-    const anchorValue = currentSettings.temperamentAnchor === "a4" ? "a4" : "center";
+    const anchorValue = currentSettings.temperamentAnchor === "center" ? "center" : "a4";
     for (const input of anchorModeInputs) {
       input.checked = input.value === anchorValue;
     }
@@ -8748,7 +8748,7 @@
       }
     }
     const originalAnchor = settings.temperamentAnchor;
-    const anchorVal = originalAnchor === "a4" ? "a4" : "center";
+    const anchorVal = originalAnchor === "center" ? "center" : "a4";
     currentSettings.temperamentAnchor = anchorVal;
     if (originalAnchor !== anchorVal) needsPersist = true;
 
@@ -10640,7 +10640,7 @@
     for (const el of [tempEditorNeedleField, tempEditorNeedleLabel, tempEditorAnchorField, tempEditorAnchorLabel]) {
       if (el) el.classList.toggle("is-disabled", isEqual);
     }
-    const anchorValue = currentSettings?.temperamentAnchor === "a4" ? "a4" : "center";
+    const anchorValue = currentSettings?.temperamentAnchor === "center" ? "center" : "a4";
     for (const input of anchorModeInputs) input.checked = input.value === anchorValue;
     // The editor's pitch center is never disabled: besides tuning, it decides
     // which note each row is labelled with, so it does real work even when every
@@ -10841,7 +10841,7 @@
         ? currentSettings.customTemperament.slice()
         : null,
       // Everything in the dialog is one transaction, display settings included.
-      temperamentAnchor: currentSettings.temperamentAnchor === "a4" ? "a4" : "center",
+      temperamentAnchor: currentSettings.temperamentAnchor === "center" ? "center" : "a4",
       needleBehavior: currentSettings.needleBehavior === "centered" ? "centered" : "even"
     };
     // Reseed unless there is real work to preserve. A saved table that merely

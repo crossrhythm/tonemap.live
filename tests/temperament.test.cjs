@@ -150,7 +150,8 @@ for (const target of TARGETS) {
       if (!fs.readFileSync(resolveTarget(target), 'utf8').includes('temperamentAnchor')) {
         return t.skip('this build has no temperament anchor setting');
       }
-      // Default anchor ("center"): the pitch center keeps its equal-tempered
+      // Pitch Center anchor (the engine reading when no anchor is passed; the
+      // app default is "a4" since 2026-10-06): the pitch center keeps its equal-tempered
       // frequency and A drifts by its own degree. "a4": A stays on the reference
       // and every note, the center included, moves by that same amount instead.
       const centered = createTuning({ temperament: 'just-major', pitchCenter: '0' }, 441);
