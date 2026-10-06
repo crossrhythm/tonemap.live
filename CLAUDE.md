@@ -135,7 +135,7 @@ Four divergent builds share one lineage, plus an Android port (`~/AndroidStudioP
 
 | Feature | `index.html` (free prod) | `beta.html` (free beta) | `beta-451.html` (Pro / KV) | iOS |
 |---|---|---|---|---|
-| Temperaments, Pitch Center, Custom editor, banner pill | ✓ | ✓ | ✓ | ✓ 1.2 (unreleased) — bar over the grid; all 5,192 fixture rows match |
+| Temperaments, Pitch Center, Custom editor, banner pill | ✓ | ✓ | ✓ | ✓ 1.2 (unreleased) — bar over the grid; temperament-responsive columns; all 5,192 fixture rows match |
 | Customize Temperaments dialog (Temperament, Pitch Center, Anchor, Needle Behavior); `temperamentAnchor` setting; self-stacking banner pill | ✓ | ✓ | ✓ | ✓ 1.2 (unreleased) — Customize sheet; same six settings keys |
 | Decimal A4 — 0.1 Hz; input not clobbered while typing | ✓ | ✓ | ✓ | ✓ `Double`; field re-formats only when unfocused |
 | Double-tap-zoom suppression (`touch-action: manipulation`) | ✓ | ✓ | ✓ | n/a |
