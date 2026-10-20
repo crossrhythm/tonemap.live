@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Temporary diagnostic for the iOS home-screen "chin" bug. Same head metas
+     as the app so it launches the same way. Add to Home Screen, launch, screenshot. -->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="VH Test" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>VH Test</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #7f1d1d; color: #f8fafc;
+    font: 13px/1.35 -apple-system, system-ui, sans-serif; }
+  /* Green box = 100dvh. Red showing below it = the chin. */
+  #box { position: absolute; top: 0; left: 0; right: 0; height: 100dvh;
+    background: #14532d; border-bottom: 4px solid #facc15; box-sizing: border-box; }
+  #out { position: relative; padding: calc(env(safe-area-inset-top) + 8px) 12px 12px;
+    white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  .probe { position: absolute; top: 0; left: -9999px; width: 1px; }
+  #insets { position: absolute; padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom); left: -9999px; }
+</style>
+</head>
+<body>
+<div id="box"></div>
+<div class="probe" id="pvh" style="height:100vh"></div>
+<div class="probe" id="pdvh" style="height:100dvh"></div>
+<div class="probe" id="psvh" style="height:100svh"></div>
+<div class="probe" id="plvh" style="height:100lvh"></div>
+<div class="probe" id="pfill" style="height:-webkit-fill-available"></div>
+<div id="insets"></div>
+<div id="out"></div>
+<script>
+  const log = [];
+  const t0 = performance.now();
+  const h = id => document.getElementById(id).getBoundingClientRect().height.toFixed(1);
+  function snap(reason) {
+    const ins = getComputedStyle(document.getElementById("insets"));
+    const o = window.matchMedia("(orientation: portrait)").matches ? "portrait" : "landscape";
+    const sa = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    log.push(
+      `[${((performance.now() - t0) / 1000).toFixed(2)}s ${reason}] ${o} standalone=${!!sa}\n` +
+      ` vh=${h("pvh")} dvh=${h("pdvh")} svh=${h("psvh")} lvh=${h("plvh")} fill=${h("pfill")}\n` +
+      ` innerH=${innerHeight} vvH=${visualViewport ? visualViewport.height.toFixed(1) : "-"}` +
+      ` clientH=${document.documentElement.clientHeight}\n` +
+      ` screen=${screen.width}x${screen.height} inset top=${ins.paddingTop} bot=${ins.paddingBottom}`
+    );
+    while (log.length > 8) log.splice(0, 1);
+    document.getElementById("out").textContent =
+      "Green = 100dvh, yellow line = its bottom.\nRed below = chin.\n\n" + log.join("\n\n");
+  }
+  snap("load");
+  requestAnimationFrame(() => snap("raf"));
+  setTimeout(() => snap("500ms"), 500);
+  setTimeout(() => snap("2s"), 2000);
+  addEventListener("resize", () => snap("resize"));
+  addEventListener("orientationchange", () => setTimeout(() => snap("orient"), 300));
+</script>
+</body>
+</html>

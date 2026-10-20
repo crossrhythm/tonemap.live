@@ -9075,7 +9075,8 @@
     for (const sel of [tempEditorCenterSelect, bannerPitchCenterSelect]) {
       if (!sel) continue;
       sel.innerHTML = "";
-      for (let pc = 0; pc < 12; pc++) {
+      // Ascending bottom-to-top like Transposition: A at the bottom, G#/Ab at the top.
+      for (const pc of [8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9]) {
         const opt = document.createElement("option");
         opt.value = String(pc);
         opt.textContent = getPitchCenterLabel(pc);
