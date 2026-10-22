@@ -1107,6 +1107,18 @@
     display: block;
   }
 
+  /* App Store + Google Play side by side; wraps to a stack when too narrow.
+     Both are the official black badges in either theme: Google forbids
+     recolouring theirs. The 10px gap is both stores' minimum clear space
+     (a quarter of the 40px badge height). */
+  .store-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+  }
+
   .footer-line a,
   .footer-line a:visited {
     color: var(--ui-footer-text);
@@ -1795,7 +1807,10 @@
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem;
+    /* Keep the card clear of the status bar (and iOS 26's blur ramp just
+       below it) and the home indicator; the card then fills what's left. */
+    padding: calc(var(--safe-area-top) + 1.5rem) calc(var(--safe-area-right) + 1.5rem)
+      calc(var(--safe-area-bottom) + 1rem) calc(var(--safe-area-left) + 1.5rem);
     background: var(--ui-overlay-backdrop);
     backdrop-filter: blur(3px);
     z-index: 1200;
@@ -1809,7 +1824,7 @@
   .options-overlay-card,
   .status-overlay-card {
     width: min(720px, 100%);
-    max-height: 90vh;
+    max-height: min(90vh, 100%);
     background: var(--ui-overlay-card-bg);
     border: 1px solid var(--ui-overlay-card-border);
     border-radius: 1rem;
@@ -2679,7 +2694,9 @@
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    /* Same safe-area clearance as .options-overlay. */
+    padding: calc(var(--safe-area-top) + 1.5rem) calc(var(--safe-area-right) + 1rem)
+      calc(var(--safe-area-bottom) + 1rem) calc(var(--safe-area-left) + 1rem);
     background: var(--veil-bg);
     backdrop-filter: blur(4px);
   }
@@ -2691,7 +2708,7 @@
   .pro-modal-card {
     --pro-modal-surface: color-mix(in srgb, var(--bg-panel) 94%, var(--bg-main));
     width: min(560px, 100%);
-    max-height: 88vh;
+    max-height: min(88vh, 100%);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -3469,6 +3486,9 @@
     .layout-stack {
       max-width: 600px;
       padding-top: 0.35rem;
+      /* The panel's own padding already spaces the footer from its bottom edge;
+         the base 1rem (scroll room for the landscape sidebar) doubled it here. */
+      padding-bottom: 0;
       gap: 0.55rem;
     }
     .control-row {
@@ -3503,7 +3523,7 @@
     }
     .status-overlay-card,
     .options-overlay-card {
-      max-height: 80vh;
+      max-height: 100%;
     }
     .status-overlay-card {
       width: 100%;
@@ -3530,6 +3550,25 @@
     }
     .overlay-button-stack .options-btn {
       font-size: 0.7rem;
+    }
+  }
+
+  /* iOS 26 home-screen app: the system draws a "scroll edge" blur that fades
+     ~40pt down from the top of the screen, smearing the top of the grid.
+     WebKit skips it when a fixed, full-width, solid-colour box (taller than
+     10px) sits at the top edge, so paint the status-bar strip with the page
+     background. Content already starts below it via body padding-top. */
+  @media (display-mode: standalone) {
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: max(var(--safe-area-top), 12px);
+      background: var(--bg-main);
+      pointer-events: none;
+      z-index: 5;
     }
   }
 
@@ -4193,7 +4232,10 @@
         
         <div class="footer-line footer-cta">
           <button class="upgrade-pro-btn" type="button" data-open-pro-modal>Upgrade to <span class="pro-brand">★ Pro</span></button>
-          <a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a>
+          <div class="store-badges">
+            <a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a>
+            <a class="appstore-badge" href="https://play.google.com/store/apps/details?id=com.eastendviolinstudio.tonemaptuner" target="_blank" rel="noopener"><img src="google-play-badge.svg" alt="Get Tonemap Tuner on Google Play" width="135" height="40"></a>
+          </div>
         </div>
         <div class="footer-line">© 2026 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> · <a href="/help.html" target="_blank" rel="noopener">Help</a> · <a href="/terms" target="_blank" rel="noopener">Terms</a></div>
       </div>
@@ -9713,13 +9755,13 @@
     const names = getNoteNamesForMode(accidentalMode);
     const prevVal = rowStartSelect.value ?? String(selectedIdx);
     rowStartSelect.innerHTML = "";
-    [...names].reverse().forEach((name, revIdx) => {
-      const idx = names.length - 1 - revIdx;
+    // Ascending bottom-to-top like Transposition: A at the bottom, G#/Ab at the top.
+    for (const idx of [8, 7, 6, 5, 4, 3, 2, 1, 0, 11, 10, 9]) {
       const opt = document.createElement("option");
       opt.value = String(idx);
-      opt.textContent = name;
+      opt.textContent = names[idx];
       rowStartSelect.appendChild(opt);
-    });
+    }
     const chosen = rowStartSelect.querySelector(`option[value="${prevVal}"]`) ? prevVal : String(selectedIdx);
     rowStartSelect.value = chosen;
     currentSettings.rowStart = chosen;

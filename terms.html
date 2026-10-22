@@ -102,6 +102,13 @@
       margin: 4px 0;
     }
     .appstore-badge:hover { text-decoration: none; opacity: 0.85; }
+    /* Side by side, stacking when narrow; 10px = both stores' minimum clear space. */
+    .store-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
     .appstore-badge img {
       height: 40px;
       width: auto;
@@ -129,13 +136,13 @@
         <img src="tonemaplogo-fb.jpg" alt="Tonemap" class="logo-img">
       </a>
       <h1>Terms &amp; Conditions</h1>
-      <div class="updated">Last updated: July 2026</div>
+      <div class="updated">Last updated: October 2026</div>
     </header>
 
     <section>
       <h2>1. Overview</h2>
-      <p>These Terms and Conditions govern your use of Tonemap ("the Service"), an intonation visualization tool for musicians available at tonemap.live and as a native app for iPhone and iPad. By using the Service, you agree to these terms.</p>
-      <p>Tonemap is an independent, open-source project, designed by Jeremy Black. The source code is <a href="https://github.com/crossrhythm/tonemap.live">publicly available</a>, the core tool is free to use, and a paid Pro tier exists solely to support its continued development.</p>
+      <p>These Terms and Conditions govern your use of Tonemap ("the Service"), an intonation visualization tool for musicians available at tonemap.live and as native apps for iPhone, iPad, and Android. By using the Service, you agree to these terms.</p>
+      <p>Tonemap is an independent project, designed by Jeremy Black. The source code of the web version is <a href="https://github.com/crossrhythm/tonemap.live">publicly available</a> (the iOS and Android apps are not open source), the core tool is free to use, and a paid Pro tier exists solely to support its continued development.</p>
       <p>Many thanks to all those who helped test and provided feedback during development, including Jeremías Sergiani-Velázquez, Jonathan Yi, Boxianzi Ling, Kate Lewis, Ken Johnson, and Ryan Black; and the support and patience of my wife, Kate Black!</p>
   
     </section>
@@ -147,35 +154,38 @@
 
     <section>
       <h2>3. Tonemap Pro Subscription</h2>
-      <p>Tonemap Pro is an optional paid subscription available at $9.99 USD per year, providing access to extended features. A Pro subscription is how Tonemap stays independent: no advertising, no outside funding, no selling of user data. If you find the tool useful, Pro is the way to support it.</p>
+      <p>Tonemap Pro is an optional paid annual subscription providing access to extended features. Prices vary by country and by where you subscribe, and the current price in your local currency is always shown before you buy. A Pro subscription is how Tonemap stays independent: no advertising, no outside funding, no selling of user data. If you find the tool useful, Pro is the way to support it.</p>
       <p>Subscriptions are billed annually and renew automatically unless cancelled. Cancellation takes effect at the end of the current billing period — you retain Pro access until then.</p>
       <p><strong>On the web (tonemap.live),</strong> payments are processed securely by Polar, and you may cancel at any time through your account portal or by contacting us. Tonemap does not store your payment information.</p>
       <p><strong>In the iOS app,</strong> the subscription is purchased through the App Store and billed to your Apple Account. It renews automatically unless cancelled at least 24 hours before the end of the current period, and can be managed or cancelled at any time in your device's App Store subscription settings. Apple handles the transaction; Tonemap never receives your payment details.</p>
-      <p>The two subscriptions are independent: an App Store subscription unlocks Pro in the iOS app, and a web subscription unlocks Pro at tonemap.live.</p>
+      <p><strong>In the Android app,</strong> the subscription is purchased through Google Play and billed to your Google Account. It renews automatically unless cancelled, and can be managed or cancelled at any time under Payments &amp; subscriptions in the Google Play Store app. Google handles the transaction; Tonemap never receives your payment details.</p>
+      <p>The three subscriptions are independent: an App Store subscription unlocks Pro in the iOS app, a Google Play subscription unlocks Pro in the Android app, and a web subscription unlocks Pro at tonemap.live.</p>
     </section>
 
     <section>
       <h2>4. Refund Policy</h2>
       <p>For subscriptions purchased on tonemap.live: if you are unsatisfied, contact us within 30 days of purchase for a full refund. Requests after 30 days are considered on a case-by-case basis. To request a refund, email <a href="mailto:support@tonemap.live">support@tonemap.live</a>.</p>
       <p>For subscriptions purchased through the App Store, refunds are handled by Apple. Request one at <a href="https://reportaproblem.apple.com" target="_blank" rel="noopener">reportaproblem.apple.com</a>.</p>
+      <p>For subscriptions purchased through Google Play, refunds are handled by Google under the <a href="https://support.google.com/googleplay/answer/2479637" target="_blank" rel="noopener">Google Play refund policy</a>. If Google declines a request, email <a href="mailto:support@tonemap.live">support@tonemap.live</a> and we will do our best to help.</p>
     </section>
 
     <section>
       <h2>5. Use of the Service</h2>
-      <p>Tonemap is provided for personal, educational, and professional music practice purposes. You may not redistribute or replicate the Service as your own product except as allowed by the MIT license. You are responsible for ensuring your device meets the requirements to use the Service (a modern browser, or an iPhone or iPad, with microphone access).</p>
+      <p>Tonemap is provided for personal, educational, and professional music practice purposes. You may not redistribute or replicate the Service as your own product except as the MIT License allows for the web version's source code (see section 7). You are responsible for ensuring your device meets the requirements to use the Service (a modern browser, an iPhone or iPad, or an Android device, with microphone access).</p>
     </section>
 
     <section id="privacy">
       <h2>6. Privacy &amp; Data</h2>
-      <p>Tonemap processes audio input locally on your device — in your browser using the Web Audio API on the web, and entirely on-device using Apple's audio frameworks in the iOS app. Audio and usage data is never transmitted to or stored on our servers.</p>
-      <p>Basic, anonymized page-view statistics may be collected on the tonemap.live website to understand how the tool is being used. The iOS app contains no analytics or tracking frameworks and collects no data. No personally identifiable information is collected from free-tier users, and no data is sold or shared with third parties. Web Pro subscribers provide an email address and payment information solely for billing purposes; this is handled by Polar in accordance with their <a href="https://polar.sh/privacy" target="_blank" rel="noopener">privacy policy</a>. App Store subscriptions are handled entirely by Apple; see <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple's privacy policy</a>.</p>
-      <p><strong>Authentication cookie (web app).</strong> When you activate a Tonemap Pro license on tonemap.live, a strictly necessary cookie named <code>tm_pro</code> is set in your browser. This cookie contains a cryptographically signed token that proves your device has an active Pro license — it does not contain your name, email address, or any other personally identifiable information. The cookie is required to serve Pro content; the server cannot verify your device's authorization without it. Because it is strictly necessary to deliver the service you explicitly requested, it does not require a separate consent prompt under GDPR, the ePrivacy Directive, or comparable regulations. Your license may be activated on up to five devices simultaneously; you can deactivate a device at any time from within the web app to free a slot. License keys apply to the web app; the iOS app uses App Store subscriptions and sets no such cookie. The cookie persists for up to one year and is refreshed automatically when your license is revalidated. Tonemap's server infrastructure runs on Cloudflare.</p>
+      <p>Tonemap processes audio input locally on your device — in your browser using the Web Audio API on the web, and entirely on-device using the platform's own audio frameworks in the iOS and Android apps. Audio and usage data is never transmitted to or stored on our servers.</p>
+      <p>Basic, anonymized page-view statistics may be collected on the tonemap.live website to understand how the tool is being used. The iOS and Android apps contain no analytics or tracking frameworks and collect no data. No personally identifiable information is collected from free-tier users, and no data is sold or shared with third parties. Web Pro subscribers provide an email address and payment information solely for billing purposes; this is handled by Polar in accordance with their <a href="https://polar.sh/privacy" target="_blank" rel="noopener">privacy policy</a>. App Store subscriptions are handled entirely by Apple; see <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple's privacy policy</a>. Google Play subscriptions are handled entirely by Google; see <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google's privacy policy</a>.</p>
+      <p><strong>Authentication cookie (web app).</strong> When you activate a Tonemap Pro license on tonemap.live, a strictly necessary cookie named <code>tm_pro</code> is set in your browser. This cookie contains a cryptographically signed token that proves your device has an active Pro license — it does not contain your name, email address, or any other personally identifiable information. The cookie is required to serve Pro content; the server cannot verify your device's authorization without it. Because it is strictly necessary to deliver the service you explicitly requested, it does not require a separate consent prompt under GDPR, the ePrivacy Directive, or comparable regulations. Your license may be activated on up to five devices simultaneously; you can deactivate a device at any time from within the web app to free a slot. License keys apply to the web app; the iOS and Android apps use App Store and Google Play subscriptions and set no such cookie. The cookie persists for up to one year and is refreshed automatically when your license is revalidated. Tonemap's server infrastructure runs on Cloudflare.</p>
     </section>
 
     <section>
-      <h2>7. Open Source License</h2>
-      <p>The Tonemap client-side source code is released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">MIT License</a>. You are free to use, copy, modify, merge, publish, distribute, sublicense, or sell copies of the software, subject to the following condition: the above copyright notice and this permission notice must be included in all copies or substantial portions of the software.</p>
-      <p>The MIT License applies to the software code itself. It does not grant any rights to the Tonemap name, logo, or tonemap.live domain, and does not entitle anyone to a Tonemap Pro subscription without purchase. The code being open is intentional: you can read exactly how Tonemap handles your microphone input and verify that nothing leaves your device.</p>
+      <h2>7. Open Source License (Web Version)</h2>
+      <p>The client-side source code of the Tonemap web app at tonemap.live is released under the <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener">MIT License</a>. You are free to use, copy, modify, merge, publish, distribute, sublicense, or sell copies of the software, subject to the following condition: the above copyright notice and this permission notice must be included in all copies or substantial portions of the software.</p>
+      <p>The MIT License applies to the software code itself. It does not grant any rights to the Tonemap name, logo, or tonemap.live domain, and does not entitle anyone to a Tonemap Pro subscription without purchase. The code being open is intentional: you can read exactly how the web app handles your microphone input and verify that nothing leaves your device.</p>
+      <p>The iOS and Android apps are not open source. Their source code is proprietary and is not covered by the MIT License; all rights reserved.</p>
     </section>
 
     <section>
@@ -205,7 +215,7 @@
     </section>
 
     <footer>
-      <p style="margin-bottom: 16px;"><a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a></p>
+      <p class="store-badges" style="margin-bottom: 16px;"><a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a><a class="appstore-badge" href="https://play.google.com/store/apps/details?id=com.eastendviolinstudio.tonemaptuner" target="_blank" rel="noopener"><img src="google-play-badge.svg" alt="Get Tonemap Tuner on Google Play" width="135" height="40"></a></p>
       <p>
         &copy; 2026 Tonemap&#8482; &nbsp;·&nbsp;
         <a href="/help.html">Help</a> &nbsp;·&nbsp;
