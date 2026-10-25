@@ -10,8 +10,8 @@
 <title>Tonemap — Free Real-Time Intonation Visualizer for Musicians</title>
 <meta name="description" content="Tonemap is a free real-time intonation visualizer for musicians. See your pitch tendencies mapped live in your browser — no app download required." />
 <link rel="canonical" href="https://tonemap.live/" />
-<link rel="icon" href="tonemapicon.png" type="image/png" />
-<link rel="apple-touch-icon" sizes="180x180" href="https://tonemap.live/tonemapiconios.png" />
+<link rel="icon" href="img/tonemapicon.png" type="image/png" />
+<link rel="apple-touch-icon" sizes="180x180" href="https://tonemap.live/img/tonemapiconios.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="VH App" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -19,14 +19,14 @@
 <meta property="og:title" content="Tonemap.Live" />
 <meta property="og:description" content="Real-time pitch and intonation visualization for musicians. Free, browser-based, no download required." />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="https://tonemap.live/tonemaplogo-fb.jpg" />
+<meta property="og:image" content="https://tonemap.live/img/tonemaplogo-fb.jpg" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Tonemap.Live" />
 <meta name="twitter:description" content="Real-time pitch and intonation visualization for musicians. Free, browser-based, no download required." />
-<meta name="twitter:image" content="https://tonemap.live/tonemaplogo-fb.jpg" />
+<meta name="twitter:image" content="https://tonemap.live/img/tonemaplogo-fb.jpg" />
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -4025,12 +4025,6 @@
 
 </style>
 
-<!-- Privacy-friendly analytics by Plausible -->
-<script async src="https://plausible.io/js/pa-X-Sn7Z904imPZY1JcRi2W.js"></script>
-<script>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-  plausible.init()
-</script>
 <script src="https://cdn.jsdelivr.net/npm/@polar-sh/checkout@latest/dist/embed.global.js" defer data-auto-init></script>
 </head>
 <body>
@@ -4130,7 +4124,7 @@
 
     <!-- Mini controls (landscape sidebar / portrait strip) -->
     <div class="mini-sidebar">
-      <img class="mini-logo" id="miniLogoBtn" src="tonemapicon.png" alt="Tonemap logo" title="Return to full sidebar" role="button" tabindex="0">
+      <img class="mini-logo" id="miniLogoBtn" src="img/tonemapicon.png" alt="Tonemap logo" title="Return to full sidebar" role="button" tabindex="0">
       <button class="mini-btn" id="miniMicBtn" type="button" title="Play/Pause listening [Space]">
         <span class="icon-micstate paused">▶</span>
       </button>
@@ -4148,7 +4142,7 @@
     <!-- Fixed header -->
     <div class="right-fixed">
       <div class="app-title">
-        <img id="mainLogoBtn" src="tonemaplogo-ui.jpg" alt="Tonemap.Live logo" style="cursor: pointer;" title="Collapse sidebar">
+        <img id="mainLogoBtn" src="img/tonemaplogo-ui.jpg" alt="Tonemap.Live logo" style="cursor: pointer;" title="Collapse sidebar">
       </div>
     </div>
 
@@ -4189,7 +4183,7 @@
         
         <div class="footer-line footer-cta">
           <button class="upgrade-pro-btn" type="button" data-open-pro-modal>Upgrade to <span class="pro-brand">★ Pro</span></button>
-          <a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a>
+          <a class="appstore-badge" href="https://apps.apple.com/us/app/tonemap-tuner/id6790179297" target="_blank" rel="noopener"><img src="img/app-store-badge.svg" alt="Download Tonemap Tuner on the App Store" width="120" height="40"></a>
         </div>
         <div class="footer-line">© 2026 | <a href="https://www.pittsburghsymphony.org/pso_home/biographies/musicians/black-jeremy">Jeremy Black</a><br><a href="https://www.eastendviolinstudio.com">East End Violin Studio</a> · <a href="/help.html" target="_blank" rel="noopener">Help</a> · <a href="/terms" target="_blank" rel="noopener">Terms</a></div>
       </div>
@@ -6212,7 +6206,7 @@
       const noteFill = uiTheme === "light" ? "%230f172a" : "white";
       if (noteViewActive) {
         // Note view is showing, display grid icon to toggle back to grid
-        icon.src = "grid-icon.png";
+        icon.src = "img/grid-icon.png";
         icon.alt = "Show grid";
         icon.classList.add("grid-mode");
       } else {

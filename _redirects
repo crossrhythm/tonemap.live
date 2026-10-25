@@ -1,1 +1,13 @@
 /test.html  /pro  302
+
+# Images moved to /img on 2026-10-25; keeps old links and the Pro KV copy working
+/tonemapicon.png  /img/tonemapicon.png  301
+/tonemapiconios.png  /img/tonemapiconios.png  301
+/grid-icon.png  /img/grid-icon.png  301
+/tonemaplogo-fb.jpg  /img/tonemaplogo-fb.jpg  301
+/tonemaplogo-fb-pro.jpg  /img/tonemaplogo-fb-pro.jpg  301
+/tonemaplogo-ios-ui.jpg  /img/tonemaplogo-ios-ui.jpg  301
+/tonemaplogo-ui.jpg  /img/tonemaplogo-ui.jpg  301
+/tonemaplogo-ui-pro.jpg  /img/tonemaplogo-ui-pro.jpg  301
+/app-store-badge.svg  /img/app-store-badge.svg  301
+/google-play-badge.svg  /img/google-play-badge.svg  301
