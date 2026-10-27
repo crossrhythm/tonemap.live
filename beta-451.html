@@ -3861,7 +3861,10 @@
 
   @media (max-width: 640px) {
     .options-grid {
-      grid-template-columns: 1fr;
+      /* minmax(0, ...) not 1fr: a bare 1fr can't shrink below its widest
+         control (the long Transposition select), which pushed the body
+         past the card's right padding on phones. */
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
